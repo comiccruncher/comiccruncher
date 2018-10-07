@@ -1,7 +1,7 @@
 version: 2
 workflows:
   version: 2
-  test-build-deploy:
+  vet-test-build-deploy:
     jobs:
       - vet_test_and_build:
           context: comiccruncher
@@ -10,7 +10,7 @@ workflows:
               only: /.*/
       - deploy_tasks:
           requires:
-            - test_and_build
+            - vet_test_and_build
           filters:
             tags:
               only: /^v.*/
@@ -18,7 +18,7 @@ workflows:
               ignore: /.*/
       - deploy_webapp:
           requires:
-            - test_and_build
+            - vet_test_and_build
           filters:
             tags:
               only: /^v.*/
