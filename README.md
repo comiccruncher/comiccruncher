@@ -1,4 +1,6 @@
-# Comic Cruncher
+# 💥 Comic Cruncher
+
+[![CircleCI](https://circleci.com/gh/aimeelaplant/comiccruncher.svg?style=svg)](https://circleci.com/gh/aimeelaplant/comiccruncher)
 
 This repository contains the backend code responsible for generating all the character and appearance data as well as serving the REST API for Comic Cruncher.
 
@@ -75,6 +77,8 @@ You can use `make docker-mockgen` or `make mockgen` (run `mockgen` locally) to r
 ## Deployment
 
 Deployment is janky: no Puppet, no Terraform, no Kubernetes -- 10's are for work! Jobs in `.circleci/config.yml` run the tests, build the application binaries, and pop the binaries directly onto the server...
+
+The latest tagged release is production (not master), so a CircleCI build that deploys to production is triggered any time a release occurs.
 
 ## Pull Requests
 
