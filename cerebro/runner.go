@@ -16,7 +16,7 @@ import (
 	"time"
 )
 
-// Basically a container to run the different imports for the commands here. Way cleaner than instantiating them
+// ImportRunner is basically a container to run the different imports for the commands here. Way cleaner than instantiating them
 // individually in each cmd struct.
 type ImportRunner struct {
 	marvelImporter          CharacterImporter
@@ -26,7 +26,7 @@ type ImportRunner struct {
 	characterSourceImporter CharacterSourceImporter
 }
 
-// Imports DC and Marvel characters.
+// Characters imports DC and Marvel characters.
 func (r *ImportRunner) Characters(publishers []string) error {
 	start := time.Now()
 	if len(publishers) == 0 || listutil.StringInSlice(publishers, "dc") {
@@ -63,30 +63,30 @@ func (r *ImportRunner) Characters(publishers []string) error {
 	return nil
 }
 
-// Imports character sources.
+// CharacterSources imports character sources.
 func (r *ImportRunner) CharacterSources(slugs []comic.CharacterSlug, isStrict bool) error {
 	return r.characterSourceImporter.Import(slugs, isStrict)
 }
 
-// Imports character issues and creates a sync log for each character that gets imported.
+//CharacterIssues imports character issues and creates a sync log for each character that gets imported.
 func (r *ImportRunner) CharacterIssues(slugs []comic.CharacterSlug) error {
 	return r.characterIssueImporter.ImportAll(slugs)
 }
 
-// Imports an existing character and existing sync log by their slug and sync log id.
+// CharacterIssuesWithCharacterAndLog imports an existing character and existing sync log by their slug and sync log id.
 func (r *ImportRunner) CharacterIssuesWithCharacterAndLog(slug comic.CharacterSlug, id comic.CharacterSyncLogID) error {
-	if character, err := r.pgContainer.CharacterRepository().FindBySlug(slug, false); err != nil {
+	character, err := r.pgContainer.CharacterRepository().FindBySlug(slug, false)
+	if err != nil {
 		return err
-	} else {
-		if syncLog, err := r.pgContainer.CharacterSyncLogRepository().FindById(id); err != nil {
-			return err
-		} else {
-			return r.characterIssueImporter.ImportWithSyncLog(*character, syncLog)
-		}
 	}
+	syncLog, err := r.pgContainer.CharacterSyncLogRepository().FindById(id)
+	if err != nil {
+		return err
+	}
+	return r.characterIssueImporter.ImportWithSyncLog(*character, syncLog)
 }
 
-// Returns a new import runner.
+// NewImportRunner returns a new import runner.
 func NewImportRunner() (*ImportRunner, error) {
 	db, err := pgo.Instance()
 	if err != nil {

@@ -25,17 +25,17 @@ const (
 
 var policy = bluemonday.UGCPolicy()
 
-// Represents a character from a remote source, such as the Marvel API.
+// ExternalCharacter represents a character from a remote source, such as the Marvel API.
 type ExternalCharacter struct {
 	Publisher    string
-	VendorId     string // The vendor's unique identifier of the external character.
+	VendorID     string // The vendor's unique identifier of the external character.
 	Name         string
 	Description  string
-	ThumbnailUrl string
-	Url          string
+	ThumbnailURL string
+	URL          string
 }
 
-// The base structure for importing a remote character to a repository.
+// importer is the base structure for importing a remote character to a repository.
 type importer struct {
 	publisherSvc comic.PublisherServicer
 	characterSvc comic.CharacterServicer
@@ -43,24 +43,24 @@ type importer struct {
 	logger       *zap.Logger
 }
 
-// The interface for importing characters.
+// CharacterImporter is the interface for importing characters.
 type CharacterImporter interface {
 	ImportAll() error
 }
 
-// Imports characters from the Marvel API into a local repository.
+// MarvelCharactersImporter imports characters from the Marvel API into a local repository.
 type MarvelCharactersImporter struct {
 	importer  *importer
-	marvelApi *marvel.API
+	marvelAPI *marvel.API
 }
 
-// Imports characters from the DC API to the local repository.
+// DcCharactersImporter imports characters from the DC API to the local repository.
 type DcCharactersImporter struct {
-	dcApi    *dc.Api
+	dcAPI    *dc.Api
 	importer *importer
 }
 
-// Represents the result of an import, with the `ExternalCharacter` being the external source
+// CharacterImportResult represents the result of an import, with the `ExternalCharacter` being the external source
 // and the `LocalCharacter` being the object that was imported from the external source.
 // An error could happen, so the `LocalCharacter` returns `nil` with an `Error` set if the character
 // wasn't imported.
@@ -70,17 +70,17 @@ type CharacterImportResult struct {
 	Error             error              // Returns an error if something bad happened.
 }
 
-// Creates a new character and sync log for the character.
+// createNewCharacter creates a new character and sync log for the character.
 func (importer *importer) createNewCharacter(ec ExternalCharacter, publisher comic.Publisher) (*comic.Character, error) {
 	vendorType, err := vendorType(ec)
 	if err != nil {
 		return nil, err
 	}
-	newChar := comic.NewCharacter(ec.Name, publisher.ID, vendorType, ec.VendorId)
+	newChar := comic.NewCharacter(ec.Name, publisher.ID, vendorType, ec.VendorID)
 	newChar.VendorDescription = ec.Description
-	newChar.VendorUrl = ec.Url
+	newChar.VendorUrl = ec.URL
 	if shouldUploadImage(ec) {
-		file, err := importer.storage.UploadFromRemote(ec.ThumbnailUrl, remoteImageDir)
+		file, err := importer.storage.UploadFromRemote(ec.ThumbnailURL, remoteImageDir)
 		if err != nil {
 			return nil, err
 		}
@@ -97,7 +97,7 @@ func (importer *importer) createNewCharacter(ec ExternalCharacter, publisher com
 	return newChar, nil
 }
 
-// Updates the character if any of the fields have changed and updates the sync log.
+// updateCharacter updates the character if any of the fields have changed and updates the sync log.
 // Returns a boolean indicating if the character was updated and an error, if any.
 func (importer importer) updateCharacter(ec ExternalCharacter, character *comic.Character) (bool, error) {
 	isUpdated := false
@@ -107,7 +107,7 @@ func (importer importer) updateCharacter(ec ExternalCharacter, character *comic.
 		isUpdated = true
 	}
 	if character.VendorImage == "" && shouldUploadImage(ec) {
-		ul, err := importer.storage.UploadFromRemote(ec.ThumbnailUrl, remoteImageDir)
+		ul, err := importer.storage.UploadFromRemote(ec.ThumbnailURL, remoteImageDir)
 		if err != nil {
 			return false, err
 		}
@@ -131,7 +131,7 @@ func (importer importer) updateCharacter(ec ExternalCharacter, character *comic.
 	return isUpdated, nil
 }
 
-// Import a single character into the persistence layer.
+// Import imports a single character into the persistence layer.
 // This method is responsible for the logic of importing a character into our persistence layer.
 // It either creates or updates a Marvel or DC character.
 func (importer *importer) Import(ec ExternalCharacter, publisher comic.Publisher) (*comic.Character, error) {
@@ -139,7 +139,7 @@ func (importer *importer) Import(ec ExternalCharacter, publisher comic.Publisher
 	if err != nil {
 		return nil, err
 	}
-	vendorID := ec.VendorId
+	vendorID := ec.VendorID
 	// Include disabled character so we don't import it again.
 	character, err := importer.characterSvc.CharacterByVendor(vendorID, vendorType, true)
 	if err != nil {
@@ -153,21 +153,20 @@ func (importer *importer) Import(ec ExternalCharacter, publisher comic.Publisher
 		// We do have the character, so update it.
 		if _, err := importer.updateCharacter(ec, character); err != nil {
 			return nil, err
-		} else {
-			return character, nil
 		}
+		return character, nil
 	} else {
 		importer.logger.Info("skipped disabled character", zap.String("character", character.Name))
 	}
 	return nil, nil
 }
 
-// Launches goroutines to import characters from the Marvel API.
+// ImportAll launches goroutines to import characters from the Marvel API.
 // Returns an error if there is a system error or an error fetching from the API.
 func (mci *MarvelCharactersImporter) ImportAll() error {
 	limit := 100
 	var wg sync.WaitGroup
-	totalCharacters, err := mci.marvelApi.TotalCharacters()
+	totalCharacters, err := mci.marvelAPI.TotalCharacters()
 	if err != nil {
 		return err
 	}
@@ -183,7 +182,7 @@ func (mci *MarvelCharactersImporter) ImportAll() error {
 		wg.Add(1)
 		go func(offset, limit int, wg *sync.WaitGroup, publisher *comic.Publisher) {
 			defer wg.Done()
-			resultWrapper, resultErr, err := mci.marvelApi.Characters(&marvel.Criteria{
+			resultWrapper, resultErr, err := mci.marvelAPI.Characters(&marvel.Criteria{
 				Limit:   limit,
 				Offset:  offset,
 				OrderBy: "name",
@@ -235,11 +234,11 @@ func (mci *MarvelCharactersImporter) ImportAll() error {
 	return nil
 }
 
-// Launches goroutines to import characters from the DC API.
+//ImportAll launches goroutines to import characters from the DC API.
 // Returns an error if there is a system error or an error fetching from the API.
 func (dci *DcCharactersImporter) ImportAll() error {
 	var wg sync.WaitGroup
-	totalCharacters, err := dci.dcApi.TotalCharacters()
+	totalCharacters, err := dci.dcAPI.TotalCharacters()
 	if err != nil {
 		return err
 	}
@@ -256,7 +255,7 @@ func (dci *DcCharactersImporter) ImportAll() error {
 		wg.Add(1)
 		go func(currentPageNumber int, wg *sync.WaitGroup, publisher *comic.Publisher) {
 			defer wg.Done()
-			result, err := dci.dcApi.FetchCharacters(currentPageNumber)
+			result, err := dci.dcAPI.FetchCharacters(currentPageNumber)
 			if err != nil {
 				dci.importer.logger.Error("error fetching characters from DC API", zap.Error(err))
 				return
@@ -281,16 +280,16 @@ func (dci *DcCharactersImporter) ImportAll() error {
 	return nil
 }
 
-// Returns an external character object from a Marvel character.
+// fromMarvelCharacter returns an external character object from a Marvel character.
 func fromMarvelCharacter(marvelCharacter *marvel.Character) ExternalCharacter {
 	ec := ExternalCharacter{
-		VendorId:    strconv.Itoa(marvelCharacter.ID),
+		VendorID:    strconv.Itoa(marvelCharacter.ID),
 		Name:        marvelCharacter.Name,
 		Description: html.UnescapeString(policy.Sanitize(strings.TrimSpace(marvelCharacter.Description))),
 		Publisher:   publisherMarvel,
 	}
 	if marvelCharacter.Thumbnail.Extension != "" && marvelCharacter.Thumbnail.Path != "" {
-		ec.ThumbnailUrl = fmt.Sprintf("%s.%s", marvelCharacter.Thumbnail.Path, marvelCharacter.Thumbnail.Extension)
+		ec.ThumbnailURL = fmt.Sprintf("%s.%s", marvelCharacter.Thumbnail.Path, marvelCharacter.Thumbnail.Extension)
 	}
 	for _, v := range marvelCharacter.Urls {
 		if v.Type != "detail" {
@@ -298,44 +297,44 @@ func fromMarvelCharacter(marvelCharacter *marvel.Character) ExternalCharacter {
 		}
 		questionMarkIndex := strings.LastIndex(v.Url, "?")
 		if questionMarkIndex != -1 {
-			ec.Url = strings.Replace(v.Url[:questionMarkIndex], "http", "https", -1)
+			ec.URL = strings.Replace(v.Url[:questionMarkIndex], "http", "https", -1)
 		} else {
-			ec.Url = strings.Replace(v.Url, "http", "https", -1)
+			ec.URL = strings.Replace(v.Url, "http", "https", -1)
 		}
 	}
 	return ec
 }
 
-// Returns an external character object from a DC character.
+// fromDcCharacter returns an external character object from a DC character.
 func fromDcCharacter(dcCharacter *dc.CharacterResult) ExternalCharacter {
 	ec := ExternalCharacter{
-		VendorId:  dcCharacter.Id,
+		VendorID:  dcCharacter.Id,
 		Name:      strings.TrimSpace(dcCharacter.Fields.Name),
 		Publisher: publisherDc,
-		Url:       fmt.Sprintf("%s%s", dc.ApiUrl, dcCharacter.Fields.Url),
+		URL:       fmt.Sprintf("%s%s", dc.ApiUrl, dcCharacter.Fields.Url),
 	}
 	if len(dcCharacter.Fields.Body) > 0 {
 		ec.Description = html.UnescapeString(policy.Sanitize(strings.TrimSpace(dcCharacter.Fields.Body[0])))
 	}
 	if len(dcCharacter.Fields.ProfilePicture) > 0 {
-		ec.ThumbnailUrl = dc.ApiUrl + dcCharacter.Fields.ProfilePicture[0]
+		ec.ThumbnailURL = dc.ApiUrl + dcCharacter.Fields.ProfilePicture[0]
 	}
 	return ec
 }
 
-// Determines whether we should upload the character photo or not.
+// shouldUploadImage determines whether we should upload the character photo or not.
 func shouldUploadImage(ec ExternalCharacter) bool {
-	if ec.Publisher == publisherMarvel && ec.ThumbnailUrl != "" &&
-		!strings.Contains(strings.ToLower(ec.ThumbnailUrl), "image_not_available") {
+	if ec.Publisher == publisherMarvel && ec.ThumbnailURL != "" &&
+		!strings.Contains(strings.ToLower(ec.ThumbnailURL), "image_not_available") {
 		return true
 	}
-	if ec.Publisher == publisherDc && ec.ThumbnailUrl != "" {
+	if ec.Publisher == publisherDc && ec.ThumbnailURL != "" {
 		return true
 	}
 	return false
 }
 
-// Determines the vendor type based on the external character.
+// vendorType determines the vendor type based on the external character.
 func vendorType(ec ExternalCharacter) (comic.VendorType, error) {
 	var vendorType comic.VendorType
 	if ec.Publisher == publisherMarvel {
@@ -343,14 +342,14 @@ func vendorType(ec ExternalCharacter) (comic.VendorType, error) {
 	} else if ec.Publisher == publisherDc {
 		vendorType = comic.VendorTypeDC
 	} else {
-		return vendorType, errors.New(fmt.Sprintf("unknown publisher %s", ec.Publisher))
+		return vendorType, fmt.Errorf("unknown publisher %s", ec.Publisher)
 	}
 	return vendorType, nil
 }
 
-// Returns a new instance of the Marvel character importer.
+// NewMarvelCharactersImporter returns a new instance of the Marvel character importer.
 func NewMarvelCharactersImporter(
-	marvelApi *marvel.API,
+	marvelAPI *marvel.API,
 	container *comic.PGRepositoryContainer,
 	storage storage.Storage) CharacterImporter {
 	importer := &importer{
@@ -360,14 +359,14 @@ func NewMarvelCharactersImporter(
 		logger:       log.MARVELIMPORTER(),
 	}
 	return &MarvelCharactersImporter{
-		marvelApi: marvelApi,
+		marvelAPI: marvelAPI,
 		importer:  importer,
 	}
 }
 
-// Returns a new instance of the DC character importer.
+// NewDcCharactersImporter returns a new instance of the DC character importer.
 func NewDcCharactersImporter(
-	dcApi *dc.Api,
+	dcAPI *dc.Api,
 	container *comic.PGRepositoryContainer,
 	storage storage.Storage) CharacterImporter {
 	importer := &importer{
@@ -377,7 +376,7 @@ func NewDcCharactersImporter(
 		logger:       log.DCIMPORTER(),
 	}
 	return &DcCharactersImporter{
-		dcApi:    dcApi,
+		dcAPI:    dcAPI,
 		importer: importer,
 	}
 }

@@ -20,10 +20,9 @@ func retryConnectionError(f func() (string, error)) error {
 			if isConnectionError(err) {
 				log.CEREBRO().Info("got connecting error. retrying.", zap.String("url", url))
 				return err
-			} else {
-				errCh <- err
-				return nil
 			}
+			errCh <- err
+			return nil
 		}
 		close(errCh)
 		return nil
