@@ -5,6 +5,11 @@ import (
 	"testing"
 )
 
+func TestHasAnyPrefix(t *testing.T) {
+	assert.True(t, HasAnyPrefix("test", "te", "t"))
+	assert.False(t, HasAnyPrefix("test", "Tes", "T"))
+}
+
 func TestHasAnyiPrefix(t *testing.T) {
 	s := "jEan Grey (sjdsfjsd)"
 	prefix := "Jean Grey"
@@ -28,4 +33,12 @@ func TestEqualsIAny(t *testing.T) {
 	assert.True(t, EqualsIAny("test string ", "another", " test string"))
 	assert.False(t, EqualsIAny("no ", "yess", " yesno"))
 	assert.True(t, EqualsIAny("dc ", "dc comics", " dc"))
+}
+
+func TestEmpty(t *testing.T) {
+	s := "m"
+	assert.False(t, Empty(&s))
+	e := ""
+	assert.True(t, Empty(&e))
+	assert.True(t, Empty(nil))
 }

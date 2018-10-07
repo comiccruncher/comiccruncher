@@ -31,3 +31,4 @@ ignore:
   - ".circleci"
   - ".github"
   - "messaging"
+  - "internal/mocks"

@@ -6,7 +6,7 @@ import (
 	"io"
 )
 
-// Returns the MD5 hash of a file. It's the caller's responsibility to close the reader or reset the seek.
+// MD5Hash returns the MD5 hash of a file. It's the caller's responsibility to close the reader or reset the seek.
 func MD5Hash(body io.Reader) (string, error) {
 	hash := md5.New()
 	if _, err := io.Copy(hash, body); err != nil {
