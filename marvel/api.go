@@ -109,7 +109,9 @@ func (api *API) Characters(criteria *Criteria) (*CharactersResultWrapper, *Error
 	q.Add("orderBy", criteria.OrderBy)
 	request.URL.RawQuery = q.Encode()
 	response, err := api.httpClient.Do(request)
-	defer response.Body.Close()
+	if response.Body != nil {
+		defer response.Body.Close()
+	}
 	if err != nil {
 		return apiResponse, nil, err
 	}

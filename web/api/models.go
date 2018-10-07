@@ -1,18 +1,18 @@
 package api
 
 import (
-	"github.com/aimeelaplant/comiccruncher/comic"
-	"os"
 	"encoding/json"
 	"fmt"
+	"github.com/aimeelaplant/comiccruncher/comic"
+	"os"
 )
 
 var cdnUrl = os.Getenv("CC_CDN_URL")
 
 // The character struct a character
 type Character struct {
-	comic.Character // just extend the character from the comic package
-	Appearances []comic.AppearancesByYears `json:"appearances"`
+	comic.Character                            // just extend the character from the comic package
+	Appearances     []comic.AppearancesByYears `json:"appearances"`
 }
 
 // Override the marshaling of JSON with presentation for CDN urls.
@@ -30,9 +30,9 @@ func (c *Character) MarshalJSON() ([]byte, error) {
 	})
 }
 
-func NewCharacter(character comic.Character, appearances []comic.AppearancesByYears) Character  {
-	c:=  Character{
-		Character: character,
+func NewCharacter(character comic.Character, appearances []comic.AppearancesByYears) Character {
+	c := Character{
+		Character:   character,
 		Appearances: appearances,
 	}
 

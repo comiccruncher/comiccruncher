@@ -14,10 +14,12 @@ import (
 	"strings"
 )
 
+// AlterEgoIdentifier is the struct for identifying an alter ego.
 type AlterEgoIdentifier struct {
 	httpClient   *http.Client
 	characterSvc comic.CharacterServicer
 }
+
 
 func (i *AlterEgoIdentifier) get(url string) (io.ReadCloser, error) {
 	resp, err := i.httpClient.Get(url)
@@ -92,7 +94,7 @@ func (i *AlterEgoIdentifier) parseMarvel(c comic.Character) (string, error) {
 	return realName, nil
 }
 
-// Gets the alter-ego name for a character.
+// Name gets the alter-ego name for a character.
 func (i *AlterEgoIdentifier) Name(c comic.Character) (string, error) {
 	if c.VendorUrl == "" {
 		return "", errors.New("empty vendor url")
@@ -108,48 +110,51 @@ func (i *AlterEgoIdentifier) Name(c comic.Character) (string, error) {
 	return realName, err
 }
 
+// AlterEgoImporter imports the alter ego as an other name for a character
 type AlterEgoImporter struct {
-	identifier          AlterEgoIdentifier
-	characterSvc        comic.CharacterServicer
+	identifier   AlterEgoIdentifier
+	characterSvc comic.CharacterServicer
 }
 
-// Imports a character's other_name by identifying a real name from an external source.
+// Import imports a character's other_name by identifying a real name from an external source.
 func (i *AlterEgoImporter) Import(slugs []comic.CharacterSlug) error {
-	if characters, err := i.characterSvc.Characters(slugs, 0, 0); err != nil {
-		return err
-	} else {
-		for _, c := range characters {
-			if c.OtherName != "" {
-				// If a character already has an other name, then don't change it.
-				continue
-			}
-			realName, err := i.identifier.Name(*c)
-			if err != nil {
-				return err
-			}
-			if realName == "" {
-				continue
-			}
-			var firstAndLastName string
-			// Find the middle name pattern
-			if matches := string(regexp.MustCompile(`( '(\w+)' )|( (\w+) )`).Find([]byte(realName))); matches != "" {
-				// Strip out the middle name
-				firstAndLastName = strings.Replace(realName, string(matches), " ", -1)
-			} else {
-				firstAndLastName = realName
-			}
-			// If the character's name isn't the same as the parsed first and last name...
-			if c.Name != firstAndLastName {
-				// Set the other name.
-				c.OtherName = firstAndLastName
-				log.CEREBRO().Info("other name for character", zap.String("character", c.Name), zap.String("other name", c.OtherName))
-			}
+	 characters, err := i.characterSvc.Characters(slugs, 0, 0)
+	 if err != nil {
+	 	return err
+	 }
+	for _, c := range characters {
+		if c.OtherName != "" {
+			// If a character already has an other name, then don't change it.
+			continue
 		}
-
-		return i.characterSvc.UpdateAll(characters)
+		realName, err := i.identifier.Name(*c)
+		if err != nil {
+			return err
+		}
+		if realName == "" {
+			continue
+		}
+		var firstAndLastName string
+		// Find the middle name pattern
+		if matches := string(regexp.MustCompile(`( '(\w+)' )|( (\w+) )`).Find([]byte(realName))); matches != "" {
+			// Strip out the middle name
+			firstAndLastName = strings.Replace(realName, string(matches), " ", -1)
+		} else {
+			firstAndLastName = realName
+		}
+		// If the character's name isn't the same as the parsed first and last name...
+		if c.Name != firstAndLastName {
+			// Set the other name.
+			c.OtherName = firstAndLastName
+			log.CEREBRO().Info("other name for character", zap.String("character", c.Name), zap.String("other name", c.OtherName))
+		}
 	}
+
+	return i.characterSvc.UpdateAll(characters)
+
 }
 
+// NewAlterEgoImporter creates a new alter ego importer.
 func NewAlterEgoImporter(container *comic.PGRepositoryContainer) *AlterEgoImporter {
 	svc := comic.NewCharacterService(container)
 	return &AlterEgoImporter{

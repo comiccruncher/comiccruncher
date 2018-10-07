@@ -11,9 +11,9 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"strings"
 	"time"
-	"strconv"
 )
 
 // Concurrency limit for fetching issues from an external source.
@@ -51,16 +51,16 @@ var (
 	}
 )
 
-// The importer for getting a character's issues from a character source.
+// CharacterIssueImporter is the importer for getting a character's issues from a character source.
 type CharacterIssueImporter struct {
-	appearanceSyncer         comic.Syncer
-	characterSvc             comic.CharacterServicer
-	issueSvc				 comic.IssueServicer
-	externalSource           externalissuesource.ExternalSource
-	logger                   *zap.Logger
+	appearanceSyncer comic.Syncer
+	characterSvc     comic.CharacterServicer
+	issueSvc         comic.IssueServicer
+	externalSource   externalissuesource.ExternalSource
+	logger           *zap.Logger
 }
 
-// This method does A LOT. It's for importing a character's issues with an existing sync log attached.
+// ImportWithSyncLog does A LOT. It's for importing a character's issues with an existing sync log attached.
 // Imports a character's issues from their character sources and polls an external source for issue information
 // and then persists the character's appearances to the db and Redis.
 // A channel is opened listening for a SIGINT if the caller quits the process.
@@ -123,14 +123,14 @@ func (i *CharacterIssueImporter) ImportWithSyncLog(character comic.Character, sy
 		for _, l := range page.IssueLinks {
 			idIndex := strings.Index(l, "=")
 			if idIndex != -1 {
-				vendorId := l[idIndex+1:]
-				vendorIdsMap[vendorId] = l
+				vendorID := l[idIndex+1:]
+				vendorIdsMap[vendorID] = l
 				// If it's a main source, then put it in the `mainSourcesMap` so we can reference it later as a main
 				// issue for a character. Note the vendor id can in both a main source or alternate source.
 				if source.IsMain {
-					mainSourcesMap[vendorId] = true
+					mainSourcesMap[vendorID] = true
 				} else {
-					altSourcesMap[vendorId] = true
+					altSourcesMap[vendorID] = true
 				}
 			}
 		}
@@ -239,7 +239,7 @@ func (i *CharacterIssueImporter) ImportWithSyncLog(character comic.Character, sy
 	return nil
 }
 
-// Imports characters from the specified slugs and creates the sync log for each character and sets it to PENDING,
+// ImportAll imports characters from the specified slugs and creates the sync log for each character and sets it to PENDING,
 // then sequentially imports the issues for the character.
 func (i *CharacterIssueImporter) ImportAll(slugs []comic.CharacterSlug) error {
 	characters, err := i.characterSvc.CharactersWithSources(slugs, 0, 0)
@@ -302,10 +302,10 @@ func (i *CharacterIssueImporter) updateSyncLog(cLog *comic.CharacterSyncLog, new
 	}
 }
 
-// Requests issue information from an external source link (the caller sends string to the `links`) and then converts the
+// requestIssues requests issue information from an external source link (the caller sends string to the `links`) and then converts the
 // external issue to our own model and sends it over to the `issues` chan (this method sends strings to the `issues` chan).
-func (i *CharacterIssueImporter) requestIssues(workerId int, links <-chan string, issues chan<- *comic.Issue) {
-	i.logger.Info("started worker", zap.Int("workerId", workerId))
+func (i *CharacterIssueImporter) requestIssues(workerID int, links <-chan string, issues chan<- *comic.Issue) {
+	i.logger.Info("started worker", zap.Int("workerId", workerID))
 	for l := range links {
 		externalIssueCh := make(chan *externalissuesource.Issue, 1)
 		retry.Do(func() error {
@@ -316,7 +316,7 @@ func (i *CharacterIssueImporter) requestIssues(workerId int, links <-chan string
 					i.logger.Info("got connection issue. retrying", zap.String("url", l), zap.Error(err))
 					return err
 				}
-				i.logger.Error("received error from external source", zap.Int("workerId", workerId), zap.String("link", l), zap.Error(err))
+				i.logger.Error("received error from external source", zap.Int("workerId", workerID), zap.String("link", l), zap.Error(err))
 				// Send a blank issue
 				issues <- &comic.Issue{}
 				// close the channel. won't send anymore.
@@ -347,12 +347,12 @@ func (i *CharacterIssueImporter) requestIssues(workerId int, links <-chan string
 				externalIssue.IsVariant,
 				externalIssue.MonthUncertain,
 				issueFormat)
-			i.logger.Info("finished job and worker", zap.String("url", l), zap.Int("workerId", workerId))
+			i.logger.Info("finished job and worker", zap.String("url", l), zap.Int("workerId", workerID))
 		}
 	}
 }
 
-// Requests a character source page and retries if there's a connection failure.
+// requestCharacterPage requests a character source page and retries if there's a connection failure.
 func (i *CharacterIssueImporter) requestCharacterPage(source string) (externalissuesource.CharacterPage, error) {
 	pageChan := make(chan *externalissuesource.CharacterPage, 1)
 	retry.Do(func() error {
@@ -375,13 +375,12 @@ func (i *CharacterIssueImporter) requestCharacterPage(source string) (externalis
 	}, retryDelay)
 	if page, ok := <-pageChan; ok {
 		return *page, nil
-	} else {
-		// return empty page
-		return externalissuesource.CharacterPage{}, errors.New("couldn't get the page")
 	}
+	// return empty page
+	return externalissuesource.CharacterPage{}, errors.New("couldn't get the page")
 }
 
-// Check that the issue should count as an issue appearance for the character.
+// isAppearance checks that the issue should count as an issue appearance for the character.
 func isAppearance(issue *comic.Issue, slug comic.PublisherSlug) bool {
 	if !issue.IsVariant && // it's not a variant
 		countsAsAppearance[issue.Format] && // the format counts as an appearance
@@ -395,7 +394,7 @@ func isAppearance(issue *comic.Issue, slug comic.PublisherSlug) bool {
 	return false
 }
 
-// Checks if the error is a connection-related error or not.
+// isConnectionError checks if the error is a connection-related error or not.
 func isConnectionError(err error) bool {
 	// 	Wish there was a better way to check the client time out error!
 	if strings.Contains(err.Error(), errClientTimeoutString) ||
@@ -407,16 +406,16 @@ func isConnectionError(err error) bool {
 	return false
 }
 
-// Creates a new character issue importer.
+// NewCharacterIssueImporter creates a new character issue importer.
 func NewCharacterIssueImporter(
 	container *comic.PGRepositoryContainer,
 	appearancesSyncer comic.Syncer,
 	externalSource externalissuesource.ExternalSource) *CharacterIssueImporter {
 	return &CharacterIssueImporter{
-		characterSvc: comic.NewCharacterService(container),
-		issueSvc:     comic.NewIssueService(container),
-		externalSource:           externalSource,
-		appearanceSyncer:         appearancesSyncer,
-		logger:                   log.CEREBRO(),
+		characterSvc:     comic.NewCharacterService(container),
+		issueSvc:         comic.NewIssueService(container),
+		externalSource:   externalSource,
+		appearanceSyncer: appearancesSyncer,
+		logger:           log.CEREBRO(),
 	}
 }

@@ -11,16 +11,16 @@ import (
 	"sync"
 )
 
-// Responsible for importing a characters' sources into a persistence layer.
+// CharacterSourceImporter is responsible for importing a characters' sources into a persistence layer.
 type CharacterSourceImporter struct {
-	httpClient                *http.Client
-	characterSvc              comic.CharacterServicer
-	externalSource            externalissuesource.ExternalSource
-	logger                    *zap.Logger
-	mu                        sync.Mutex
+	httpClient     *http.Client
+	characterSvc   comic.CharacterServicer
+	externalSource externalissuesource.ExternalSource
+	logger         *zap.Logger
+	mu             sync.Mutex
 }
 
-// Represents issue sources whose import was attempted and an error if an unexpected event occurred.
+// CharacterSourceImportItem represents issue sources whose import was attempted and an error if an unexpected event occurred.
 type CharacterSourceImportItem struct {
 	Source *comic.CharacterSource
 	Error  error
@@ -28,12 +28,11 @@ type CharacterSourceImportItem struct {
 
 // The search result from an external source with the local character and an error, if any.
 type characterSearchResult struct {
-	Character    *comic.Character
-	SearchResult externalissuesource.CharacterSearchResult
+	Character     *comic.Character
+	SearchResult  externalissuesource.CharacterSearchResult
 	SearchResults []externalissuesource.CharacterSearchResult
-	Error        error
+	Error         error
 }
-
 
 // Creates a source from a character and external link.
 func (i *CharacterSourceImporter) createIfNotExists(character *comic.Character, link externalissuesource.CharacterLink) (*comic.CharacterSource, error) {
@@ -116,14 +115,13 @@ func (i *CharacterSourceImporter) importSources(character *comic.Character, link
 	return nil
 }
 
-// Returns a search-friendly name for the external source and removes any parentheses and periods.
+// SearchableName returns a search-friendly name for the external source and removes any parentheses and periods.
 // If parensIndex is > -1, it will get the name within the parentheses.
 func SearchableName(s string, parensIndex int) string {
 	if parensIndex == -1 {
 		return strings.Replace(strings.Replace(strings.Replace(s, "(", "", -1), ")", "", -1), ".", "", -1)
-	} else {
-		return strings.Replace(s[parensIndex+1:strings.Index(s, ")")], ".", "", -1)
 	}
+	return strings.Replace(s[parensIndex+1:strings.Index(s, ")")], ".", "", -1)
 }
 
 // Searches for a name until there is no connection error.
@@ -161,7 +159,7 @@ func (i *CharacterSourceImporter) retrySearchByName(name string) (externalissues
 
 // Performs a search on a character received from the `characters` chan and sends the search result over to the `results` chan.
 // The caller of the method is responsible for closing the channels.
-func (i *CharacterSourceImporter) searchCharacter(workerId int, characters <-chan *comic.Character, results chan<- characterSearchResult) error {
+func (i *CharacterSourceImporter) searchCharacter(workerID int, characters <-chan *comic.Character, results chan<- characterSearchResult) error {
 	for c := range characters {
 		var searchName string
 		// if the name has a parentheses and it's a marvel character, we wanna search the name within the parens
@@ -191,7 +189,7 @@ func (i *CharacterSourceImporter) searchCharacter(workerId int, characters <-cha
 	return nil
 }
 
-// With the specified characte criteria, concurrently imports character sources from an external source.
+// Import with the specified character criteria, concurrently imports character sources from an external source.
 // If strict is set to true, it will import sources whose name _exactly_ matches the character's name (case insensitive).
 // Otherwise, it will import all sources that match the search result.
 func (i *CharacterSourceImporter) Import(slugs []comic.CharacterSlug, isStrict bool) error {
@@ -259,7 +257,7 @@ func (i *CharacterSourceImporter) Import(slugs []comic.CharacterSlug, isStrict b
 	return nil
 }
 
-// Parses the publisher name from the given string.
+// ParsePublisherName parses the publisher name from the given string.
 func ParsePublisherName(s string) string {
 	firstParen := strings.Index(s, "(")
 	secondParen := strings.Index(s, ")")
@@ -269,7 +267,7 @@ func ParsePublisherName(s string) string {
 	return ""
 }
 
-// Parses the character name from the given string.
+// ParseCharacterName parses the character name from the given string.
 func ParseCharacterName(s string) string {
 	// error here
 	firstParenIdx := strings.Index(s, "(")
@@ -279,7 +277,7 @@ func ParseCharacterName(s string) string {
 	return s
 }
 
-// Returns a new instance of the importer.
+// NewCharacterSourceImporter returns a new instance of the importer.
 func NewCharacterSourceImporter(
 	httpClient *http.Client,
 	container *comic.PGRepositoryContainer,

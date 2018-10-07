@@ -23,11 +23,11 @@ func TestLogger(t *testing.T) {
 func BenchmarkLogger(b *testing.B) {
 	ch := make(chan int, b.N)
 	for i := 0; i < b.N; i++ {
-		go func() {
+		go func(i int) {
 			Logger(Cerebro)
 			Logger(Web)
 			ch <- i
-		}()
+		}(i)
 	}
 	for i := 0; i < b.N; i++ {
 		fmt.Println(<-ch)

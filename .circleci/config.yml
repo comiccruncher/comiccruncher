@@ -1,16 +1,16 @@
 version: 2
 workflows:
   version: 2
-  test-build-deploy:
+  vet-test-build-deploy:
     jobs:
-      - test_and_build:
+      - vet_test_and_build:
           context: comiccruncher
           filters:
             tags:
               only: /.*/
       - deploy_tasks:
           requires:
-            - test_and_build
+            - vet_test_and_build
           filters:
             tags:
               only: /^v.*/
@@ -18,14 +18,14 @@ workflows:
               ignore: /.*/
       - deploy_webapp:
           requires:
-            - test_and_build
+            - vet_test_and_build
           filters:
             tags:
-              only: /.*/
+              only: /^v.*/
             branches:
               ignore: /.*/
 jobs:
-  test_and_build:
+  vet_test_and_build:
     machine: true
     steps:
       - checkout
@@ -38,6 +38,9 @@ jobs:
       - run:
           name: Install the dependencies.
           command: make docker-dep-ensure
+      - run:
+          name: Vet the files and report any errors.
+          command: make docker-vet
       - run:
           name: Run database migrations for the test db.
           command: make docker-migrations-test

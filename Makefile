@@ -26,6 +26,13 @@ WEBAPP_TMP_BIN = bin/webapp1
 # The path to the cerebro bin.
 CEREBRO_BIN = bin/cerebro
 
+# Locaton of the migrations cmd.
+MIGRATIONS_CMD = ./cmd/migrations/migrations.go
+# Location of the cerebro cmd.
+CEREBRO_CMD = ./cmd/cerebro/cerebro.go
+# Location of the web cmd.
+WEB_CMD = ./cmd/web/web.go
+
 # The username and location to the api server (that's also the tasks server for now).
 API_SERVER = root@142.93.52.234
 
@@ -34,7 +41,7 @@ API_SERVER = root@142.93.52.234
 netrc:
 	rm -rf .netrc && echo "machine github.com\nlogin $(GITHUB_ACCESS_TOKEN)" > .netrc && chmod 600 .netrc
 
-# docker-compse up!
+# Build the docker container.
 .PHONY: up
 docker-up:
 	docker-compose up -d --build --force-recreate
@@ -52,7 +59,7 @@ docker-logs:
 # Run the migrations for the test db.
 .PHONY: docker-migrations-test
 docker-migrations-test:
-	${DOCKER_RUN_TEST} go run cmd/migrations.go
+	${DOCKER_RUN_TEST} go run ${MIGRATIONS_CMD}
 
 # Create the containers for testing.
 .PHONY: docker-up-test
@@ -94,14 +101,26 @@ docker-dep-ensure:
 	${DOCKER_RUN} make dep-ensure
 
 # Format the files with `go fmt`.
+.PHONY: docker-format
+docker-format:
+	${DOCKER_RUN} make format
+
+# Format the files
 .PHONY: format
 format:
-	${DOCKER_RUN} go fmt $(shell go list ./...)
+	go fmt $(shell go list ./...)
 
-# Format the files with `go fmt`.
+# Vet the files in the Docker container.
+.PHONY: docker-vet
+docker-vet:
+	${DOCKER_RUN} make vet
+
+# Vet the files.
 .PHONY: vet
 vet:
-	${DOCKER_RUN} go vet $(shell go list ./...)
+	go vet $(shell go list ./...)
+
+# TODO: golint
 
 # Run the Docker redis-cli.
 .PHONY: redis-cli
@@ -121,12 +140,12 @@ docker-build-webapp-xcompile:
 # Builds the webapp binary.
 .PHONY: build-webapp
 build-webapp:
-	 go build -o ./bin/webapp ./cmd/web.go
+	 go build -o ./bin/webapp ${WEB_CMD}
 
 # Run the web application.
 .PHONY: web
 web:
-	go run -race cmd/web.go start -p 8001
+	go run -race ${WEB_CMD} start -p 8001
 
 # Run the web application in Docker container.
 .PHONY: docker-web
@@ -136,29 +155,29 @@ docker-web:
 # Docker run the migrations for the development database.
 .PHONY: docker-migrations
 docker-migrations:
-	${DOCKER_RUN} go run ./cmd/migrations.go
+	${DOCKER_RUN} go run ${MIGRATIONS_CMD}
 
 # Run the migrations for the development database.
 .PHONY: migrations
 migrations:
-	${GO_RUN_LOCAL} cmd/migrations.go
+	${GO_RUN_LOCAL} ${MIGRATIONS_CMD}
 
 .PHONY: import-characterissues
 import-characterissues:
-	${GO_RUN_LOCAL} cmd/cerebro.go import characterissues ${EXTRA_FLAGS}
+	${GO_RUN_LOCAL} ${CEREBRO_CMD} import characterissues ${EXTRA_FLAGS}
 
 .PHONY: import-charactersources
 import-charactersources:
-	${GO_RUN_LOCAL} cmd/cerebro.go import charactersources ${EXTRA_FLAGS}
+	${GO_RUN_LOCAL} ${CEREBRO_CMD} import charactersources ${EXTRA_FLAGS}
 
 .PHONY: import-charactersources
 start-characterissues:
-	${GO_RUN_LOCAL} cmd/cerebro.go start characterissues ${EXTRA_FLAGS}
+	${GO_RUN_LOCAL} ${CEREBRO_CMD} start characterissues ${EXTRA_FLAGS}
 
 # Runs the program for creating characters from the Marvel API.
 .PHONY: import-characters
 import-characters:
-	 ${GO_RUN_LOCAL} cmd/cerebro.go import characters ${EXTRA_FLAGS}
+	 ${GO_RUN_LOCAL} ${CEREBRO_CMD} import characters ${EXTRA_FLAGS}
 
 .PHONY: enqueue-characters
 enqueue-characters:
@@ -166,12 +185,12 @@ enqueue-characters:
 
 .PHONY: docker-import-characters
 docker-import-characters:
-	${DOCKER_RUN} go run -race cmd/cerebro.go import characters
+	${DOCKER_RUN} go run -race ${CEREBRO_CMD} import characters
 
-# Builds the binary for sending characters to the sync queue. The binary should be run about once per month.
+# Builds the binary for sending characters to the sync queue.
 .PHONY: build-queuecharacters
 build-enqueue:
-	go build -o bin/enqueue -v ./cmd/enqueue.go
+	go build -o bin/enqueue -v ./cmd/messaging/enqueue.go
 
 .PHONY: build-enqueue-xcompile
 build-enqueue-xcompile:
@@ -200,7 +219,7 @@ docker-mockgen:
 # Builds the migrations binary.
 .PHONY: build-migrations
 build-migrations:
-	go build -o ./bin/migrations -v ./cmd/migrations.go
+	go build -o ./bin/migrations -v ${MIGRATIONS_CMD}
 
 # Builds the migrations binary inside the Docker container.
 .PHONY: docker-build-migrations-xcompile
@@ -210,7 +229,7 @@ docker-build-migrations-xcompile:
 # Builds the cerebro binary.
 .PHONY: build-cerebro
 build-cerebro:
-	go build -o ./bin/cerebro -v ./cmd/cerebro.go
+	go build -o ./bin/cerebro -v ${CEREBRO_CMD}
 
 # Builds the cerebro binary inside the Docker container.
 .PHONY: docker-build-cerebro-xcompile

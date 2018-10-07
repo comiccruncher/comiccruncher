@@ -1,8 +1,8 @@
 package cerebro
 
 import (
-	"github.com/avast/retry-go"
 	"github.com/aimeelaplant/comiccruncher/internal/log"
+	"github.com/avast/retry-go"
 	"go.uber.org/zap"
 	"time"
 )
@@ -20,15 +20,14 @@ func retryConnectionError(f func() (string, error)) error {
 			if isConnectionError(err) {
 				log.CEREBRO().Info("got connecting error. retrying.", zap.String("url", url))
 				return err
-			} else {
-				errCh <- err
-				return nil
 			}
+			errCh <- err
+			return nil
 		}
 		close(errCh)
 		return nil
 	}, retryDelay)
-	if err, ok := <- errCh; ok {
+	if err, ok := <-errCh; ok {
 		close(errCh)
 		return err
 	}

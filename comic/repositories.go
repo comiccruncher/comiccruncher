@@ -125,7 +125,7 @@ type PGRepositoryContainer struct {
 	characterSourceRepository    CharacterSourceRepository
 	characterSyncLogRepository   CharacterSyncLogRepository
 	appearancesByYearsRepository *PGAppearancesByYearsRepository
-	statsRepository StatsRepository
+	statsRepository              StatsRepository
 }
 
 // PGYearlyAppearancesRepository
@@ -175,9 +175,9 @@ func (r *PGCharacterRepository) Update(c *Character) error {
 
 func (r *PGCharacterRepository) FindBySlug(slug CharacterSlug, includeIsDisabled bool) (*Character, error) {
 	if result, err := r.FindAll(CharacterCriteria{
-		Slugs: []CharacterSlug{slug},
+		Slugs:             []CharacterSlug{slug},
 		IncludeIsDisabled: includeIsDisabled,
-		Limit: 1}); err != nil {
+		Limit:             1}); err != nil {
 		return nil, err
 	} else if len(result) != 0 {
 		return result[0], nil
@@ -440,7 +440,6 @@ func (r *PGCharacterSyncLogRepository) FindById(id CharacterSyncLogID) (*Charact
 	}
 	return syncLog, nil
 }
-
 
 func (r *PGIssueRepository) Create(issue *Issue) error {
 	_, err := r.db.Model(issue).Returning("*").Insert(issue)
@@ -794,7 +793,6 @@ func NewPGRepositoryContainer(db *pg.DB) *PGRepositoryContainer {
 		characterSourceRepository:    NewPGCharacterSourceRepository(db),
 		characterIssueRepository:     NewPGCharacterIssueRepository(db),
 		appearancesByYearsRepository: NewPGAppearancesPerYearRepository(db),
-		statsRepository:			  NewPGStatsRepository(db),
+		statsRepository:              NewPGStatsRepository(db),
 	}
 }
-

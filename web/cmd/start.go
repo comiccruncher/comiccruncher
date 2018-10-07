@@ -1,13 +1,13 @@
 package cmd
 
 import (
-	"github.com/spf13/cobra"
 	"github.com/aimeelaplant/comiccruncher/comic"
+	"github.com/aimeelaplant/comiccruncher/internal/log"
+	"github.com/aimeelaplant/comiccruncher/internal/pgo"
 	"github.com/aimeelaplant/comiccruncher/internal/rediscache"
 	"github.com/aimeelaplant/comiccruncher/search"
 	"github.com/aimeelaplant/comiccruncher/web"
-	"github.com/aimeelaplant/comiccruncher/internal/pgo"
-	"github.com/aimeelaplant/comiccruncher/internal/log"
+	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 )
 
