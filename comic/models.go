@@ -139,7 +139,7 @@ type YearlyAggregate struct {
 
 // A publisher is an entity that publishes comics and characters.
 type Publisher struct {
-	tableName struct{}      `pg:",discard_unknown_columns" json:"-"`
+	tableName struct{}      `pg:",discard_unknown_columns"`
 	ID        PublisherID   `json:"-"`
 	Name      string        `json:"name" sql:",notnull"`
 	Slug      PublisherSlug `json:"slug" sql:",notnull,unique:uix_publisher_slug"`

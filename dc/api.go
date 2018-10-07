@@ -51,7 +51,9 @@ func (a *Api) FetchCharacters(pageNumber int) (*ApiResult, error) {
 	q.Add("page", fmt.Sprintf("%d", pageNumber))
 	request.URL.RawQuery = q.Encode()
 	response, err := a.httpClient.Do(request)
-	defer response.Body.Close()
+	if response.Body != nil {
+		defer response.Body.Close()
+	}
 	if err != nil {
 		return apiResponse, err
 	}
