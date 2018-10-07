@@ -3,19 +3,12 @@ package comic_test
 import (
 	"fmt"
 	"github.com/aimeelaplant/comiccruncher/comic"
-	"github.com/aimeelaplant/comiccruncher/internal/pgo"
 	"github.com/go-pg/pg/orm"
 	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
 	"time"
 )
-
-// The test database instance.
-var testInstance = pgo.MustInstanceTest()
-
-// The repository container with the injected db instance.
-var testContainer = comic.NewPGRepositoryContainer(testInstance)
 
 func must(_ orm.Result, err error) {
 	if err != nil {
