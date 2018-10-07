@@ -330,7 +330,8 @@ func (s *CharacterService) NormalizeSources(id CharacterID) error {
 			'%(Heroes Reborn)%',
 			'%Years of Future%',
 			'%newuniversal%',
-			'%spider-island%'
+			'%spider-island%',
+			'%Contest of Champions%'
 		]);`, id.Value())
 	if err != nil {
 		return err
@@ -363,8 +364,7 @@ func (s *CharacterService) NormalizeSources(id CharacterID) error {
 			'%Arrowverse%',
 			'%New Order%',
 			'%Wonder Woman ''77%',
-			'%One Million%',
-			'%Contest of Champions%',
+			'%One Million%'
 		  ]);`, id.Value())
 	return err
 }
