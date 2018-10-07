@@ -1,0 +1,88 @@
+version: 2
+workflows:
+  version: 2
+  test-build-deploy:
+    jobs:
+      - test_and_build:
+          context: comiccruncher
+          filters:
+            tags:
+              only: /.*/
+      - deploy_tasks:
+          requires:
+            - test_and_build
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
+      - deploy_webapp:
+          requires:
+            - test_and_build
+          filters:
+            tags:
+              only: /.*/
+            branches:
+              ignore: /.*/
+jobs:
+  test_and_build:
+    machine: true
+    steps:
+      - checkout
+      - run:
+          name: Build the test container.
+          command: make docker-up-test
+      - run:
+          name: Generate the .netrc file for getting the private repository.
+          command: GITHUB_ACCESS_TOKEN=${GITHUB_ACCESS_TOKEN} make netrc > /dev/null
+      - run:
+          name: Install the dependencies.
+          command: make docker-dep-ensure
+      - run:
+          name: Run database migrations for the test db.
+          command: make docker-migrations-test
+      - run:
+          name: Run the tests.
+          command: make docker-test
+      - run:
+          name: Cleanup netrc
+          command: rm .netrc
+      - run:
+          name: Build the build container.
+          command: make docker-up
+      - run:
+          name: Build the application binaries
+          command: make docker-build-xcompile
+      - save_cache:
+          key: bin-{{ .Branch }}-{{ .Revision }}
+          paths:
+            - "./bin"
+  deploy_tasks:
+    machine: true
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            -  bin-{{ .Branch }}-{{ .Revision }}
+      - add_ssh_keys:
+          fingerprints:
+            - "d3:5c:3f:5e:15:21:8f:1d:6c:e5:61:41:45:2a:82:16"
+      - run:
+          name: Deploy migrations.
+          command: make remote-deploy-migrations
+      - run:
+          name: Deploy cerebro.
+          command: make remote-deploy-cerebro
+  deploy_webapp:
+      machine: true
+      steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - bin-{{ .Branch }}-{{ .Revision }}
+      - add_ssh_keys:
+            fingerprints:
+              - "d3:5c:3f:5e:15:21:8f:1d:6c:e5:61:41:45:2a:82:16"
+      - run:
+            name: Deploy webapp.
+            command: make remote-deploy-webapp

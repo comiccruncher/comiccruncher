@@ -1,0 +1,4 @@
+marvel/testdata/* linguist-vendored=true
+dc/testdata/* linguist-vendored=true
+cerebro/testdata/* linguist-vendored=true
+vendor/* linguist-vendored=true
