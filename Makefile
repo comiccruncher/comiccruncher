@@ -120,6 +120,8 @@ docker-vet:
 vet:
 	go vet $(shell go list ./...)
 
+# TODO: golint
+
 # Run the Docker redis-cli.
 .PHONY: redis-cli
 docker-redis-cli:
