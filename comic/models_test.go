@@ -6,7 +6,6 @@ import (
 	"testing"
 )
 
-
 func TestNewCharacterSlugs(t *testing.T) {
 	slugs := []string{"a", "b", "c"}
 	assert.Len(t, comic.NewCharacterSlugs(slugs...), 3)

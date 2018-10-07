@@ -1,19 +1,19 @@
 package cerebro
 
 import (
-	"time"
+	"fmt"
+	"github.com/aimeelaplant/comiccruncher/comic"
+	"github.com/aimeelaplant/comiccruncher/dc"
 	"github.com/aimeelaplant/comiccruncher/internal/listutil"
 	"github.com/aimeelaplant/comiccruncher/internal/log"
-	"fmt"
-	"go.uber.org/zap"
-	"github.com/aimeelaplant/comiccruncher/comic"
 	"github.com/aimeelaplant/comiccruncher/internal/pgo"
-	"net/http"
-	"github.com/aimeelaplant/comiccruncher/storage"
 	"github.com/aimeelaplant/comiccruncher/internal/rediscache"
-	"github.com/aimeelaplant/externalissuesource"
 	"github.com/aimeelaplant/comiccruncher/marvel"
-	"github.com/aimeelaplant/comiccruncher/dc"
+	"github.com/aimeelaplant/comiccruncher/storage"
+	"github.com/aimeelaplant/externalissuesource"
+	"go.uber.org/zap"
+	"net/http"
+	"time"
 )
 
 // Basically a container to run the different imports for the commands here. Way cleaner than instantiating them
@@ -106,6 +106,6 @@ func NewImportRunner() (ImportRunner, error) {
 		dcImporter:              NewDcCharactersImporter(dc.NewDcApi(httpClient), container, s3Storage),
 		characterIssueImporter:  *NewCharacterIssueImporter(container, appearancesSyncer, externalSource),
 		characterSourceImporter: *NewCharacterSourceImporter(httpClient, container, externalSource),
-		pgContainer: *container,
+		pgContainer:             *container,
 	}, err
 }

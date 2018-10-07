@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"os"
 	"strconv"
 	"time"
-	"os"
 )
 
 // Vendor types for the characters and character sources.
@@ -198,18 +198,18 @@ type Character struct {
 
 // A model that contains external profile links to the character.
 type CharacterSource struct {
-	tableName   struct{}          `pg:",discard_unknown_columns"`
-	ID          CharacterSourceID `json:"id"`
-	Character   *Character        // Pointer. Could be nil. Not eager-loaded.
-	CharacterID CharacterID       `pg:",fk:character_id" sql:",notnull,unique:uix_character_id_vendor_url,on_delete:CASCADE" json:"character_id"`
-	VendorType  VendorType        `sql:",notnull,type:smallint" json:"type"`
-	VendorUrl   string            `sql:",notnull,unique:uix_character_id_vendor_url"`
-	VendorName  string            `sql:",notnull"`
+	tableName       struct{}          `pg:",discard_unknown_columns"`
+	ID              CharacterSourceID `json:"id"`
+	Character       *Character        // Pointer. Could be nil. Not eager-loaded.
+	CharacterID     CharacterID       `pg:",fk:character_id" sql:",notnull,unique:uix_character_id_vendor_url,on_delete:CASCADE" json:"character_id"`
+	VendorType      VendorType        `sql:",notnull,type:smallint" json:"type"`
+	VendorUrl       string            `sql:",notnull,unique:uix_character_id_vendor_url"`
+	VendorName      string            `sql:",notnull"`
 	VendorOtherName string
-	IsDisabled  bool              `sql:",notnull"`
-	IsMain      bool              `sql:",notnull"`
-	CreatedAt   time.Time         `sql:",default:NOW(),notnull" json:"-"`
-	UpdatedAt   time.Time         `sql:",notnull,default:NOW()" json:"-"`
+	IsDisabled      bool      `sql:",notnull"`
+	IsMain          bool      `sql:",notnull"`
+	CreatedAt       time.Time `sql:",default:NOW(),notnull" json:"-"`
+	UpdatedAt       time.Time `sql:",notnull,default:NOW()" json:"-"`
 }
 
 // Criteria for querying character sources.
@@ -352,7 +352,7 @@ func (slug PublisherSlug) Value() string {
 func (c *Character) MarshalJSON() ([]byte, error) {
 	strctImage := ""
 	if c.Image != "" {
-		strctImage =  fmt.Sprintf("%s/%s", cdnUrl, c.Image)
+		strctImage = fmt.Sprintf("%s/%s", cdnUrl, c.Image)
 	}
 	strctVendorImage := ""
 	if c.VendorImage != "" {
@@ -361,11 +361,11 @@ func (c *Character) MarshalJSON() ([]byte, error) {
 	type Alias Character
 	return json.Marshal(&struct {
 		*Alias
-		Image string `json:"image"`
+		Image       string `json:"image"`
 		VendorImage string `json:"vendor_image"`
 	}{
 		Alias:       (*Alias)(c),
-		Image: strctImage,
+		Image:       strctImage,
 		VendorImage: strctVendorImage,
 	})
 }

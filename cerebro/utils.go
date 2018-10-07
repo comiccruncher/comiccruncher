@@ -1,8 +1,8 @@
 package cerebro
 
 import (
-	"github.com/avast/retry-go"
 	"github.com/aimeelaplant/comiccruncher/internal/log"
+	"github.com/avast/retry-go"
 	"go.uber.org/zap"
 	"time"
 )
@@ -28,7 +28,7 @@ func retryConnectionError(f func() (string, error)) error {
 		close(errCh)
 		return nil
 	}, retryDelay)
-	if err, ok := <- errCh; ok {
+	if err, ok := <-errCh; ok {
 		close(errCh)
 		return err
 	}

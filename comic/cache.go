@@ -57,4 +57,3 @@ func NewAppearancesSyncer(container *PGRepositoryContainer, redisRepository *Red
 		redisAppearanceRepository: redisRepository,
 	}
 }
-

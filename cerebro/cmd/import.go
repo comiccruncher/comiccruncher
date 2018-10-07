@@ -1,12 +1,12 @@
 package cmd
 
 import (
+	"github.com/aimeelaplant/comiccruncher/cerebro"
 	"github.com/aimeelaplant/comiccruncher/comic"
 	"github.com/aimeelaplant/comiccruncher/internal/flagutil"
 	"github.com/aimeelaplant/comiccruncher/internal/log"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
-	"github.com/aimeelaplant/comiccruncher/cerebro"
 )
 
 // The import command.

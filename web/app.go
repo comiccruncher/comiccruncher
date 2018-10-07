@@ -2,12 +2,12 @@ package web
 
 import (
 	"github.com/aimeelaplant/comiccruncher/comic"
+	"github.com/aimeelaplant/comiccruncher/internal/log"
 	"github.com/aimeelaplant/comiccruncher/search"
 	"github.com/aimeelaplant/comiccruncher/web/api"
 	"github.com/labstack/echo"
-	"github.com/aimeelaplant/comiccruncher/internal/log"
-	"go.uber.org/zap"
 	"github.com/labstack/echo/middleware"
+	"go.uber.org/zap"
 )
 
 // The struct for the web app with echo and the controllers.

@@ -2,8 +2,8 @@ package comic
 
 import (
 	"errors"
-	"time"
 	"github.com/go-redis/redis"
+	"time"
 )
 
 var (
@@ -26,7 +26,7 @@ type IssueServicer interface {
 	Create(issue *Issue) error
 	// Creates an issue from parameters.
 	CreateP(
-		vendorID,vendorPublisher, vendorSeriesName, vendorSeriesNumber string,
+		vendorID, vendorPublisher, vendorSeriesName, vendorSeriesNumber string,
 		pubDate, saleDate time.Time,
 		isVariant, isMonthUncertain bool,
 		format Format) error
@@ -49,7 +49,7 @@ type CharacterServicer interface {
 	// Gets all the characters by the vendor. If `includeIsDisabled` is true, it will include disabled characters.
 	CharacterByVendor(vendorID string, vendorType VendorType, includeIsDisabled bool) (*Character, error)
 	// List characters alphabetically. If `filterSources` is true, it will only list characters with sources.
-	CharactersByPublisher(slugs []PublisherSlug, filterSources bool,  limit, offset int) ([]*Character, error)
+	CharactersByPublisher(slugs []PublisherSlug, filterSources bool, limit, offset int) ([]*Character, error)
 	// Creates a character source if it doesn't exist. If it exists, it returns the found source and an error.
 	// And also modifies `source` to get the found values.
 	CreateSourceIfNotExists(source *CharacterSource) (*CharacterSource, error)
@@ -105,10 +105,10 @@ type IssueService struct {
 
 // The service for characters.
 type CharacterService struct {
-	repository CharacterRepository
-	issueRepository CharacterIssueRepository
-	sourceRepository CharacterSourceRepository
-	syncLogRepository CharacterSyncLogRepository
+	repository            CharacterRepository
+	issueRepository       CharacterIssueRepository
+	sourceRepository      CharacterSourceRepository
+	syncLogRepository     CharacterSyncLogRepository
 	appearancesRepository AppearancesByYearsRepository
 }
 
@@ -120,8 +120,8 @@ func (s *PublisherService) Publisher(slug PublisherSlug) (*Publisher, error) {
 // Gets all the issues by their IDs. A `limit` of `0` means no limit.
 func (s *IssueService) Issues(ids []IssueID, limit, offset int) ([]*Issue, error) {
 	return s.repository.FindAll(IssueCriteria{
-		Ids: ids,
-		Limit: limit,
+		Ids:    ids,
+		Limit:  limit,
 		Offset: offset,
 	})
 }
@@ -130,10 +130,10 @@ func (s *IssueService) Issues(ids []IssueID, limit, offset int) ([]*Issue, error
 // A limit of `0` means no limit.
 func (s *IssueService) IssuesByVendor(ids []string, vendorType VendorType, limit, offset int) ([]*Issue, error) {
 	return s.repository.FindAll(IssueCriteria{
-		VendorIds: ids,
+		VendorIds:  ids,
 		VendorType: vendorType,
-		Limit: limit,
-		Offset: offset,
+		Limit:      limit,
+		Offset:     offset,
 	})
 }
 
@@ -181,11 +181,11 @@ func (s *CharacterService) UpdateAll(characters []*Character) error {
 // A `limit` of `0` means unlimited.
 func (s *CharacterService) CharactersWithSources(slugs []CharacterSlug, limit, offset int) ([]*Character, error) {
 	return s.repository.FindAll(CharacterCriteria{
-		Slugs: slugs,
+		Slugs:             slugs,
 		IncludeIsDisabled: false,
-		FilterSources: true,
-		Limit: limit,
-		Offset: offset,
+		FilterSources:     true,
+		Limit:             limit,
+		Offset:            offset,
 	})
 }
 
@@ -193,9 +193,9 @@ func (s *CharacterService) CharactersWithSources(slugs []CharacterSlug, limit, o
 // A `limit` of `0` means unlimited.
 func (s *CharacterService) Characters(slugs []CharacterSlug, limit, offset int) ([]*Character, error) {
 	return s.repository.FindAll(CharacterCriteria{
-		Slugs: slugs,
-		Limit: limit,
-		Offset: offset,
+		Slugs:             slugs,
+		Limit:             limit,
+		Offset:            offset,
 		IncludeIsDisabled: false,
 	})
 }
@@ -233,13 +233,13 @@ func (s *CharacterService) Sources(id CharacterID, vendorType VendorType, isMain
 		CharacterIDs:      []CharacterID{id},
 		IncludeIsDisabled: false, // Don't include sources that are disabled!
 		VendorType:        vendorType,
-		IsMain: isMain,
+		IsMain:            isMain,
 	})
 }
 
 // Normalize sources for main and alternate sources.
 func (s *CharacterService) NormalizeSources(id CharacterID) error {
-	err := s.sourceRepository.Raw( `
+	err := s.sourceRepository.Raw(`
 		UPDATE character_sources cs
 		SET is_main = TRUE	
 		FROM characters c
@@ -371,16 +371,16 @@ func (s *CharacterService) NormalizeSources(id CharacterID) error {
 
 // Gets the total number of sources for a character
 func (s *CharacterService) TotalSources(id CharacterID) (int64, error) {
-	return  s.repository.Total(CharacterCriteria{FilterSources: true, IDs: []CharacterID{id}})
+	return s.repository.Total(CharacterCriteria{FilterSources: true, IDs: []CharacterID{id}})
 }
 
 // Creates an issue from the parameters.
 func (s *CharacterService) CreateIssueP(characterID CharacterID, issueID IssueID, appearanceType AppearanceType, importance *Importance) (*CharacterIssue, error) {
 	issue := &CharacterIssue{
-		CharacterID: characterID,
-		IssueID: issueID,
+		CharacterID:    characterID,
+		IssueID:        issueID,
 		AppearanceType: appearanceType,
-		Importance: importance,
+		Importance:     importance,
 	}
 	err := s.issueRepository.Create(issue)
 	return issue, err
@@ -405,9 +405,9 @@ func (s *CharacterService) Issue(characterID CharacterID, issueID IssueID) (*Cha
 func (s *CharacterService) CreateSyncLogP(id CharacterID, status CharacterSyncLogStatus, syncType CharacterSyncLogType, syncedAt *time.Time) (*CharacterSyncLog, error) {
 	syncLog := &CharacterSyncLog{
 		CharacterID: id,
-		SyncStatus: status,
-		SyncType: syncType,
-		SyncedAt: syncedAt,
+		SyncStatus:  status,
+		SyncType:    syncType,
+		SyncedAt:    syncedAt,
 	}
 	err := s.syncLogRepository.Create(syncLog)
 	return syncLog, err
@@ -441,13 +441,13 @@ func (s *CharacterService) CharacterByVendor(vendorID string, vendorType VendorT
 }
 
 // Lists enabled characters by their publisher.
-func (s *CharacterService) CharactersByPublisher(slugs []PublisherSlug, filterSources bool,  limit, offset int) ([]*Character, error) {
+func (s *CharacterService) CharactersByPublisher(slugs []PublisherSlug, filterSources bool, limit, offset int) ([]*Character, error) {
 	return s.repository.FindAll(CharacterCriteria{
-		FilterSources: filterSources,
-		PublisherSlugs: slugs,
+		FilterSources:     filterSources,
+		PublisherSlugs:    slugs,
 		IncludeIsDisabled: false,
-		Limit: limit,
-		Offset: offset,
+		Limit:             limit,
+		Offset:            offset,
 	})
 }
 
@@ -463,7 +463,7 @@ func (s *CharacterService) AlternateAppearances(slug CharacterSlug) (Appearances
 
 // Lists the combination of main + alt appearances in one struct.
 func (s *CharacterService) BothAppearances(slug CharacterSlug) (AppearancesByYears, error) {
-	 return s.appearancesRepository.Both(slug)
+	return s.appearancesRepository.Both(slug)
 }
 
 // Lists both main and alternate appearances.
@@ -476,7 +476,7 @@ func (s *CharacterService) ListAppearances(slug CharacterSlug) ([]AppearancesByY
 	}
 	if alt, err := s.AlternateAppearances(slug); err != nil {
 		return nil, err
-	} else if alt.CharacterSlug != ""  {
+	} else if alt.CharacterSlug != "" {
 		apps = append(apps, alt)
 	}
 	return apps, nil
@@ -492,10 +492,10 @@ func NewPublisherService(container *PGRepositoryContainer) PublisherServicer {
 // Creates a new character service but with the appearances by years coming from postgres.
 func NewCharacterService(container *PGRepositoryContainer) CharacterServicer {
 	return &CharacterService{
-		repository: container.CharacterRepository(),
-		issueRepository: container.CharacterIssueRepository(),
-		sourceRepository: container.CharacterSourceRepository(),
-		syncLogRepository: container.CharacterSyncLogRepository(),
+		repository:            container.CharacterRepository(),
+		issueRepository:       container.CharacterIssueRepository(),
+		sourceRepository:      container.CharacterSourceRepository(),
+		syncLogRepository:     container.CharacterSyncLogRepository(),
 		appearancesRepository: container.AppearancesByYearsRepository(),
 	}
 }
@@ -503,10 +503,10 @@ func NewCharacterService(container *PGRepositoryContainer) CharacterServicer {
 // Creates a new character service but with the appearances by years coming from the Redis cache.
 func NewCharacterServiceWithCache(container *PGRepositoryContainer, redis *redis.Client) CharacterServicer {
 	return &CharacterService{
-		repository: container.CharacterRepository(),
-		issueRepository: container.CharacterIssueRepository(),
-		sourceRepository: container.CharacterSourceRepository(),
-		syncLogRepository: container.CharacterSyncLogRepository(),
+		repository:            container.CharacterRepository(),
+		issueRepository:       container.CharacterIssueRepository(),
+		sourceRepository:      container.CharacterSourceRepository(),
+		syncLogRepository:     container.CharacterSyncLogRepository(),
 		appearancesRepository: NewRedisAppearancesPerYearRepository(redis),
 	}
 }

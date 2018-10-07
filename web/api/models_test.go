@@ -1,11 +1,11 @@
 package api_test
 
 import (
-	"testing"
-	"github.com/aimeelaplant/comiccruncher/comic"
 	"encoding/json"
+	"github.com/aimeelaplant/comiccruncher/comic"
 	"github.com/aimeelaplant/comiccruncher/web/api"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func assertMapHasKey(t *testing.T, key string, m map[string]*json.RawMessage) {
@@ -21,15 +21,15 @@ func TestCharacter_MarshalJSON(t *testing.T) {
 				Name: "Aimee",
 				Slug: "aimee",
 			},
-			Image: "images/image1.jpg",
+			Image:       "images/image1.jpg",
 			VendorImage: "images/image.jpg",
-			Slug: "aimee",
+			Slug:        "aimee",
 		},
 		Appearances: []comic.AppearancesByYears{
 			{CharacterSlug: "aimee",
 				Category: comic.Main,
 				Aggregates: []comic.YearlyAggregate{
-					{Year: 2017, Count: 100,},
+					{Year: 2017, Count: 100},
 					{Year: 2018, Count: 100},
 				},
 			},

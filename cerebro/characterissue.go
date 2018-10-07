@@ -11,9 +11,9 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"strings"
 	"time"
-	"strconv"
 )
 
 // Concurrency limit for fetching issues from an external source.
@@ -53,11 +53,11 @@ var (
 
 // The importer for getting a character's issues from a character source.
 type CharacterIssueImporter struct {
-	appearanceSyncer         comic.Syncer
-	characterSvc             comic.CharacterServicer
-	issueSvc				 comic.IssueServicer
-	externalSource           externalissuesource.ExternalSource
-	logger                   *zap.Logger
+	appearanceSyncer comic.Syncer
+	characterSvc     comic.CharacterServicer
+	issueSvc         comic.IssueServicer
+	externalSource   externalissuesource.ExternalSource
+	logger           *zap.Logger
 }
 
 // This method does A LOT. It's for importing a character's issues with an existing sync log attached.
@@ -413,10 +413,10 @@ func NewCharacterIssueImporter(
 	appearancesSyncer comic.Syncer,
 	externalSource externalissuesource.ExternalSource) *CharacterIssueImporter {
 	return &CharacterIssueImporter{
-		characterSvc: comic.NewCharacterService(container),
-		issueSvc:     comic.NewIssueService(container),
-		externalSource:           externalSource,
-		appearanceSyncer:         appearancesSyncer,
-		logger:                   log.CEREBRO(),
+		characterSvc:     comic.NewCharacterService(container),
+		issueSvc:         comic.NewIssueService(container),
+		externalSource:   externalSource,
+		appearanceSyncer: appearancesSyncer,
+		logger:           log.CEREBRO(),
 	}
 }

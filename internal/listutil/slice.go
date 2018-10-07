@@ -10,7 +10,7 @@ func StringKeys(m map[string]string) []string {
 }
 
 // Checks if the string `s` is in the slice `strs`.
-func StringInSlice(strs[]string, s string) bool {
+func StringInSlice(strs []string, s string) bool {
 	for _, st := range strs {
 		if st == s {
 			return true
@@ -28,4 +28,3 @@ func StringInSliceWithFunc(strs []string, s string, f func(s string) string) boo
 	}
 	return false
 }
-

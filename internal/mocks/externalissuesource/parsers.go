@@ -5,10 +5,10 @@
 package mock_externalissuesource
 
 import (
-externalissuesource "github.com/aimeelaplant/externalissuesource"
-gomock "github.com/golang/mock/gomock"
-io "io"
-reflect "reflect"
+	externalissuesource "github.com/aimeelaplant/externalissuesource"
+	gomock "github.com/golang/mock/gomock"
+	io "io"
+	reflect "reflect"
 )
 
 // MockIssueParser is a mock of IssueParser interface

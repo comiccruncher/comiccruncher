@@ -13,11 +13,11 @@ import (
 
 // Responsible for importing a characters' sources into a persistence layer.
 type CharacterSourceImporter struct {
-	httpClient                *http.Client
-	characterSvc              comic.CharacterServicer
-	externalSource            externalissuesource.ExternalSource
-	logger                    *zap.Logger
-	mu                        sync.Mutex
+	httpClient     *http.Client
+	characterSvc   comic.CharacterServicer
+	externalSource externalissuesource.ExternalSource
+	logger         *zap.Logger
+	mu             sync.Mutex
 }
 
 // Represents issue sources whose import was attempted and an error if an unexpected event occurred.
@@ -28,12 +28,11 @@ type CharacterSourceImportItem struct {
 
 // The search result from an external source with the local character and an error, if any.
 type characterSearchResult struct {
-	Character    *comic.Character
-	SearchResult externalissuesource.CharacterSearchResult
+	Character     *comic.Character
+	SearchResult  externalissuesource.CharacterSearchResult
 	SearchResults []externalissuesource.CharacterSearchResult
-	Error        error
+	Error         error
 }
-
 
 // Creates a source from a character and external link.
 func (i *CharacterSourceImporter) createIfNotExists(character *comic.Character, link externalissuesource.CharacterLink) (*comic.CharacterSource, error) {

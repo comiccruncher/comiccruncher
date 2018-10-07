@@ -34,7 +34,7 @@ func TestAlterEgoIdentifier_Name_For_DC(t *testing.T) {
 	mockRepo.EXPECT().FindAll(gomock.Any()).Times(0)
 
 	identifier := AlterEgoIdentifier{
-		httpClient:                ts.Client(),
+		httpClient:   ts.Client(),
 		characterSvc: mockSvc,
 	}
 

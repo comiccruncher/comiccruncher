@@ -1,4 +1,4 @@
-	package comic_test
+package comic_test
 
 import (
 	"fmt"
@@ -13,6 +13,7 @@ import (
 
 // The test database instance.
 var testInstance = pgo.MustInstanceTest()
+
 // The repository container with the injected db instance.
 var testContainer = comic.NewPGRepositoryContainer(testInstance)
 
@@ -185,7 +186,7 @@ func TestCharacterSyncLogRepository_Update(t *testing.T) {
 	characterRepo := testContainer.CharacterRepository()
 	c, err := characterRepo.FindBySlug("emma-frost", true)
 	assert.Nil(t, err)
-		syncLogs, err := syncLogRepo.FindAllByCharacterId(c.ID)
+	syncLogs, err := syncLogRepo.FindAllByCharacterId(c.ID)
 	assert.Len(t, syncLogs, 1)
 	syncLog := syncLogs[0]
 	status := syncLog.SyncStatus
@@ -470,10 +471,9 @@ func TestPGCharacterSyncLogRepository_Create_and_Find(t *testing.T) {
 	assert.Equal(t, id, syncLog.ID)
 }
 
-
 func TestPGCharacterRepository_Total(t *testing.T) {
 	total, err := testContainer.CharacterRepository().Total(comic.CharacterCriteria{
-		IDs: []comic.CharacterID{1},
+		IDs:           []comic.CharacterID{1},
 		FilterSources: true,
 	})
 	assert.Nil(t, err)

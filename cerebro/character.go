@@ -37,10 +37,10 @@ type ExternalCharacter struct {
 
 // The base structure for importing a remote character to a repository.
 type importer struct {
-	publisherSvc        comic.PublisherServicer
-	characterSvc        comic.CharacterServicer
-	storage             storage.Storage
-	logger              *zap.Logger
+	publisherSvc comic.PublisherServicer
+	characterSvc comic.CharacterServicer
+	storage      storage.Storage
+	logger       *zap.Logger
 }
 
 // The interface for importing characters.
@@ -148,7 +148,7 @@ func (importer *importer) Import(ec ExternalCharacter, publisher comic.Publisher
 	// If we don't have the character
 	if character == nil {
 		// Create it ...
-		return  importer.createNewCharacter(ec, publisher)
+		return importer.createNewCharacter(ec, publisher)
 	} else if character.IsDisabled == false {
 		// We do have the character, so update it.
 		if _, err := importer.updateCharacter(ec, character); err != nil {
@@ -161,8 +161,6 @@ func (importer *importer) Import(ec ExternalCharacter, publisher comic.Publisher
 	}
 	return nil, nil
 }
-
-
 
 // Launches goroutines to import characters from the Marvel API.
 // Returns an error if there is a system error or an error fetching from the API.
@@ -358,8 +356,8 @@ func NewMarvelCharactersImporter(
 	importer := &importer{
 		publisherSvc: comic.NewPublisherService(container),
 		characterSvc: comic.NewCharacterService(container),
-		storage:             storage,
-		logger:              log.MARVELIMPORTER(),
+		storage:      storage,
+		logger:       log.MARVELIMPORTER(),
 	}
 	return &MarvelCharactersImporter{
 		marvelApi: marvelApi,
@@ -375,8 +373,8 @@ func NewDcCharactersImporter(
 	importer := &importer{
 		publisherSvc: comic.NewPublisherService(container),
 		characterSvc: comic.NewCharacterService(container),
-		storage:             storage,
-		logger:              log.DCIMPORTER(),
+		storage:      storage,
+		logger:       log.DCIMPORTER(),
 	}
 	return &DcCharactersImporter{
 		dcApi:    dcApi,

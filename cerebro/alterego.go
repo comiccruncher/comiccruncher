@@ -109,8 +109,8 @@ func (i *AlterEgoIdentifier) Name(c comic.Character) (string, error) {
 }
 
 type AlterEgoImporter struct {
-	identifier          AlterEgoIdentifier
-	characterSvc        comic.CharacterServicer
+	identifier   AlterEgoIdentifier
+	characterSvc comic.CharacterServicer
 }
 
 // Imports a character's other_name by identifying a real name from an external source.

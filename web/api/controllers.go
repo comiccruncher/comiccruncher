@@ -49,7 +49,7 @@ func (c SearchController) SearchCharacters(ctx echo.Context) error {
 
 // The character controller.
 type CharacterController struct {
-	characterSvc    comic.CharacterServicer
+	characterSvc comic.CharacterServicer
 }
 
 // Gets a character by its slug.
@@ -83,7 +83,7 @@ func (c CharacterController) Characters(ctx echo.Context) error {
 	if publisher != "" {
 		slugs = []comic.PublisherSlug{publisher}
 	}
-	results, err = c.characterSvc.CharactersByPublisher(slugs, true, 25+1, pageNumber * 25)
+	results, err = c.characterSvc.CharactersByPublisher(slugs, true, 25+1, pageNumber*25)
 	if err != nil {
 		return JSONServerError(ctx)
 	}
