@@ -52,7 +52,7 @@ jobs:
           command: rm .netrc
       - run:
           name: Code coverage
-          command: bash <(curl -s https://codecov.io/bash) -t ${CODECOV_TOKEN}
+          command: bash <(curl -s https://codecov.io/bash) -t ${CODECOV_TOKEN} -f coverage.txt
       - run:
           name: Build the build container.
           command: make docker-up
