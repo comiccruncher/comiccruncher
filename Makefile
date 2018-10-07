@@ -79,7 +79,7 @@ docker-stop-test:
 # Run the go tests in the docker container.
 .PHONY: docker-test
 docker-test:
-	${DOCKER_RUN_TEST} go test -v $(shell ${DOCKER_RUN_TEST} go list ./... | grep -v ./cmd)
+	${DOCKER_RUN_TEST} go test -v $(shell ${DOCKER_RUN_TEST} go list ./... | grep -v ./cmd) -coverprofile=coverage.txt
 
 # Just run the database tests.
 .PHONY: docker-test-db

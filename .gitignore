@@ -4,3 +4,4 @@ tmp
 .netrc
 build/docker/postgres/*
 build/docker/postgres-test/*
+coverage.txt
