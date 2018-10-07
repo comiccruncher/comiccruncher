@@ -1,6 +1,6 @@
 # 💥 Comic Cruncher
 
-[![CircleCI](https://circleci.com/gh/aimeelaplant/comiccruncher.svg?style=svg&circle-token=f3af6bb29cb3d0dbedf644094dc86cb21b2a552f)](https://circleci.com/gh/aimeelaplant/comiccruncher) [![codecov](https://codecov.io/gh/aimeelaplant/comiccruncher/branch/master/graph/badge.svg?token=nPlAJ6Wzct)](https://codecov.io/gh/aimeelaplant/comiccruncher)
+[![CircleCI](https://circleci.com/gh/aimeelaplant/comiccruncher.svg?style=shield&circle-token=f3af6bb29cb3d0dbedf644094dc86cb21b2a552f)](https://circleci.com/gh/aimeelaplant/comiccruncher)  ![api.comiccruncher.com](https://img.shields.io/website-up-down-green-red/http/shields.io.svg?label=api.comiccruncher.com) [![codecov](https://codecov.io/gh/aimeelaplant/comiccruncher/branch/master/graph/badge.svg?token=nPlAJ6Wzct)](https://codecov.io/gh/aimeelaplant/comiccruncher)
 
 
 This repository contains the backend code responsible for generating all the character and appearance data as well as serving the REST API for Comic Cruncher.
