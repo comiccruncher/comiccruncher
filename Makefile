@@ -34,7 +34,7 @@ API_SERVER = root@142.93.52.234
 netrc:
 	rm -rf .netrc && echo "machine github.com\nlogin $(GITHUB_ACCESS_TOKEN)" > .netrc && chmod 600 .netrc
 
-# docker-compse up!
+# Build the docker container.
 .PHONY: up
 docker-up:
 	docker-compose up -d --build --force-recreate
