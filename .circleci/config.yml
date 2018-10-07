@@ -30,6 +30,9 @@ jobs:
     steps:
       - checkout
       - run:
+          name: Code coverage
+          command: bash <(curl -s https://codecov.io/bash) -t ${CODECOV_TOKEN}
+      - run:
           name: Build the test container.
           command: make docker-up-test
       - run:
