@@ -12,22 +12,32 @@ var once sync.Once
 var loggers map[string]*zap.Logger
 var rw sync.RWMutex
 
-// The name type for a logger.
+// Name  is the name type for a logger.
 type Name string
 
+// Value gets the string value.
 func (n Name) Value() string {
 	return string(n)
 }
 
 const (
+	// DB is a logger name for db-related things.
 	DB                      Name = "db"
+	// Cerebro is the logger name for cerebro-related.
 	Cerebro                 Name = "cerebro"
+	// DCCharacterImporter is the logger name for importing dc stuff.
 	DCCharacterImporter     Name = "dccharacterimporter"
+	// MarvelCharacterImporter is the logge rname for importing marvel stuff.
 	MarvelCharacterImporter Name = "marvelcharacterimporter"
+	// Queue is the logger for queuing stuff.
 	Queue                   Name = "charactersyncqueue"
+	// Web is the logger for web-related stuff.
 	Web                     Name = "web"
+	// Migrations is the logger for migration-related stuff.
 	Migrations              Name = "migrations"
+	// Comic is the logger for comic package stuff.
 	Comic                   Name = "comic"
+	// Messaging is the logger for messaging stuff.
 	Messaging               Name = "messaging"
 )
 
@@ -54,7 +64,7 @@ func loggerfromEnv(name string) *zap.Logger {
 	}
 }
 
-// Safely gets a logger from a name (concurrent-safe).
+// Logger safely gets a logger from a name (concurrent-safe).
 func Logger(name Name) *zap.Logger {
 	once.Do(func() {
 		loggers = make(map[string]*zap.Logger)
@@ -70,47 +80,47 @@ func Logger(name Name) *zap.Logger {
 	return logger
 }
 
-// A method for getting the DB logger.
+// Db is a method for getting the DB logger.
 func Db() *zap.Logger {
 	return Logger(DB)
 }
 
-// A method for getting the Cerebro logger.
+// CEREBRO is a method for getting the Cerebro logger.
 func CEREBRO() *zap.Logger {
 	return Logger(Cerebro)
 }
 
-// A method for getting the Web logger.
+// WEB is a method for getting the Web logger.
 func WEB() *zap.Logger {
 	return Logger(Web)
 }
 
-// A method for getting the Migrations logger.
+// MIGRATIONS is a method for getting the Migrations logger.
 func MIGRATIONS() *zap.Logger {
 	return Logger(Migrations)
 }
 
-// A method for getting the DC character importer logger.
+// DCIMPORTER is a method for getting the DC character importer logger.
 func DCIMPORTER() *zap.Logger {
 	return Logger(DCCharacterImporter)
 }
 
-// A method for getting the Marvel character importer logger.
+// MARVELIMPORTER is a method for getting the Marvel character importer logger.
 func MARVELIMPORTER() *zap.Logger {
 	return Logger(MarvelCharacterImporter)
 }
 
-// A method for getting the queue logger.
+// QUEUE is a method for getting the queue logger.
 func QUEUE() *zap.Logger {
 	return Logger(Queue)
 }
 
-// A method for getting the comic logger.
+// COMIC is a method for getting the comic logger.
 func COMIC() *zap.Logger {
 	return Logger(Comic)
 }
 
-// A method for getting the messaging logger.
+// MESSAGING is a method for getting the messaging logger.
 func MESSAGING() *zap.Logger {
 	return Logger(Messaging)
 }
