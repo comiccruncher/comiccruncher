@@ -6,7 +6,7 @@
 
 This repository contains the backend code responsible for generating all the character and appearance data as well as serving the REST API for Comic Cruncher.
 
-Comic Cruncher started as an idea from my old Emma Frost site that ranks the character's appearances per year (you can check her graph [here](https://emmafrostfiles.com/comics/)). I was curious what the graphs of other characters looked like, so I ran a small Go script on my computer, and then it turned into this huge thing ... so, here's the code for all who are curious.
+Comic Cruncher started as an idea from my old Emma Frost site that ranks the character's appearances per year (you can check her graph [here](https://i.imgur.com/5SVxu46.png)). I was curious what the graphs of other characters looked like, so I ran a small Go script on my computer, and then it turned into this huge thing ... so, here's the code for all who are curious.
 
 The purpose of open sourcing this is more for show and tell  💅, and there is a private dependency required to use some of the packages, so don't expect this to work out of the box.
 
