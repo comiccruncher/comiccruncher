@@ -1,4 +1,4 @@
-package api
+package web
 
 import (
 	"github.com/labstack/echo"
@@ -59,6 +59,18 @@ func JSONListViewOK(ctx echo.Context, data []interface{}, itemsPerPage int) erro
 		return ctx.JSONPretty(http.StatusOK, NewListViewOK(data[:len(data)-1], pagination), "  ")
 	}
 	return ctx.JSONPretty(http.StatusOK, NewListViewOK(data, pagination), "  ")
+}
+
+// JSONDetailViewUnauthorized returns a detail view for unauthorized requests.
+func JSONDetailViewUnauthorized(ctx echo.Context) error {
+	return ctx.JSONPretty(http.StatusUnauthorized, NewDetailViewUnauthorized("Invalid credentials"), "  ")
+}
+
+// NewDetailViewUnauthorized creates a new detail view for unauthorized.
+func NewDetailViewUnauthorized(message string) DetailView {
+	dv := DetailView{}
+	dv.Meta = Meta{StatusCode: http.StatusUnauthorized, Error: &message}
+	return dv
 }
 
 // Creates a new detail view with a bad request.

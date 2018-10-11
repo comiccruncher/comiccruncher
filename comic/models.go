@@ -166,7 +166,7 @@ type Issue struct {
 	VendorSeriesName   string     `sql:",notnull"`
 	VendorSeriesNumber string     `sql:",notnull"`
 	// IsReprint means the issue is a full reprint with no original story. (So something like Classic X-Men 7 would not count).
-	IsReprint          bool
+	IsReprint          bool		  `sql:"default:false,notnull"`
 	VendorType         VendorType `sql:",notnull,unique:uix_vendor_type_vendor_id,type:smallint"`
 	VendorID           string     `sql:",notnull,unique:uix_vendor_type_vendor_id"`
 	CreatedAt          time.Time  `sql:",notnull,default:NOW()" json:"-"`

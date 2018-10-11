@@ -1,9 +1,8 @@
-package api_test
+package web
 
 import (
 	"encoding/json"
 	"github.com/aimeelaplant/comiccruncher/comic"
-	"github.com/aimeelaplant/comiccruncher/web/api"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -14,7 +13,7 @@ func assertMapHasKey(t *testing.T, key string, m map[string]*json.RawMessage) {
 }
 
 func TestCharacter_MarshalJSON(t *testing.T) {
-	character := api.Character{
+	character := Character{
 		Character: comic.Character{
 			Name: "Aimee",
 			Publisher: comic.Publisher{
