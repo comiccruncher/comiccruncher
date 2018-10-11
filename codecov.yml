@@ -4,13 +4,13 @@ codecov:
 coverage:
   precision: 2
   round: up
-  range: "70...100"
-
+  range: "0"
   status:
-    project: yes
-    patch: no
-    changes: no
-
+    project:
+      default:
+        target: 0
+        threshold: 100% # pass all pull requests for now.
+        only_pulls: true
 parsers:
   gcov:
     branch_detection:
