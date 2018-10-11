@@ -107,6 +107,11 @@ func main() {
 			ALTER TABLE IF EXISTS character_sources
   			ADD COLUMN IF NOT EXISTS vendor_other_name text NULL
 		`))
+		// gonna have to add a default here. don't want to deal with null boolean values!
+		fatalResult(tx.Exec(`
+			ALTER TABLE IF EXISTS issues
+			ADD COLUMN IF NOT EXISTS is_reprint bool NOT NULL DEFAULT FALSE
+		`))
 		if os.Getenv("CC_ENVIRONMENT") != "test" {
 			fatalResult(tx.Exec("INSERT INTO publishers (name, slug, created_at, updated_at) VALUES (?, ?, now(), now()) ON CONFLICT DO NOTHING;", "Marvel", "marvel"))
 			fatalResult(tx.Exec("INSERT INTO publishers (name, slug, created_at, updated_at) VALUES (?, ?, now(), now()) ON CONFLICT DO NOTHING;", "DC Comics", "dc"))

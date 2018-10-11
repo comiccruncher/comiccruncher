@@ -31,41 +31,47 @@ const (
 	FormatDigitalMedia Format = "digital"
 	FormatMiniComic    Format = "mini"
 	FormatFlipbook     Format = "flipbook"
+	FormatPrestige	   Format = "prestige"
 	FormatOther        Format = "other"
 )
 
 // The types of appearances for a character issue.
+// Bitwise values to represent appearance types.
 const (
-	// Bitwise values to represent appearance types.
+	// Main is their main universe(s)
 	Main      AppearanceType = 1 << 0
+	// Alternate is an alternate reality appearance or whatever.
 	Alternate AppearanceType = 1 << 1
 )
 
 // Consts for a later feature.
+// The available importance types.
 const (
-	// The available importance types.
+	// Cameo - they just make a cameo appearance
 	Cameo Importance = iota + 1
+	// Minor - meh, minor
 	Minor
+	// Major  character in issue
 	Major
 )
 
 // Constants for character sync log types.
 const (
-	// The syncing for yearly appearances.
+	// YearlyAppearances is the syncing for yearly appearances.
 	YearlyAppearances CharacterSyncLogType = iota + 1
-	// The syncing for characters.
+	// Characters is the syncing for characters.
 	Characters
 )
 
 // Constants for character sync log statuses.
 const (
-	// When a sync is pending and waiting in the queue.
+	// Pending - when a sync is pending and waiting in the queue.
 	Pending CharacterSyncLogStatus = iota + 1
-	// When a sync is currently in progress and tallying appearances.
+	// InProgress - when a sync is currently in progress and tallying appearances.
 	InProgress
-	// When a sync failed.
+	// Fail - when a sync failed.
 	Fail
-	// When a sync succeeded.
+	// Success - when a sync succeeded.
 	Success
 )
 
@@ -78,66 +84,66 @@ var categoryToString = map[AppearanceType]string{
 
 var cdnUrl = os.Getenv("CC_CDN_URL")
 
-// The PK identifier for the publisher.
+// PublisherID is the PK identifier for the publisher.
 type PublisherID uint
 
-// The unique string identifier for the publisher.
+// PublisherSlug is the unique string identifier for the publisher.
 type PublisherSlug string
 
-// The PK identifier for the issue.
+// IssueID is the PK identifier for the issue.
 type IssueID uint
 
-// The PK identifier for the character.
+// CharacterID is the PK identifier for the character.
 type CharacterID uint
 
-// The unique slug for the character.
+// CharacterSlug is the unique slug for the character.
 type CharacterSlug string
 
-// The PK identifier for a character issue.
+// CharacterIssueID is the PK identifier for a character issue.
 type CharacterIssueID uint
 
-// The PK identifier for the character source struct.
+// CharacterSourceID is the PK identifier for the character source struct.
 type CharacterSourceID uint
 
-// The PK identifier for character sync logs.
+// CharacterSyncLogID is the PK identifier for character sync logs.
 type CharacterSyncLogID uint
 
-// The type of sync that occurred for the character.
+// CharacterSyncLogType is the type of sync that occurred for the character.
 type CharacterSyncLogType int
 
-// The status of the sync.
+// CharacterSyncLogStatus is the status of the sync.
 type CharacterSyncLogStatus int
 
-// The format for the issue.
+// Format is the format for the issue.
 type Format string
 
-// A type of vendor from an external source for an issue or ____ TODO.
+// VendorType is type of vendor from an external source for an issue or ____ TODO.
 type VendorType int
 
-// A type of appearance, such as an alternate universe or main character appearance.
+// AppearanceType is a type of appearance, such as an alternate universe or main character appearance.
 // A bitwise enum representing the types of appearances.
 // Main is 001
 // Alternate is 100
 // Both Main and Alternate would be 101 so: `Main | Alternate`
 type AppearanceType uint8
 
-// For a later feature -- ranks a character issue by the character's importance in the issue.
+// Importance -- for a later feature -- ranks a character issue by the character's importance in the issue.
 type Importance int
 
-// Represents the key, category, and appearances categorized per year for a character.
+// AppearancesByYears represents the key, category, and appearances categorized per year for a character.
 type AppearancesByYears struct {
 	CharacterSlug CharacterSlug     `json:"slug"` // The unique identifier for the character.
 	Category      AppearanceType    `json:"category"`
 	Aggregates    []YearlyAggregate `json:"aggregates"`
 }
 
-// The aggregated year and count of an appearance for that year.
+// YearlyAggregate is the aggregated year and count of an appearance for that year.
 type YearlyAggregate struct {
 	Year  int `json:"year"`
 	Count int `json:"count"`
 }
 
-// A publisher is an entity that publishes comics and characters.
+// Publisher is a publisher is an entity that publishes comics and characters.
 type Publisher struct {
 	tableName struct{}      `pg:",discard_unknown_columns"`
 	ID        PublisherID   `json:"-"`
@@ -147,7 +153,7 @@ type Publisher struct {
 	UpdatedAt time.Time     `sql:",notnull,default:NOW()" json:"-"`
 }
 
-// An issue with details about its publication and on sale dates.
+// Issue is an issue with details about its publication and on sale dates.
 type Issue struct {
 	tableName          struct{} `pg:",discard_unknown_columns"`
 	ID                 IssueID
@@ -159,22 +165,25 @@ type Issue struct {
 	VendorPublisher    string     `sql:",notnull"`
 	VendorSeriesName   string     `sql:",notnull"`
 	VendorSeriesNumber string     `sql:",notnull"`
+	// IsReprint means the issue is a full reprint with no original story. (So something like Classic X-Men 7 would not count).
+	IsReprint          bool
 	VendorType         VendorType `sql:",notnull,unique:uix_vendor_type_vendor_id,type:smallint"`
 	VendorID           string     `sql:",notnull,unique:uix_vendor_type_vendor_id"`
 	CreatedAt          time.Time  `sql:",notnull,default:NOW()" json:"-"`
 	UpdatedAt          time.Time  `sql:",notnull,default:NOW()" json:"-"`
 }
 
-// Criteria for querying issues.
+// IssueCriteria for querying issues.
 type IssueCriteria struct {
 	Ids        []IssueID
 	VendorIds  []string
 	VendorType VendorType
+	Formats    []Format
 	Limit      int
 	Offset     int
 }
 
-// A model for a character.
+// Character - A model for a character.
 type Character struct {
 	tableName         struct{}      `pg:",discard_unknown_columns"`
 	ID                CharacterID   `json:"-"`
@@ -196,7 +205,7 @@ type Character struct {
 	UpdatedAt         time.Time     `sql:",notnull,default:NOW()" json:"-"`
 }
 
-// A model that contains external profile links to the character.
+// CharacterSource contains external profile links to the character.
 type CharacterSource struct {
 	tableName       struct{}          `pg:",discard_unknown_columns"`
 	ID              CharacterSourceID `json:"id"`
@@ -212,7 +221,7 @@ type CharacterSource struct {
 	UpdatedAt       time.Time `sql:",notnull,default:NOW()" json:"-"`
 }
 
-// Criteria for querying character sources.
+// CharacterSourceCriteria for querying character sources.
 type CharacterSourceCriteria struct {
 	CharacterIDs []CharacterID
 	VendorUrls   []string
@@ -225,7 +234,7 @@ type CharacterSourceCriteria struct {
 	Offset            int
 }
 
-// A model that contains information pertaining to syncs for the character.
+// CharacterSyncLog contains information pertaining to syncs for the character.
 type CharacterSyncLog struct {
 	tableName   struct{}               `pg:",discard_unknown_columns"`
 	ID          CharacterSyncLogID     `json:"id"`
@@ -239,7 +248,7 @@ type CharacterSyncLog struct {
 	UpdatedAt   time.Time   `sql:",notnull,default:NOW()" json:"-"`
 }
 
-// A model that references an issue for a character.
+// CharacterIssue references an issue for a character.
 type CharacterIssue struct {
 	tableName      struct{} `pg:",discard_unknown_columns"`
 	ID             CharacterIssueID
@@ -253,7 +262,7 @@ type CharacterIssue struct {
 	UpdatedAt      time.Time      `sql:",notnull,default:NOW()" json:"-"`
 }
 
-// Criteria for querying characters.
+// CharacterCriteria for querying characters.
 type CharacterCriteria struct {
 	IDs               []CharacterID
 	Slugs             []CharacterSlug
@@ -268,7 +277,7 @@ type CharacterCriteria struct {
 	Offset            int
 }
 
-// Represents general stats about the db.
+// Stats represents general stats about the db.
 type Stats struct {
 	TotalCharacters  int `json:"total_characters"`
 	TotalAppearances int `json:"total_appearances"`
@@ -277,23 +286,23 @@ type Stats struct {
 	TotalIssues      int `json:"total_issues"`
 }
 
-// Checks that the category has any of the given flags.
+// HasAny checks that the category has any of the given flags.
 func (u AppearanceType) HasAny(flags AppearanceType) bool {
 	return u&flags > 0
 }
 
-// Checks that the category has all of the given flags.
+// HasAll checks that the category has all of the given flags.
 func (u AppearanceType) HasAll(flags AppearanceType) bool {
 	flagValues := uint8(flags)
 	return uint8(u)&flagValues == flagValues
 }
 
-// Returns the JSON string representation.
+// MarshalJSON returns the JSON string representation.
 func (u AppearanceType) MarshalJSON() ([]byte, error) {
 	return json.Marshal(categoryToString[u])
 }
 
-// For the ORM converting the enum.
+// Scan for the ORM converting the enum.
 func (u *AppearanceType) Scan(value interface{}) error {
 	val, ok := value.([]byte)
 	if ok {
@@ -308,18 +317,18 @@ func (u *AppearanceType) Scan(value interface{}) error {
 	return nil
 }
 
-// For the ORM converting the enum.
+// Value for the ORM converting the enum.
 func (u AppearanceType) Value() (driver.Value, error) {
 	return fmt.Sprintf("%08b", byte(u)), nil
 }
 
-// Adds an appearance to the appearances for the character.
+// AddAppearance adds an appearance to the appearances for the character.
 func (c *AppearancesByYears) AddAppearance(appearance YearlyAggregate) *AppearancesByYears {
 	c.Aggregates = append(c.Aggregates, appearance)
 	return c
 }
 
-// Returns the total number of appearances per year.
+// Total returns the total number of appearances per year.
 func (c *AppearancesByYears) Total() int {
 	total := 0
 	for _, a := range c.Aggregates {
@@ -328,27 +337,32 @@ func (c *AppearancesByYears) Total() int {
 	return total
 }
 
-// Returns the raw value.
+// Value returns the raw value
+func (id IssueID) Value() uint {
+	return uint(id)
+}
+
+// Value returns the raw value.
 func (id CharacterID) Value() uint {
 	return uint(id)
 }
 
-// Returns the raw value.
+// Value returns the raw value.
 func (slug CharacterSlug) Value() string {
 	return string(slug)
 }
 
-// Returns the raw value.
+// Value returns the raw value.
 func (id CharacterSyncLogID) Value() uint {
 	return uint(id)
 }
 
-// Returns the raw value.
+// Value returns the raw value.
 func (slug PublisherSlug) Value() string {
 	return string(slug)
 }
 
-// Overrides JSON marshaling for CDN url.
+// MarshalJSON overrides JSON marshaling for CDN url.
 func (c *Character) MarshalJSON() ([]byte, error) {
 	strctImage := ""
 	if c.Image != "" {
@@ -370,7 +384,7 @@ func (c *Character) MarshalJSON() ([]byte, error) {
 	})
 }
 
-// Creates character slugs from the specified `strs` string.
+// NewCharacterSlugs creates character slugs from the specified `strs` string.
 func NewCharacterSlugs(strs ...string) []CharacterSlug {
 	slugs := make([]CharacterSlug, len(strs))
 	for i := range strs {
@@ -379,7 +393,7 @@ func NewCharacterSlugs(strs ...string) []CharacterSlug {
 	return slugs
 }
 
-// Creates a new character.
+// NewCharacter Creates a new character.
 func NewCharacter(name string, publisherId PublisherID, vendorType VendorType, vendorId string) *Character {
 	return &Character{
 		Name:        name,
@@ -389,7 +403,7 @@ func NewCharacter(name string, publisherId PublisherID, vendorType VendorType, v
 	}
 }
 
-// Creates a new sync log object for syncing characters.
+// NewCharacterSyncLog creates a new sync log object for syncing characters.
 func NewCharacterSyncLog(id CharacterID, status CharacterSyncLogStatus, syncedAt *time.Time) *CharacterSyncLog {
 	return &CharacterSyncLog{
 		CharacterID: id,
@@ -399,7 +413,7 @@ func NewCharacterSyncLog(id CharacterID, status CharacterSyncLogStatus, syncedAt
 	}
 }
 
-// Creates a new issue struct.
+// NewIssue creates a new issue struct.
 func NewIssue(
 	vendorId, vendorPublisher, vendorSeriesName, vendorSeriesNumber string,
 	publicationDate, saleDate time.Time,
@@ -419,7 +433,7 @@ func NewIssue(
 	}
 }
 
-// Creates a pointer to a new sync log object for the yearly appearances category.
+// NewSyncLog Creates a pointer to a new sync log object for the yearly appearances category.
 func NewSyncLog(
 	id CharacterID,
 	status CharacterSyncLogStatus,
@@ -433,7 +447,7 @@ func NewSyncLog(
 	}
 }
 
-// Creates a new pending sync log struct for the specified type.
+// NewSyncLogPending creates a new pending sync log struct for the specified type.
 func NewSyncLogPending(
 	id CharacterID,
 	syncLogType CharacterSyncLogType) *CharacterSyncLog {
@@ -443,7 +457,7 @@ func NewSyncLogPending(
 		SyncType:    syncLogType}
 }
 
-// Creates a new character source struct.
+// NewCharacterSource creates a new character source struct.
 func NewCharacterSource(url, name string, id CharacterID, vendorType VendorType) *CharacterSource {
 	return &CharacterSource{
 		VendorUrl:   url,
@@ -453,7 +467,7 @@ func NewCharacterSource(url, name string, id CharacterID, vendorType VendorType)
 	}
 }
 
-// Creates a new character issue struct.
+// NewCharacterIssue creates a new character issue struct.
 func NewCharacterIssue(characterID CharacterID, id IssueID, appearanceType AppearanceType) *CharacterIssue {
 	return &CharacterIssue{
 		CharacterID:    characterID,

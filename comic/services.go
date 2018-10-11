@@ -7,16 +7,17 @@ import (
 )
 
 var (
+	// ErrAlreadyExists is when creating an object already exists.
 	ErrAlreadyExists = errors.New("the object already exists")
 )
 
-// The service interface for publishers.
+// PublisherServicer is the service interface for publishers.
 type PublisherServicer interface {
-	// Gets a publisher by its slug.
+	// Publisher gets a publisher by its slug.
 	Publisher(slug PublisherSlug) (*Publisher, error)
 }
 
-// The service interface for issues.
+// IssueServicer is the service interface for issues.
 type IssueServicer interface {
 	// Gets issues by their IDs.
 	Issues(ids []IssueID, limit, offset int) ([]*Issue, error)
@@ -52,12 +53,14 @@ type CharacterServicer interface {
 	CharactersByPublisher(slugs []PublisherSlug, filterSources bool, limit, offset int) ([]*Character, error)
 	// Creates a character source if it doesn't exist. If it exists, it returns the found source and an error.
 	// And also modifies `source` to get the found values.
-	CreateSourceIfNotExists(source *CharacterSource) (*CharacterSource, error)
-	// Updates a character source
+	CreateSource(source *CharacterSource) error
+	// UpdateSource updates a character source
 	UpdateSource(source *CharacterSource) error
-	// Normalize sources so that main vs alternate sources are categorized correctly.
+	// NormalizeSources so that main vs alternate sources are categorized correctly.
 	NormalizeSources(id CharacterID) error
-	// Gets all the sources for a  character.
+	// Source gets a unique source by its character ID and vendor url.
+	Source(id CharacterID, vendorURL string) (*CharacterSource, error)
+	// Sources gets all the sources for a  character.
 	Sources(id CharacterID, vendorType VendorType, isMain *bool) ([]*CharacterSource, error)
 	// Gets the total sources for a character.
 	TotalSources(id CharacterID) (int64, error)
@@ -200,24 +203,12 @@ func (s *CharacterService) Characters(slugs []CharacterSlug, limit, offset int) 
 	})
 }
 
-// Creates a source for a character, if it doesn't exist.
+// CreateSource creates a source for a character, if it doesn't exist.
 // If it exists, an ErrAlreadyExists gets returned as an error.
 // A little janky right now.
-func (s *CharacterService) CreateSourceIfNotExists(source *CharacterSource) (*CharacterSource, error) {
-	if sources, err := s.sourceRepository.FindAll(CharacterSourceCriteria{
-		CharacterIDs:      []CharacterID{source.CharacterID},
-		VendorUrls:        []string{source.VendorUrl},
-		VendorType:        source.VendorType,
-		IncludeIsDisabled: true, // We want to include this so we don't create it again
-		Limit:             1,
-	}); err != nil {
-		return nil, err
-	} else if len(sources) > 0 {
-		return sources[0], ErrAlreadyExists
-	} else {
-		err := s.sourceRepository.Create(source)
-		return source, err
-	}
+func (s *CharacterService) CreateSource(source *CharacterSource) error {
+	err := s.sourceRepository.Create(source)
+	return err
 }
 
 // Updates an existing source
@@ -225,7 +216,24 @@ func (s *CharacterService) UpdateSource(source *CharacterSource) error {
 	return s.sourceRepository.Update(source)
 }
 
-// Lists all non-disabled character sources from the given parameters.
+// Source gets a unique character source by its character ID and vendor url
+func (s *CharacterService) Source(id CharacterID, vendorURL string) (*CharacterSource, error) {
+	sources, err := s.sourceRepository.FindAll(CharacterSourceCriteria{
+		CharacterIDs: []CharacterID{id},
+		IncludeIsDisabled: true,
+		VendorUrls: []string{vendorURL},
+		Limit: 1,
+	})
+	if err != nil {
+		return nil, err
+	}
+	if len(sources) == 0 {
+		return nil, nil
+	}
+	return sources[0], nil
+}
+
+// Sources lists all non-disabled character sources from the given parameters.
 // If `isMain` is `nil`, it will list both types of sources. If `isMain` is true, it will list main sources.
 // If `isMain` is `false`, it will list alternate sources.
 func (s *CharacterService) Sources(id CharacterID, vendorType VendorType, isMain *bool) ([]*CharacterSource, error) {
@@ -237,7 +245,7 @@ func (s *CharacterService) Sources(id CharacterID, vendorType VendorType, isMain
 	})
 }
 
-// Normalize sources for main and alternate sources.
+// NormalizeSources normalizes sources for main and alternate sources.
 func (s *CharacterService) NormalizeSources(id CharacterID) error {
 	err := s.sourceRepository.Raw(`
 		UPDATE character_sources cs
@@ -331,7 +339,18 @@ func (s *CharacterService) NormalizeSources(id CharacterID) error {
 			'%Years of Future%',
 			'%newuniversal%',
 			'%spider-island%',
-			'%Contest of Champions%'
+			'%Contest of Champions%',
+			'%(Deadpool %',
+			'%5 Ronin%',
+			'%Ghost Racers%',
+			'%Spirit of Vengeance%',
+			'%x-men forever%',
+			'%(Red Skull)%',
+			'%(Robot)%',
+			'%cartoon%',
+			'%(Spider-Woman)%',
+			'%Attilan Rising%',
+			'%PS4%'
 		]);`, id.Value())
 	if err != nil {
 		return err
@@ -361,10 +380,11 @@ func (s *CharacterService) NormalizeSources(id CharacterID) error {
 			'%Red Rain%',
 			'%Batman ''66%',
 			'%White Knight%',
-			'%Arrowverse%',
+			'%Arrow%',
 			'%New Order%',
 			'%Wonder Woman ''77%',
-			'%One Million%'
+			'%One Million%',
+			'%reverse gender%'
 		  ]);`, id.Value())
 	return err
 }

@@ -72,6 +72,7 @@ var importCharacterIssuesCmd = &cobra.Command{
 func init() {
 	importCharacterIssuesCmd.Flags().StringP("character.slug", "s", "", "Filter by characters slugs to import only those, for example: `character.slug=jean-grey,scarlet-witch`")
 	importCharacterSourcesCmd.Flags().StringP("character.slug", "s", "", "Filter by characters slugs to import only those, for example: `character.slug=jean-grey,scarlet-witch`")
+	// Default is true for strict mode.
 	importCharacterSourcesCmd.Flags().Bool("strict", true, "If true, import sources whose name _exactly_ matches the character's name (case insensitive). Otherwise, it will import all sources that match the search result. Default is true.")
 	importCharactersCmd.Flags().StringP("publisher", "p", "", "Filter by a publisher to import characters, for example: `--publisher=dc,marvel`")
 	importCmd.AddCommand(importCharactersCmd, importCharacterSourcesCmd, importCharacterIssuesCmd)

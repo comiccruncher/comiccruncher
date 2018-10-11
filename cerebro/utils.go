@@ -1,10 +1,13 @@
 package cerebro
 
 import (
-	"github.com/aimeelaplant/comiccruncher/internal/log"
 	"github.com/avast/retry-go"
-	"go.uber.org/zap"
 	"time"
+	"strings"
+	"github.com/aimeelaplant/externalissuesource"
+	"net/http"
+	"log"
+	"fmt"
 )
 
 // The default retry delay option.
@@ -18,7 +21,7 @@ func retryConnectionError(f func() (string, error)) error {
 		url, err := f()
 		if err != nil {
 			if isConnectionError(err) {
-				log.CEREBRO().Info("got connecting error. retrying.", zap.String("url", url))
+				log.Println(fmt.Sprintf("got connection error for %s. retrying.", url))
 				return err
 			}
 			errCh <- err
@@ -32,4 +35,16 @@ func retryConnectionError(f func() (string, error)) error {
 		return err
 	}
 	return nil
+}
+
+// isConnectionError checks if the error is a connection-related error or not.
+func isConnectionError(err error) bool {
+	// 	Wish there was a better way to check the client time out error!
+	if strings.Contains(err.Error(), errClientTimeoutString) ||
+		err == externalissuesource.ErrConnection ||
+		err == http.ErrHandlerTimeout ||
+		err == http.ErrServerClosed {
+		return true
+	}
+	return false
 }

@@ -244,17 +244,16 @@ func (mr *MockCharacterServicerMockRecorder) CharactersByPublisher(slugs, filter
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CharactersByPublisher", reflect.TypeOf((*MockCharacterServicer)(nil).CharactersByPublisher), slugs, filterSources, limit, offset)
 }
 
-// CreateSourceIfNotExists mocks base method
-func (m *MockCharacterServicer) CreateSourceIfNotExists(source *comic.CharacterSource) (*comic.CharacterSource, error) {
-	ret := m.ctrl.Call(m, "CreateSourceIfNotExists", source)
-	ret0, _ := ret[0].(*comic.CharacterSource)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+// CreateSource mocks base method
+func (m *MockCharacterServicer) CreateSource(source *comic.CharacterSource) error {
+	ret := m.ctrl.Call(m, "CreateSource", source)
+	ret0, _ := ret[0].(error)
+	return ret0
 }
 
-// CreateSourceIfNotExists indicates an expected call of CreateSourceIfNotExists
-func (mr *MockCharacterServicerMockRecorder) CreateSourceIfNotExists(source interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSourceIfNotExists", reflect.TypeOf((*MockCharacterServicer)(nil).CreateSourceIfNotExists), source)
+// CreateSource indicates an expected call of CreateSource
+func (mr *MockCharacterServicerMockRecorder) CreateSource(source interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateSource", reflect.TypeOf((*MockCharacterServicer)(nil).CreateSource), source)
 }
 
 // UpdateSource mocks base method
@@ -279,6 +278,19 @@ func (m *MockCharacterServicer) NormalizeSources(id comic.CharacterID) error {
 // NormalizeSources indicates an expected call of NormalizeSources
 func (mr *MockCharacterServicerMockRecorder) NormalizeSources(id interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NormalizeSources", reflect.TypeOf((*MockCharacterServicer)(nil).NormalizeSources), id)
+}
+
+// Source mocks base method
+func (m *MockCharacterServicer) Source(id comic.CharacterID, vendorURL string) (*comic.CharacterSource, error) {
+	ret := m.ctrl.Call(m, "Source", id, vendorURL)
+	ret0, _ := ret[0].(*comic.CharacterSource)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Source indicates an expected call of Source
+func (mr *MockCharacterServicerMockRecorder) Source(id, vendorURL interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Source", reflect.TypeOf((*MockCharacterServicer)(nil).Source), id, vendorURL)
 }
 
 // Sources mocks base method
