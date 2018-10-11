@@ -1,6 +1,6 @@
 codecov:
   notify:
-    require_ci_to_pass: yes
+    require_ci_to_pass: no
 coverage:
   precision: 2
   round: up
@@ -8,7 +8,7 @@ coverage:
 
   status:
     project: yes
-    patch: yes
+    patch: no
     changes: no
 
 parsers:
