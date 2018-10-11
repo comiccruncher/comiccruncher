@@ -9,7 +9,7 @@ coverage:
     project:
       default:
         target: 0
-        threshold: 100% # pass all pull requests for now.
+        threshold: 100% # pass all pull requests for now
         only_pulls: true
 parsers:
   gcov:
