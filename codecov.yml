@@ -2,7 +2,6 @@ codecov:
   notify:
     require_ci_to_pass: no
 coverage:
-  threshold: 100% # pass all pull requests for now.
   precision: 2
   round: up
   range: "0"
