@@ -32,6 +32,7 @@ services:
       - ./:/gocode/src/github.com/aimeelaplant/comiccruncher
       - ./.netrc:/root/.netrc
     environment:
+      - "CC_AUTH_KEY=${CC_AUTH_KEY:-test}"
       - "CC_CDN_URL=${CC_CDN_URL}"
       - "CC_ENVIRONMENT=${CC_ENVIRONMENT:-development}"
       - "CC_REDIS_HOST=comiccruncher_redis"
