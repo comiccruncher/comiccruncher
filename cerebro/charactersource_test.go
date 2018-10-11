@@ -9,7 +9,7 @@ import (
 
 func TestParsePublisherName(t *testing.T) {
 	testData := map[string]string{
-		"Marvel": "Storm (Marvel) () (blah)",
+		"Publisher": "Storm (Publisher) () (blah)",
 		"":       "Storm",
 	}
 
@@ -20,7 +20,7 @@ func TestParsePublisherName(t *testing.T) {
 
 func TestParseCharacterName(t *testing.T) {
 	testData := map[string]string{
-		"Storm":      "Storm (Marvel) () (blah)",
+		"Character":      "Character (Publisher) () (blah)",
 		"Something)": "Something) (Another)",
 	}
 

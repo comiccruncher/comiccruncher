@@ -8,7 +8,6 @@ import (
 	"github.com/aimeelaplant/externalissuesource"
 	"github.com/avast/retry-go"
 	"go.uber.org/zap"
-	"net/http"
 	"os"
 	"os/signal"
 	"strconv"
@@ -37,6 +36,7 @@ var (
 		externalissuesource.MiniComic:    comic.FormatMiniComic,
 		externalissuesource.Flipbook:     comic.FormatFlipbook,
 		externalissuesource.Anthology:    comic.FormatAnthology,
+		externalissuesource.Prestige:     comic.FormatPrestige,
 	}
 	// The types of formats that count as an appearance for a character.
 	countsAsAppearance = map[comic.Format]bool{
@@ -48,6 +48,7 @@ var (
 		comic.FormatWeb:          true,
 		comic.FormatDigitalMedia: true,
 		comic.FormatManga:        true,
+		comic.FormatPrestige:     true,
 	}
 )
 
@@ -394,17 +395,6 @@ func isAppearance(issue *comic.Issue, slug comic.PublisherSlug) bool {
 	return false
 }
 
-// isConnectionError checks if the error is a connection-related error or not.
-func isConnectionError(err error) bool {
-	// 	Wish there was a better way to check the client time out error!
-	if strings.Contains(err.Error(), errClientTimeoutString) ||
-		err == externalissuesource.ErrConnection ||
-		err == http.ErrHandlerTimeout ||
-		err == http.ErrServerClosed {
-		return true
-	}
-	return false
-}
 
 // NewCharacterIssueImporter creates a new character issue importer.
 func NewCharacterIssueImporter(

@@ -3,12 +3,13 @@ package cerebro
 import (
 	"github.com/aimeelaplant/comiccruncher/comic"
 	"github.com/aimeelaplant/comiccruncher/internal/log"
-	"github.com/aimeelaplant/comiccruncher/internal/stringutil"
 	"github.com/aimeelaplant/externalissuesource"
 	"go.uber.org/zap"
 	"net/http"
 	"strings"
 	"sync"
+	"github.com/aimeelaplant/comiccruncher/internal/stringutil"
+	"errors"
 )
 
 // CharacterSourceImporter is responsible for importing a characters' sources into a persistence layer.
@@ -26,91 +27,97 @@ type CharacterSourceImportItem struct {
 	Error  error
 }
 
-// The search result from an external source with the local character and an error, if any.
-type characterSearchResult struct {
+// searchResults contains the corresponding character and any search results for the character.
+type searchResults struct {
 	Character     *comic.Character
-	SearchResult  externalissuesource.CharacterSearchResult
 	SearchResults []externalissuesource.CharacterSearchResult
 	Error         error
 }
 
-// Creates a source from a character and external link.
-func (i *CharacterSourceImporter) createIfNotExists(character *comic.Character, link externalissuesource.CharacterLink) (*comic.CharacterSource, error) {
-	source := comic.NewCharacterSource(link.Url, link.Name, character.ID, comic.VendorTypeCb)
-	var otherName string
-	// do another request and get the real name.
-	retryConnectionError(func() (string, error) {
-		cPage, err := i.externalSource.CharacterPage(link.Url)
-		if err != nil {
-			return link.Url, err
-		}
-		otherName = cPage.OtherName
-		return link.Url, nil
-	})
-	source.VendorOtherName = otherName
-	if s1, err := i.characterSvc.CreateSourceIfNotExists(source); err != nil {
-		if err == comic.ErrAlreadyExists {
-			updateMsg := "skipping source. already have it."
-			// Update the vendor other name
-			if s1.VendorOtherName != otherName {
-				s1.VendorOtherName = otherName
-				err := i.characterSvc.UpdateSource(s1)
-				if err != nil {
-					return nil, err
-				}
-				updateMsg = "updated character source's other name"
-			}
-			i.logger.Info(
-				updateMsg,
-				zap.String("vendor url", link.Url),
-				zap.String("vendor name", source.VendorName),
-				zap.String("character", character.Slug.Value()))
-			return nil, nil
 
+// Retries to get a character page.
+func (i *CharacterSourceImporter) retryCharacterPage(url string) (*externalissuesource.CharacterPage, error) {
+	pageChan := make(chan *externalissuesource.CharacterPage, 1)
+	defer close(pageChan)
+	err := retryConnectionError(func() (string, error) {
+		i.logger.Info("requesting page...", zap.String("link", url))
+		cPage, err := i.externalSource.CharacterPage(url)
+		if err != nil {
+			return url, err
 		}
+		// send it over
+		pageChan <- cPage
+		return url, nil
+	})
+	if err != nil {
+		i.logger.Error("error fetching url", zap.String("url", url), zap.Error(err))
 		return nil, err
 	}
-	i.logger.Info(
-		"created source",
-		zap.String("vendor url", link.Url),
-		zap.String("vendor name", source.VendorName),
-		zap.String("character", character.Slug.Value()))
-	return source, nil
+	// Read from it
+	page, ok := <-pageChan
+	if !ok {
+		return nil, errors.New("error on channel")
+	}
+	return page, nil
+}
+// Creates a source from a character and external link if it doesn't already exist.
+// If the source wasn't created, then it returns `nil`.
+// This also does a recursive call to create sources from other identities if they exist.
+func (i *CharacterSourceImporter) createIfNotExists(c *comic.Character, l externalissuesource.CharacterLink, depth ...int) error {
+	// Check if we have the source first before requesting it.
+	src, err := i.characterSvc.Source(c.ID, l.Url)
+	if err != nil {
+		return err
+	}
+	if src != nil {
+		i.logger.Info(
+			"source already exists for character. skipping",
+			zap.String("source", src.VendorUrl),
+			zap.String("character", c.Slug.Value()))
+		return nil
+	}
+	// request the character page so we can get the other name for the character.
+	// why do we need the other name? makes it easier to disable crap we don't need.
+	page, err := i.retryCharacterPage(l.Url)
+	if err != nil {
+		return err
+	}
+	src = comic.NewCharacterSource(l.Url, l.Name, c.ID, comic.VendorTypeCb)
+	// Update the source with the other name if `page.OtherName` is blank
+	trimmedOn := strings.Trim(strings.TrimSpace(page.OtherName), ".")
+	if src.VendorOtherName == "" && trimmedOn != "" {
+		src.VendorOtherName = trimmedOn
+	}
+	err = i.characterSvc.CreateSource(src)
+	if err == nil {
+		i.logger.Info(
+			"created source",
+			zap.String("vendor url", l.Url),
+			zap.String("vendor name", src.VendorName),
+			zap.String("character", c.Slug.Value()))
+	}
+
+	// now go for other identities.
+	if len(page.OtherIdentities) > 0 && len(depth) == 0 {
+		i.logger.Info("getting other identities")
+		for _, o := range page.OtherIdentities {
+			// recursive call to create the other identities
+			// pass in 1 because we just want to make 1 recursive call for now.
+			if err2 := i.createIfNotExists(c, o, 1); err2 != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 // Creates a source if the link doesn't already exist in the character sources.
 // Returns nil if nothing was created and there were no errors.
 // Returns a `CharacterSourceImportItem` if a source was created or there was an error.
-func (i *CharacterSourceImporter) importSources(character *comic.Character, link externalissuesource.CharacterLink) error {
-	if _, err := i.createIfNotExists(character, link); err != nil {
+func (i *CharacterSourceImporter) importSources(c *comic.Character, l externalissuesource.CharacterLink) error {
+	if err :=  i.createIfNotExists(c, l); err != nil {
+		i.logger.Error("error importing sources", zap.String("character", c.Slug.Value()), zap.Error(err))
 		return err
-	}
-	// Now import other identities.
-	pageChan := make(chan *externalissuesource.CharacterPage, 1)
-	defer close(pageChan)
-	err := retryConnectionError(func() (string, error) {
-		i.logger.Info("requesting page...", zap.String("link", link.Url))
-		cPage, err := i.externalSource.CharacterPage(link.Url)
-		if err != nil {
-			return link.Url, err
-		}
-		// send it over
-		pageChan <- cPage
-		return link.Url, nil
-	})
-	if err != nil {
-		i.logger.Warn("error fetching url. quitting retry.", zap.String("link.Url", link.Url), zap.Error(err))
-		return err
-	}
-	// Read from it
-	page, ok := <-pageChan
-	if !ok {
-		return nil
-	}
-	for _, link := range page.OtherIdentities {
-		if _, err := i.createIfNotExists(character, link); err != nil {
-			i.logger.Error("error creating character.", zap.String("link.Url", link.Url), zap.Error(err))
-		}
 	}
 	return nil
 }
@@ -149,8 +156,8 @@ func (i *CharacterSourceImporter) retrySearchByName(name string) (externalissues
 	}
 	for {
 		select {
-		case err := <-resultErrCh:
-			return externalissuesource.CharacterSearchResult{}, err
+		case errC := <-resultErrCh:
+			return externalissuesource.CharacterSearchResult{}, errC
 		case result := <-resultCh:
 			return result, nil
 		}
@@ -159,7 +166,7 @@ func (i *CharacterSourceImporter) retrySearchByName(name string) (externalissues
 
 // Performs a search on a character received from the `characters` chan and sends the search result over to the `results` chan.
 // The caller of the method is responsible for closing the channels.
-func (i *CharacterSourceImporter) searchCharacter(workerID int, characters <-chan *comic.Character, results chan<- characterSearchResult) error {
+func (i *CharacterSourceImporter) gatherSearchResults(workerID int, characters <-chan *comic.Character, results chan<- searchResults) {
 	for c := range characters {
 		var searchName string
 		// if the name has a parentheses and it's a marvel character, we wanna search the name within the parens
@@ -171,7 +178,7 @@ func (i *CharacterSourceImporter) searchCharacter(workerID int, characters <-cha
 		var externalResults []externalissuesource.CharacterSearchResult
 		result, err := i.retrySearchByName(searchName)
 		if err != nil {
-			results <- characterSearchResult{Error: err, Character: c}
+			results <- searchResults{Error: err, Character: c}
 			continue
 		}
 		externalResults = append(externalResults, result)
@@ -179,14 +186,13 @@ func (i *CharacterSourceImporter) searchCharacter(workerID int, characters <-cha
 		if c.OtherName != "" {
 			otherNameResult, otherNameErr := i.retrySearchByName(c.OtherName)
 			if err != nil {
-				results <- characterSearchResult{Error: otherNameErr, Character: c}
+				results <- searchResults{Error: otherNameErr, Character: c}
 				continue
 			}
 			externalResults = append(externalResults, otherNameResult)
 		}
-		results <- characterSearchResult{Character: c, SearchResults: externalResults}
+		results <- searchResults{Character: c, SearchResults: externalResults}
 	}
-	return nil
 }
 
 // Import with the specified character criteria, concurrently imports character sources from an external source.
@@ -199,12 +205,12 @@ func (i *CharacterSourceImporter) Import(slugs []comic.CharacterSlug, isStrict b
 	}
 	characterLen := len(characters)
 	characterCh := make(chan *comic.Character, characterLen)
-	resultCh := make(chan characterSearchResult, characterLen)
+	resultCh := make(chan searchResults, characterLen)
 	defer close(characterCh)
 	defer close(resultCh)
 	for w := 0; w < 10; w++ {
 		// Start the goroutines.
-		go i.searchCharacter(w, characterCh, resultCh)
+		go i.gatherSearchResults(w, characterCh, resultCh)
 	}
 	// Send the work over.
 	for _, c := range characters {
@@ -218,39 +224,35 @@ func (i *CharacterSourceImporter) Import(slugs []comic.CharacterSlug, isStrict b
 			i.logger.Error("got error. skipping.", zap.String("character", c.Slug.Value()), zap.Error(result.Error))
 			continue
 		}
-		searchResults := result.SearchResults
+		searches := result.SearchResults
+		var sourceErr error
 		// loop over the search results
-		for _, searchResult := range searchResults {
+		for _, search := range searches {
 			// loop over the links of the results of the search result
-			for _, link := range searchResult.Results {
-				publisherName := ParsePublisherName(link.Name)
-				// if not strict, import all results that matches the character's publisher
-				if !isStrict && stringutil.EqualsIAny(publisherName, c.Publisher.Name, c.Publisher.Slug.Value()) {
-					if err = i.importSources(c, link); err != nil {
-						return err
-					}
-					// go to next item in loop
+			for _, link := range search.Results {
+				// match the publisher
+				if !stringutil.EqualsIAny(ParsePublisherName(link.Name), c.Publisher.Slug.Value(), c.Publisher.Name) {
+					// continue if no match.
 					continue
 				}
-				// non-strict search.
+				// if not strict, import all results that get returned
+				if !isStrict {
+					sourceErr = i.importSources(c, link)
+				}
+				// strict. match the character first.
 				characterName := ParseCharacterName(link.Name)
-				// oh god ...
-				if (c.Publisher.Slug == "marvel" &&
-					stringutil.EqualsIAny(publisherName, c.Publisher.Name) &&
-					strings.Index(c.Name, "(") != -1) ||
-					(stringutil.EqualsIAny(publisherName, c.Publisher.Name, c.Publisher.Slug.Value()) &&
-						stringutil.EqualsIAny(characterName, c.Name)) {
-					if err = i.importSources(c, link); err != nil {
-						return err
-					}
+				if strings.Contains(c.Name, characterName) || c.OtherName != "" && strings.Contains(c.OtherName, characterName) {
+					sourceErr = i.importSources(c, link)
 				}
 			}
 		}
-		// Now normalize sources for the character
-		if err := i.characterSvc.NormalizeSources(c.ID); err != nil {
-			i.logger.Error("error normalizing sources", zap.Error(err))
-		} else {
-			i.logger.Info("normalized character sources", zap.String("character", c.Slug.Value()))
+		// Now normalize sources for the character if no error from importing sources.
+		if sourceErr == nil {
+			if errN := i.characterSvc.NormalizeSources(c.ID); errN != nil {
+				i.logger.Error("error normalizing sources", zap.Error(errN), zap.String("character", c.Slug.Value()))
+			} else {
+				i.logger.Info("normalized character sources", zap.String("character", c.Slug.Value()))
+			}
 		}
 	}
 	i.logger.Info("Done!")

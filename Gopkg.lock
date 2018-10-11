@@ -11,14 +11,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:4ea51b1ab700f6b65cd1eca338c12e6af1d38bce47e7c02d34bc179dbcd2f95c"
+  digest = "1:4908cb8337d7cb8948f58bc8a824521e42b76940e205fa1fce4cb97ff52af32f"
   name = "github.com/aimeelaplant/externalissuesource"
   packages = [
     ".",
     "internal/stringutil",
   ]
   pruneopts = "UT"
-  revision = "1d1e794c8c4231f42e0906282a8cc31a5c2e7369"
+  revision = "78a38839253b88ae0a3d9656661c0d910e6792dd"
 
 [[projects]]
   digest = "1:66b3310cf22cdc96c35ef84ede4f7b9b370971c4025f394c89a2638729653b11"
@@ -37,7 +37,7 @@
   version = "1.0.2"
 
 [[projects]]
-  digest = "1:99486be275e89fcbd1d0e8e25c1c3f576ea68375731d6072b29fde896f811431"
+  digest = "1:cffd93d46d5b16417d543863e95f87070c2b9b305835e9910c2b75d0f0cf6b7d"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -75,8 +75,8 @@
     "service/sts",
   ]
   pruneopts = "UT"
-  revision = "59124d90523f4c0491f997f9a36aef265fe3502c"
-  version = "v1.15.49"
+  revision = "dd947f47decb37a7c3bee72501bfc790701ab5ad"
+  version = "v1.15.50"
 
 [[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"

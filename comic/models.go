@@ -31,6 +31,7 @@ const (
 	FormatDigitalMedia Format = "digital"
 	FormatMiniComic    Format = "mini"
 	FormatFlipbook     Format = "flipbook"
+	FormatPrestige	   Format = "prestige"
 	FormatOther        Format = "other"
 )
 
