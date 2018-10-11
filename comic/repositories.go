@@ -21,6 +21,7 @@ type PublisherRepository interface {
 type IssueRepository interface {
 	Create(issue *Issue) error
 	CreateAll(issues []*Issue) error
+	Update(issue *Issue) error
 	FindByVendorId(vendorId string) (*Issue, error)
 	FindAll(c IssueCriteria) ([]*Issue, error)
 }
@@ -454,6 +455,10 @@ func (r *PGIssueRepository) CreateAll(issues []*Issue) error {
 	return nil
 }
 
+func (r *PGIssueRepository) Update(issue *Issue) error {
+	return r.db.Update(issue)
+}
+
 func (r *PGIssueRepository) FindByVendorId(vendorId string) (*Issue, error) {
 	if issues, err := r.FindAll(IssueCriteria{VendorIds: []string{vendorId}, Limit: 1}); err != nil {
 		return nil, err
@@ -477,6 +482,10 @@ func (r *PGIssueRepository) FindAll(cr IssueCriteria) ([]*Issue, error) {
 
 	if len(cr.VendorIds) > 0 {
 		query.Where("vendor_id IN (?)", pg.In(cr.VendorIds))
+	}
+
+	if len(cr.Formats) > 0 {
+		query.Where("format IN (?)", pg.In(cr.Formats))
 	}
 
 	if cr.Limit > 0 {

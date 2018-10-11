@@ -384,6 +384,7 @@ func (i *CharacterIssueImporter) requestCharacterPage(source string) (externalis
 // isAppearance checks that the issue should count as an issue appearance for the character.
 func isAppearance(issue *comic.Issue, slug comic.PublisherSlug) bool {
 	if !issue.IsVariant && // it's not a variant
+		!issue.IsReprint && // it's not a reprint.
 		countsAsAppearance[issue.Format] && // the format counts as an appearance
 		// Checks that the external issue's publisher matches up with the publisher of the character.
 		// check their slugs since it is lower cased and just "marvel" or "dc".

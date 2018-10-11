@@ -37,7 +37,7 @@
   version = "1.0.2"
 
 [[projects]]
-  digest = "1:cffd93d46d5b16417d543863e95f87070c2b9b305835e9910c2b75d0f0cf6b7d"
+  digest = "1:ad1872973b1eed5703162a6144611432ab5acf3d4c6215700de89ae3dd43226a"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -75,8 +75,8 @@
     "service/sts",
   ]
   pruneopts = "UT"
-  revision = "dd947f47decb37a7c3bee72501bfc790701ab5ad"
-  version = "v1.15.50"
+  revision = "46fe04784968cd7b54e859fcce45753456f736ac"
+  version = "v1.15.52"
 
 [[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
@@ -317,7 +317,7 @@
     "acme/autocert",
   ]
   pruneopts = "UT"
-  revision = "e3636079e1a4c1f337f212cc5cd2aca108f6c900"
+  revision = "7c1a557ab941a71c619514f229f0b27ccb0c27cf"
 
 [[projects]]
   branch = "master"

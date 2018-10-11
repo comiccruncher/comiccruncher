@@ -93,6 +93,18 @@ func (mr *MockIssueRepositoryMockRecorder) CreateAll(issues interface{}) *gomock
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAll", reflect.TypeOf((*MockIssueRepository)(nil).CreateAll), issues)
 }
 
+// Update mocks base method
+func (m *MockIssueRepository) Update(issue *comic.Issue) error {
+	ret := m.ctrl.Call(m, "Update", issue)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Update indicates an expected call of Update
+func (mr *MockIssueRepositoryMockRecorder) Update(issue interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockIssueRepository)(nil).Update), issue)
+}
+
 // FindByVendorId mocks base method
 func (m *MockIssueRepository) FindByVendorId(vendorId string) (*comic.Issue, error) {
 	ret := m.ctrl.Call(m, "FindByVendorId", vendorId)
