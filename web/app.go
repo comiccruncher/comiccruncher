@@ -4,22 +4,23 @@ import (
 	"github.com/aimeelaplant/comiccruncher/comic"
 	"github.com/aimeelaplant/comiccruncher/internal/log"
 	"github.com/aimeelaplant/comiccruncher/search"
-	"github.com/aimeelaplant/comiccruncher/web/api"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 	"go.uber.org/zap"
 )
 
-// The struct for the web app with echo and the controllers.
+// App is the struct for the web app with echo and the controllers.
 type App struct {
 	echo                *echo.Echo
-	searchController    api.SearchController
-	characterController api.CharacterController
-	statsController     api.StatsController
+	searchController    SearchController
+	characterController CharacterController
+	statsController     StatsController
 }
 
-// Run the web application from the specified port. Logs and exits if there is an error.
+// MustRun runs the web application from the specified port. Logs and exits if there is an error.
 func (a App) MustRun(port string) {
+	// TODO: This is temporary until the site is ready.
+	a.echo.Use(RequireAuthentication)
 	a.echo.Use(middleware.Recover())
 	a.echo.Use(middleware.CSRF())
 	a.echo.Use(middleware.CORSWithConfig(middleware.CORSConfig{
@@ -41,14 +42,15 @@ func (a App) MustRun(port string) {
 	}
 }
 
+// NewApp creates a new app from the parameters.
 func NewApp(
 	characterSvc comic.CharacterServicer,
 	searcher search.Searcher,
 	statsRepository comic.StatsRepository) App {
 	return App{
 		echo:                echo.New(),
-		statsController:     api.NewStatsController(statsRepository),
-		searchController:    api.NewSearchController(searcher),
-		characterController: api.NewCharacterController(characterSvc),
+		statsController:     NewStatsController(statsRepository),
+		searchController:    NewSearchController(searcher),
+		characterController: NewCharacterController(characterSvc),
 	}
 }
