@@ -396,7 +396,6 @@ func isAppearance(issue *comic.Issue, slug comic.PublisherSlug) bool {
 	return false
 }
 
-
 // NewCharacterIssueImporter creates a new character issue importer.
 func NewCharacterIssueImporter(
 	container *comic.PGRepositoryContainer,

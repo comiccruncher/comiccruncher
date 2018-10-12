@@ -112,8 +112,6 @@ func (i *CharacterSourceImporter) createIfNotExists(c *comic.Character, l extern
 }
 
 // Creates a source if the link doesn't already exist in the character sources.
-// Returns nil if nothing was created and there were no errors.
-// Returns a `CharacterSourceImportItem` if a source was created or there was an error.
 func (i *CharacterSourceImporter) importSources(c *comic.Character, l externalissuesource.CharacterLink) error {
 	if err :=  i.createIfNotExists(c, l); err != nil {
 		i.logger.Error("error importing sources", zap.String("character", c.Slug.Value()), zap.Error(err))

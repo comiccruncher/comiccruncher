@@ -17,6 +17,7 @@ var retryDelay = retry.Delay(time.Duration(10 * time.Second))
 // The returned string should be the requested url.
 func retryConnectionError(f func() (string, error)) error {
 	errCh := make(chan error, 1)
+	defer close(errCh)
 	retry.Do(func() error {
 		url, err := f()
 		if err != nil {
@@ -27,11 +28,9 @@ func retryConnectionError(f func() (string, error)) error {
 			errCh <- err
 			return nil
 		}
-		close(errCh)
 		return nil
 	}, retryDelay)
 	if err, ok := <-errCh; ok {
-		close(errCh)
 		return err
 	}
 	return nil

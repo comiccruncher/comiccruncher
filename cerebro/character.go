@@ -192,13 +192,15 @@ func (mci *MarvelCharactersImporter) ImportAll() error {
 			if errA != nil {
 				mci.importer.logger.Error("error getting characters from the api", zap.Error(errA))
 				return
-			} else if resultErr != nil {
+			}
+			if resultErr != nil {
 				mci.importer.logger.Error(
 					"Error returned from the Marvel API.",
 					zap.String("code", resultErr.Code),
 					zap.String("message", resultErr.Message))
 				return
-			} else if resultWrapper.Code != 200 {
+			}
+			if resultWrapper.Code != 200 {
 				mci.importer.logger.Error(
 					"Unexpected status returned from API.",
 					zap.Int("code", resultWrapper.Code),

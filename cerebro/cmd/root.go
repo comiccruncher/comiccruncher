@@ -1,14 +1,12 @@
 package cmd
 
 import (
-	"fmt"
 	"github.com/aimeelaplant/comiccruncher/internal/log"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
-	"os"
 )
 
-// The root command.
+// RootCmd is the the root command for cerebro.
 var RootCmd = &cobra.Command{
 	Use:   "cerebro",
 	Short: "The application for importing resources from external sources.",
@@ -17,8 +15,6 @@ var RootCmd = &cobra.Command{
 // Execution of the root command.
 func Exec() {
 	if err := RootCmd.Execute(); err != nil {
-		fmt.Println(err)
-		log.CEREBRO().Error("received execution error", zap.Error(err))
-		os.Exit(-1)
+		log.CEREBRO().Fatal("received execution error", zap.Error(err))
 	}
 }
