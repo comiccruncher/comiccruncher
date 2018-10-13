@@ -44,7 +44,7 @@ netrc:
 # Build the docker container.
 .PHONY: up
 docker-up:
-	docker-compose up -d --build --force-recreate
+	docker-compose up -d --build --force-recreate --remove-orphans
 
 # stop the docker containers.
 .PHONY: docker-stop
@@ -120,7 +120,16 @@ docker-vet:
 vet:
 	go vet $(shell go list ./...)
 
-# TODO: golint
+# Lint the go files.
+.PHONY: lint
+lint:
+	golint $(shell go list ./...)
+
+# Lint the files in the Docker container.
+# Not sure why I have to specify `/gocode/bin/golint` and not just `golint`?!?!
+.PHONY: docker-lint
+docker-lint:
+	${DOCKER_RUN} /gocode/bin/golint $(shell go list ./...)
 
 # Run the Docker redis-cli.
 .PHONY: redis-cli
@@ -211,6 +220,7 @@ mockgen:
 	mockgen -destination=internal/mocks/comic/repositories.go -source=comic/repositories.go
 	mockgen -destination=internal/mocks/comic/services.go -source=comic/services.go
 	mockgen -destination=internal/mocks/comic/cache.go -source=comic/cache.go
+	mockgen -destination=internal/mocks/messaging/messenger.go -source=messaging/messenger.go
 
 # Generate mocks for testing.
 docker-mockgen:
