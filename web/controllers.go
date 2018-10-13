@@ -9,12 +9,12 @@ import (
 	"strconv"
 )
 
-// The controller for /stats
+// StatsController is the controller for stats about comic cruncher.
 type StatsController struct {
 	statsRepository comic.StatsRepository
 }
 
-// Shows the stats for comic cruncher.
+// Stats shows the stats for comic cruncher.
 func (c StatsController) Stats(ctx echo.Context) error {
 	stats, err := c.statsRepository.Stats()
 	if err != nil {
@@ -23,12 +23,12 @@ func (c StatsController) Stats(ctx echo.Context) error {
 	return JSONDetailViewOK(ctx, stats)
 }
 
-// The controller for search.
+// SearchController is the controller for search.
 type SearchController struct {
 	searcher search.Searcher
 }
 
-// Searches characters with the `query` parameter.
+// SearchCharacters searches characters with the `query` parameter.
 func (c SearchController) SearchCharacters(ctx echo.Context) error {
 	var err error
 	var results []*comic.Character
@@ -47,12 +47,12 @@ func (c SearchController) SearchCharacters(ctx echo.Context) error {
 	return JSONListViewOK(ctx, data, 5)
 }
 
-// The character controller.
+// CharacterController is the character controller.
 type CharacterController struct {
 	characterSvc comic.CharacterServicer
 }
 
-// Gets a character by its slug.
+// Character gets a character by its slug.
 func (c CharacterController) Character(ctx echo.Context) error {
 	slug := comic.CharacterSlug(ctx.Param("slug"))
 	character, err := c.characterSvc.Character(slug)
@@ -70,7 +70,7 @@ func (c CharacterController) Character(ctx echo.Context) error {
 	return JSONDetailViewOK(ctx, characterModel)
 }
 
-// Lists characters and can filter by publisher with `?publisher=marvel`.
+// Characters lists characters and can filter by publisher with `?publisher=marvel`.
 func (c CharacterController) Characters(ctx echo.Context) error {
 	var results []*comic.Character
 	publisher := comic.PublisherSlug(ctx.QueryParam("publisher"))
@@ -94,21 +94,21 @@ func (c CharacterController) Characters(ctx echo.Context) error {
 	return JSONListViewOK(ctx, data, 25)
 }
 
-// Creates a new character controller.
+// NewCharacterController creates a new character controller.
 func NewCharacterController(service comic.CharacterServicer) CharacterController {
 	return CharacterController{
 		characterSvc: service,
 	}
 }
 
-// Creates a new search controller.
+// NewSearchController creates a new search controller.
 func NewSearchController(searcher search.Searcher) SearchController {
 	return SearchController{
 		searcher: searcher,
 	}
 }
 
-// Creates a new stats controller.
+// NewStatsController creates a new stats controller.
 func NewStatsController(repository comic.StatsRepository) StatsController {
 	return StatsController{
 		statsRepository: repository,

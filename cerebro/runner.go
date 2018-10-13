@@ -79,7 +79,7 @@ func (r *ImportRunner) CharacterIssuesWithCharacterAndLog(slug comic.CharacterSl
 	if err != nil {
 		return err
 	}
-	syncLog, err := r.pgContainer.CharacterSyncLogRepository().FindById(id)
+	syncLog, err := r.pgContainer.CharacterSyncLogRepository().FindByID(id)
 	if err != nil {
 		return err
 	}
@@ -101,7 +101,7 @@ func NewImportRunner() (*ImportRunner, error) {
 	externalSource := externalissuesource.NewCbExternalSource(externalissuesource.NewHttpClient(), &externalissuesource.CbExternalSourceConfig{})
 	return &ImportRunner{
 		marvelImporter:          NewMarvelCharactersImporter(marvel.NewMarvelAPI(httpClient), container, s3Storage),
-		dcImporter:              NewDcCharactersImporter(dc.NewDcApi(httpClient), container, s3Storage),
+		dcImporter:              NewDcCharactersImporter(dc.NewDcAPI(httpClient), container, s3Storage),
 		characterIssueImporter:  *NewCharacterIssueImporter(container, appearancesSyncer, externalSource),
 		characterSourceImporter: *NewCharacterSourceImporter(httpClient, container, externalSource),
 		pgContainer:             *container,

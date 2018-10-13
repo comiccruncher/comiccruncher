@@ -12,7 +12,7 @@ var RootCmd = &cobra.Command{
 	Short: "The application for importing resources from external sources.",
 }
 
-// Execution of the root command.
+// Exec executes the root command.
 func Exec() {
 	if err := RootCmd.Execute(); err != nil {
 		log.CEREBRO().Fatal("received execution error", zap.Error(err))

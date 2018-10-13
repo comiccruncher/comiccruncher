@@ -22,7 +22,7 @@ type IssueRepository interface {
 	Create(issue *Issue) error
 	CreateAll(issues []*Issue) error
 	Update(issue *Issue) error
-	FindByVendorId(vendorId string) (*Issue, error)
+	FindByVendorID(vendorID string) (*Issue, error)
 	FindAll(c IssueCriteria) ([]*Issue, error)
 }
 
@@ -50,9 +50,9 @@ type CharacterSourceRepository interface {
 // CharacterSyncLogRepository is the repository interface for character sync logs.
 type CharacterSyncLogRepository interface {
 	Create(s *CharacterSyncLog) error
-	FindAllByCharacterId(characterID CharacterID) ([]*CharacterSyncLog, error)
+	FindAllByCharacterID(characterID CharacterID) ([]*CharacterSyncLog, error)
 	Update(s *CharacterSyncLog) error
-	FindById(id CharacterSyncLogID) (*CharacterSyncLog, error)
+	FindByID(id CharacterSyncLogID) (*CharacterSyncLog, error)
 }
 
 // CharacterIssueRepository is the repository interface for character issues.
@@ -432,8 +432,8 @@ func (r *PGCharacterSyncLogRepository) Create(s *CharacterSyncLog) error {
 	return err
 }
 
-// FindAllByCharacterId gets all the sync logs by the character ID.
-func (r *PGCharacterSyncLogRepository) FindAllByCharacterId(id CharacterID) ([]*CharacterSyncLog, error) {
+// FindAllByCharacterID gets all the sync logs by the character ID.
+func (r *PGCharacterSyncLogRepository) FindAllByCharacterID(id CharacterID) ([]*CharacterSyncLog, error) {
 	var syncLogs []*CharacterSyncLog
 	if err := r.db.
 		Model(&syncLogs).
@@ -452,8 +452,8 @@ func (r *PGCharacterSyncLogRepository) Update(l *CharacterSyncLog) error {
 	return r.db.Update(l)
 }
 
-// FindById finds a character sync log by the id.
-func (r *PGCharacterSyncLogRepository) FindById(id CharacterSyncLogID) (*CharacterSyncLog, error) {
+// FindByID finds a character sync log by the id.
+func (r *PGCharacterSyncLogRepository) FindByID(id CharacterSyncLogID) (*CharacterSyncLog, error) {
 	syncLog := &CharacterSyncLog{}
 	if err := r.db.Model(syncLog).Where("id = ?", id).Select(); err != nil {
 		if err == pg.ErrNoRows {
@@ -484,9 +484,9 @@ func (r *PGIssueRepository) Update(issue *Issue) error {
 	return r.db.Update(issue)
 }
 
-// FindByVendorId finds the issues with the specified vendor IDs.
-func (r *PGIssueRepository) FindByVendorId(vendorId string) (*Issue, error) {
-	if issues, err := r.FindAll(IssueCriteria{VendorIds: []string{vendorId}, Limit: 1}); err != nil {
+// FindByVendorID finds the issues with the specified vendor IDs.
+func (r *PGIssueRepository) FindByVendorID(vendorID string) (*Issue, error) {
+	if issues, err := r.FindAll(IssueCriteria{VendorIds: []string{vendorID}, Limit: 1}); err != nil {
 		return nil, err
 	} else if len(issues) != 0 {
 		return issues[0], nil
@@ -724,7 +724,7 @@ func (r *RedisAppearancesByYearsRepository) List(slug CharacterSlug) ([]Appearan
 	return both, nil
 }
 
-// Set's the character's info like this: HMSET KEY name "character.Name"
+// Set sets the character's info like this: HMSET KEY name "character.Name"
 // Sets the character's appearances like this: ZADDNX KEY:yearly 1 "1979" 2 "1980"
 func (r *RedisAppearancesByYearsRepository) Set(character AppearancesByYears) error {
 	key := character.CharacterSlug

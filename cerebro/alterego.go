@@ -66,7 +66,7 @@ func (i *AlterEgoIdentifier) parseMarvel(c comic.Character) (string, error) {
 	}
 	var realName string
 	for _, source := range sources {
-		body, err := i.get(source.VendorUrl)
+		body, err := i.get(source.VendorURL)
 		if err != nil {
 			body.Close()
 			return "", err
@@ -96,13 +96,13 @@ func (i *AlterEgoIdentifier) parseMarvel(c comic.Character) (string, error) {
 
 // Name gets the alter-ego name for a character.
 func (i *AlterEgoIdentifier) Name(c comic.Character) (string, error) {
-	if c.VendorUrl == "" {
+	if c.VendorURL == "" {
 		return "", errors.New("empty vendor url")
 	}
 	var realName string
 	var err error
 	if c.Publisher.Slug == "dc" {
-		realName, err = i.parseDC(c.VendorUrl)
+		realName, err = i.parseDC(c.VendorURL)
 	}
 	if c.Publisher.Slug == "marvel" {
 		realName, err = i.parseMarvel(c)

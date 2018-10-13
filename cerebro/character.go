@@ -56,7 +56,7 @@ type MarvelCharactersImporter struct {
 
 // DcCharactersImporter imports characters from the DC API to the local repository.
 type DcCharactersImporter struct {
-	dcAPI    *dc.Api
+	dcAPI    *dc.API
 	importer *importer
 }
 
@@ -78,7 +78,7 @@ func (importer *importer) createNewCharacter(ec ExternalCharacter, publisher com
 	}
 	newChar := comic.NewCharacter(ec.Name, publisher.ID, vt, ec.VendorID)
 	newChar.VendorDescription = ec.Description
-	newChar.VendorUrl = ec.URL
+	newChar.VendorURL = ec.URL
 	if shouldUploadImage(ec) {
 		file, errU := importer.storage.UploadFromRemote(ec.ThumbnailURL, remoteImageDir)
 		if errU != nil {
@@ -259,7 +259,7 @@ func (dci *DcCharactersImporter) ImportAll() error {
 		wg.Add(1)
 		go func(currentPageNumber int, wg *sync.WaitGroup, publisher *comic.Publisher) {
 			defer wg.Done()
-			result, errF := dci.dcAPI.FetchCharacters(currentPageNumber)
+			result, errF := dci.dcAPI.Characters(currentPageNumber)
 			if errF != nil {
 				dci.importer.logger.Error("error fetching characters from DC API", zap.Error(errF))
 				return
@@ -295,15 +295,15 @@ func fromMarvelCharacter(mc *marvel.Character) ExternalCharacter {
 	if mc.Thumbnail.Extension != "" && mc.Thumbnail.Path != "" {
 		ec.ThumbnailURL = fmt.Sprintf("%s.%s", mc.Thumbnail.Path, mc.Thumbnail.Extension)
 	}
-	for _, v := range mc.Urls {
+	for _, v := range mc.URLs {
 		if v.Type != "detail" {
 			continue
 		}
-		qstnMarkIdx := strings.LastIndex(v.Url, "?")
+		qstnMarkIdx := strings.LastIndex(v.URL, "?")
 		if qstnMarkIdx != -1 {
-			ec.URL = strings.Replace(v.Url[:qstnMarkIdx], "http", "https", -1)
+			ec.URL = strings.Replace(v.URL[:qstnMarkIdx], "http", "https", -1)
 		} else {
-			ec.URL = strings.Replace(v.Url, "http", "https", -1)
+			ec.URL = strings.Replace(v.URL, "http", "https", -1)
 		}
 	}
 	return ec
@@ -312,16 +312,16 @@ func fromMarvelCharacter(mc *marvel.Character) ExternalCharacter {
 // fromDcCharacter returns an external character object from a DC character.
 func fromDcCharacter(dcCharacter *dc.CharacterResult) ExternalCharacter {
 	ec := ExternalCharacter{
-		VendorID:  dcCharacter.Id,
+		VendorID:  dcCharacter.ID,
 		Name:      strings.TrimSpace(dcCharacter.Fields.Name),
 		Publisher: publisherDc,
-		URL:       fmt.Sprintf("%s%s", dc.ApiUrl, dcCharacter.Fields.Url),
+		URL:       fmt.Sprintf("%s%s", dc.APIURL, dcCharacter.Fields.URL),
 	}
 	if len(dcCharacter.Fields.Body) > 0 {
 		ec.Description = html.UnescapeString(policy.Sanitize(strings.TrimSpace(dcCharacter.Fields.Body[0])))
 	}
 	if len(dcCharacter.Fields.ProfilePicture) > 0 {
-		ec.ThumbnailURL = dc.ApiUrl + dcCharacter.Fields.ProfilePicture[0]
+		ec.ThumbnailURL = dc.APIURL + dcCharacter.Fields.ProfilePicture[0]
 	}
 	return ec
 }
@@ -368,7 +368,7 @@ func NewMarvelCharactersImporter(
 
 // NewDcCharactersImporter returns a new instance of the DC character importer.
 func NewDcCharactersImporter(
-	dcAPI *dc.Api,
+	dcAPI *dc.API,
 	container *comic.PGRepositoryContainer,
 	storage storage.Storage) CharacterImporter {
 	imp := &importer{

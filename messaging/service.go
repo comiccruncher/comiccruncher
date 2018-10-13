@@ -7,13 +7,14 @@ import (
 	"sync"
 )
 
+// CharacterMessageService creates the new messenger for a character.
 type CharacterMessageService struct {
-	messenger                  JsonMessenger
+	messenger                  JSONMessenger
 	characterRepository        comic.CharacterRepository
 	characterSyncLogRepository comic.CharacterSyncLogRepository
 }
 
-func (s *CharacterMessageService) work(workerId int, characters <-chan *comic.Character, wg *sync.WaitGroup) {
+func (s *CharacterMessageService) work(characters <-chan *comic.Character, wg *sync.WaitGroup) {
 	for character := range characters {
 		syncLog := comic.NewSyncLog(character.ID, comic.Pending, comic.YearlyAppearances, nil)
 		err := s.characterSyncLogRepository.Create(syncLog)
@@ -30,7 +31,7 @@ func (s *CharacterMessageService) work(workerId int, characters <-chan *comic.Ch
 	}
 }
 
-// Concurrently sends a message about characters from the specified criteria to the queue.
+// Send concurrently sends a message about characters from the specified criteria to the queue.
 func (s *CharacterMessageService) Send(criteria comic.CharacterCriteria) error {
 	characters, err := s.characterRepository.FindAll(criteria)
 	if err != nil {
@@ -42,7 +43,7 @@ func (s *CharacterMessageService) Send(criteria comic.CharacterCriteria) error {
 	wg.Add(characterLen)
 	// do about 20 per job
 	for i := 0; i < 20; i++ {
-		go s.work(i, characterCh, &wg)
+		go s.work(characterCh, &wg)
 	}
 	for _, character := range characters {
 		characterCh <- character
@@ -53,10 +54,20 @@ func (s *CharacterMessageService) Send(criteria comic.CharacterCriteria) error {
 	return nil
 }
 
-func NewCharacterMessageService(messenger JsonMessenger, repositoryContainer *comic.PGRepositoryContainer) *CharacterMessageService {
+// NewCharacterMessageService creates a new message service from params.
+func NewCharacterMessageService(messenger JSONMessenger, repositoryContainer *comic.PGRepositoryContainer) *CharacterMessageService {
 	return &CharacterMessageService{
 		messenger:                  messenger,
 		characterRepository:        repositoryContainer.CharacterRepository(),
 		characterSyncLogRepository: repositoryContainer.CharacterSyncLogRepository(),
+	}
+}
+
+// NewCharacterMessageServiceP creates a new character message service from params w/o container.
+func NewCharacterMessageServiceP(messenger JSONMessenger, repository comic.CharacterRepository, syncLogRepository comic.CharacterSyncLogRepository) *CharacterMessageService {
+	return &CharacterMessageService{
+		messenger: messenger,
+		characterRepository: repository,
+		characterSyncLogRepository: syncLogRepository,
 	}
 }

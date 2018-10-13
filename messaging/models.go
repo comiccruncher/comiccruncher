@@ -1,20 +1,22 @@
 package messaging
 
-import "encoding/json"
+import (
+	"encoding/json"
+)
 
-// An interface for returning a json string.
-type JsonMessage interface {
-	Json() (string, error)
+// JSONMessage is an interface for returning a json string.
+type JSONMessage interface {
+	JSON() (string, error)
 }
 
-// A type of message for sending sync commands.
+// SyncMessage is a type of message for sending sync commands.
 type SyncMessage struct {
 	CharacterSlug      string `json:"slug"`
-	CharacterSyncLogId uint   `json:"sync_log_id"`
+	CharacterSyncLogID uint   `json:"sync_log_id"`
 }
 
-// Returns the json representation of the message.
-func (m *SyncMessage) Json() (string, error) {
+// JSON returns the json representation of the message.
+func (m *SyncMessage) JSON() (string, error) {
 	j, err := json.Marshal(m)
 	if err != nil {
 		return "", err
@@ -22,7 +24,7 @@ func (m *SyncMessage) Json() (string, error) {
 	return string(j), nil
 }
 
-// Constructs a new sync message from a string.
+// NewSyncMessageFromString constructs a new sync message from a string.
 func NewSyncMessageFromString(message string) (*SyncMessage, error) {
 	cm := &SyncMessage{}
 	err := json.Unmarshal([]byte(message), cm)
@@ -32,10 +34,10 @@ func NewSyncMessageFromString(message string) (*SyncMessage, error) {
 	return cm, nil
 }
 
-// Returns a new sync message.
-func NewSyncMessage(slug string, syncLogId uint) JsonMessage {
+// NewSyncMessage returns a new sync message.
+func NewSyncMessage(slug string, syncLogID uint) JSONMessage {
 	return &SyncMessage{
 		CharacterSlug:      slug,
-		CharacterSyncLogId: syncLogId,
+		CharacterSyncLogID: syncLogID,
 	}
 }

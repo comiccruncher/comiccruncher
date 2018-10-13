@@ -2,44 +2,50 @@ package dc
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 )
 
-const charactersUrl = "https://www.dccomics.com/proxy/search"
-const ApiUrl = "https://www.dccomics.com"
+const charactersURL = "https://www.dccomics.com/proxy/search"
+// APIURL is the base url for the API.
+const APIURL = "https://www.dccomics.com"
 
-type Api struct {
+// API is the client to communicate with the DC API.
+type API struct {
 	httpClient        *http.Client
 	CharacterEndpoint string // Define the characters endpoint. maybe remove and find more elegant solution for testing.
 }
 
-type ApiResult struct {
+// APIResult contains the result of the API.
+type APIResult struct {
 	TotalResults int `json:"result count"`
 	Results      map[string]*CharacterResult
 }
 
+// CharacterResult represents the result of each character.
 type CharacterResult struct {
-	Id     string          `json:"id"`
+	ID     string          `json:"id"`
 	Fields CharacterFields `json:"fields"`
 }
 
+// CharacterFields represent the fields for a character.
 type CharacterFields struct {
 	Body           []string `json:"body:value"`
 	ProfilePicture []string `json:"field_profile_picture:file:url"`
 	Name           string   `json:"dc_solr_sortable_title"`
-	Url            string   `json:"url"`
+	URL            string   `json:"url"`
 }
 
-func (a *Api) TotalCharacters() (int, error) {
-	r, err := a.FetchCharacters(1)
+// TotalCharacters gets the number of characters from the result.
+func (a *API) TotalCharacters() (int, error) {
+	r, err := a.Characters(1)
 	return r.TotalResults, err
 }
 
-func (a *Api) FetchCharacters(pageNumber int) (*ApiResult, error) {
-	var apiResponse = new(ApiResult)
+// Characters gets all the characters.
+func (a *API) Characters(pageNumber int) (*APIResult, error) {
+	var apiResponse = new(APIResult)
 	request, err := http.NewRequest(http.MethodGet, a.CharacterEndpoint, nil)
 	if err != nil {
 		return apiResponse, nil
@@ -58,7 +64,7 @@ func (a *Api) FetchCharacters(pageNumber int) (*ApiResult, error) {
 		return apiResponse, err
 	}
 	if response.StatusCode != http.StatusOK && response.StatusCode != http.StatusNotModified {
-		return apiResponse, errors.New(fmt.Sprintf("got bad status code from %s: %d", a.CharacterEndpoint, response.StatusCode))
+		return apiResponse, fmt.Errorf("got bad status code from %s: %d", a.CharacterEndpoint, response.StatusCode)
 	}
 	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
@@ -71,9 +77,10 @@ func (a *Api) FetchCharacters(pageNumber int) (*ApiResult, error) {
 	return apiResponse, nil
 }
 
-func NewDcApi(httpClient *http.Client) *Api {
-	return &Api{
+// NewDcAPI creates a new dc api.
+func NewDcAPI(httpClient *http.Client) *API {
+	return &API{
 		httpClient:        httpClient,
-		CharacterEndpoint: charactersUrl,
+		CharacterEndpoint: charactersURL,
 	}
 }

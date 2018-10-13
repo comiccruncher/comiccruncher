@@ -12,11 +12,13 @@ import (
 
 const charactersURL = "https://gateway.marvel.com/v1/public/characters"
 
+// API defines the client for connecting to the Marvel API.
 type API struct {
 	httpClient        *http.Client
 	CharacterEndpoint string // Define the character endpoint. maybe remove and find more elegant solution for testing.
 }
 
+// Character defines the struct for a Marvel character from their API.
 type Character struct {
 	ID          int    `json:"id"`
 	Name        string `json:"name"`
@@ -25,28 +27,30 @@ type Character struct {
 		Path      string `json:"path"`
 		Extension string `json:"extension"`
 	} `json:"thumbnail"`
-	Urls []struct {
+	URLs []struct {
 		Type string `json:"type"`
-		Url  string `json:"url"`
+		URL  string `json:"url"`
 	} `json:"urls"`
 	Comics struct {
 		Available int `json:"available"`
 	} `json:"comics"`
 }
 
+// Criteria defines the criteria for querying the API.
 type Criteria struct {
 	Limit   int
 	Offset  int
 	OrderBy string
 }
 
-// Marvel *sometimes* returns a completely different JSON structure if is an error.
+//ErrorResult - Marvel *sometimes* returns a completely different JSON structure if is an error.
 // But for invalid input or 409's they return a regular result.
 type ErrorResult struct {
 	Code    string `json:"code"`
 	Message string `json:"message"`
 }
 
+// Result is the result of the API.
 type Result struct {
 	Code            int    `json:"code"`
 	Status          string `json:"status"`
@@ -55,6 +59,7 @@ type Result struct {
 	ETag            string `json:"ETag"`
 }
 
+// Container is a container for meta results returned.
 type Container struct {
 	Offset int `json:"offset"`
 	Limit  int `json:"limit"`
@@ -62,16 +67,19 @@ type Container struct {
 	Count  int `json:"count"`
 }
 
+// CharactersResultContainer is the result for multiple characters returned.
 type CharactersResultContainer struct {
 	Container
 	Results []*Character `json:"results"`
 }
 
+// CharactersResultWrapper - ....yet another wrapper. :/
 type CharactersResultWrapper struct {
 	Result
 	CharactersResultContainer `json:"data"`
 }
 
+// TotalCharacters gets the total characters in the APi.
 func (api *API) TotalCharacters() (int, error) {
 	result, resultError, err := api.Characters(&Criteria{
 		Limit: 1,
@@ -86,7 +94,7 @@ func (api *API) TotalCharacters() (int, error) {
 	return result.Total, nil
 }
 
-// Returns the API response for getting characters, an error from the API result, or a system-related error.
+// Characters returns the API response for getting characters, an error from the API result, or a system-related error.
 func (api *API) Characters(criteria *Criteria) (*CharactersResultWrapper, *ErrorResult, error) {
 	var apiResponse = new(CharactersResultWrapper)
 	var url string
@@ -143,6 +151,7 @@ func (api *API) Characters(criteria *Criteria) (*CharactersResultWrapper, *Error
 	return apiResponse, nil, err
 }
 
+// NewMarvelAPI creates the new client with the http client.
 func NewMarvelAPI(client *http.Client) *API {
 	return &API{
 		httpClient: client,

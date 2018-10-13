@@ -6,50 +6,52 @@ import (
 )
 
 var (
+	// InternalServerMessage is a message string for an internal server error.
 	InternalServerMessage = "Internal server error."
+	// NotFoundMessage is a message string for when something wasn't found.
 	NotFoundMessage       = "The result was not found."
 )
 
-// The meta struct for an HTTP JSON response.
+// Meta is the meta struct for an HTTP JSON response.
 type Meta struct {
 	StatusCode int         `json:"status_code"`
 	Error      *string     `json:"error"`
 	Pagination *Pagination `json:"pagination"`
 }
 
-// A detail view for a single object.
+// DetailView is a detail view for a single object.
 type DetailView struct {
 	Meta `json:"meta"`
 	Data interface{} `json:"data"`
 }
 
-// A list view for multiple objects.
+// ListView is a list view for multiple, similar objects.
 type ListView struct {
 	Meta `json:"meta"`
 	Data []interface{} `json:"data"`
 }
 
-// Returns a server error view.
+// JSONServerError returns a server error view.
 func JSONServerError(e echo.Context) error {
 	return e.JSONPretty(http.StatusInternalServerError, NewDetailViewServerError(), "  ")
 }
 
-// Returns a not found view.
+// JSONNotFound returns a not found view.
 func JSONNotFound(e echo.Context) error {
 	return e.JSONPretty(http.StatusNotFound, NewDetailViewNotFound(), "  ")
 }
 
-// Returns a bad request view.
+//JSONBadRequest returns a bad request view.
 func JSONBadRequest(e echo.Context, message string) error {
 	return e.JSONPretty(http.StatusBadRequest, NewDetailViewBadRequest(message), "  ")
 }
 
-// Returns a detail view.
+// JSONDetailViewOK returns a detail view.
 func JSONDetailViewOK(ctx echo.Context, data interface{}) error {
 	return ctx.JSONPretty(http.StatusOK, NewDetailViewOK(data), "  ")
 }
 
-// Returns a list view.
+// JSONListViewOK returns a list view.
 func JSONListViewOK(ctx echo.Context, data []interface{}, itemsPerPage int) error {
 	pagination, err := CreatePagination(ctx, data, itemsPerPage)
 	if err != nil {
@@ -73,29 +75,29 @@ func NewDetailViewUnauthorized(message string) DetailView {
 	return dv
 }
 
-// Creates a new detail view with a bad request.
+// NewDetailViewBadRequest creates a new detail view with a bad request.
 func NewDetailViewBadRequest(message string) DetailView {
 	dv := DetailView{}
 	dv.Meta = Meta{StatusCode: http.StatusBadRequest, Error: &message}
 	return dv
 }
 
-// Creates a new detail view with a server error.
+// NewDetailViewServerError creates a new detail view with a server error.
 func NewDetailViewServerError() DetailView {
 	return DetailView{Meta: Meta{StatusCode: 500, Error: &InternalServerMessage}}
 }
 
-// Creates a new detail view with a server error.
+// NewDetailViewNotFound creates a new detail view with a server error.
 func NewDetailViewNotFound() DetailView {
 	return DetailView{Meta: Meta{StatusCode: http.StatusNotFound, Error: &NotFoundMessage}}
 }
 
-// Returns a new detail view with a 200.
+// NewDetailViewOK returns a new detail view with a 200.
 func NewDetailViewOK(data interface{}) DetailView {
 	return DetailView{Meta: Meta{StatusCode: http.StatusOK}, Data: data}
 }
 
-// Returns a new list view with 200.
+// NewListViewOK returns a new list view with 200.
 func NewListViewOK(data []interface{}, pagination *Pagination) ListView {
 	return ListView{Meta: Meta{StatusCode: http.StatusOK, Pagination: pagination}, Data: data}
 }

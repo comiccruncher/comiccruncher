@@ -26,11 +26,11 @@ var startCharacterIssuesCmd = &cobra.Command{
 			var handler messaging.SyncMessageFunc
 			handler = func(message *messaging.SyncMessage) {
 				if err := importer.CharacterIssuesWithCharacterAndLog(
-					comic.CharacterSlug(message.CharacterSlug), comic.CharacterSyncLogID(message.CharacterSyncLogId)); err != nil {
+					comic.CharacterSlug(message.CharacterSlug), comic.CharacterSyncLogID(message.CharacterSyncLogID)); err != nil {
 					log.CEREBRO().Fatal("error importing character issues",
 						zap.Error(err),
 						zap.String("character", message.CharacterSlug),
-						zap.Uint("sync log", message.CharacterSyncLogId))
+						zap.Uint("sync log", message.CharacterSyncLogID))
 				}
 			}
 			consumer := messaging.NewSyncMessageConsumerFromEnv(10, 10, handler)

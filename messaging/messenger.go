@@ -8,25 +8,26 @@ import (
 	"os"
 )
 
-type JsonMessenger interface {
-	Send(m JsonMessage) error
+// JSONMessenger is the interface for sending JSON messages.
+type JSONMessenger interface {
+	Send(m JSONMessage) error
 }
 
-// A messenger for sending and receiving structs into JSON messages.
-type JsonSqsMessenger struct {
+// JSONSqsMessenger is the AWS SQS implementation for the JSON messenger.
+type JSONSqsMessenger struct {
 	sqsService *sqs.SQS
-	queueUrl   string
+	queueURL   string
 }
 
-// Sends a message to the queue.
-func (q *JsonSqsMessenger) Send(m JsonMessage) error {
-	s, err := m.Json()
+// Send sends a message to the queue.
+func (q *JSONSqsMessenger) Send(m JSONMessage) error {
+	s, err := m.JSON()
 	if err != nil {
 		return err
 	}
 	_, err = q.sqsService.SendMessage(&sqs.SendMessageInput{
 		MessageBody: &s,
-		QueueUrl:    &q.queueUrl,
+		QueueUrl:    &q.queueURL,
 	})
 	if err != nil {
 		return err
@@ -34,14 +35,17 @@ func (q *JsonSqsMessenger) Send(m JsonMessage) error {
 	return nil
 }
 
-func NewJsonSqsMessenger(sqsService *sqs.SQS, queueUrl string) JsonMessenger {
-	return &JsonSqsMessenger{
+// NewJSONSqsMessenger creates the new AWS SQS implementation of JSONMessenger.
+func NewJSONSqsMessenger(sqsService *sqs.SQS, queueURL string) JSONMessenger {
+	return &JSONSqsMessenger{
 		sqsService: sqsService,
-		queueUrl:   queueUrl,
+		queueURL:   queueURL,
 	}
 }
 
-func NewJsonSqsMessengerFromEnv() JsonMessenger {
+// NewJSONSqsMessengerFromEnv creates the new AWS SQS implementation of JSONMessenger
+// from env vars.
+func NewJSONSqsMessengerFromEnv() JSONMessenger {
 	sess := session.Must(session.NewSession(&aws.Config{
 		Region: aws.String(os.Getenv("CC_AWS_REGION")),
 		Credentials: credentials.NewStaticCredentialsFromCreds(credentials.Value{
@@ -49,8 +53,8 @@ func NewJsonSqsMessengerFromEnv() JsonMessenger {
 			SecretAccessKey: os.Getenv("CC_AWS_SECRET_ACCESS_KEY"),
 		}),
 	}))
-	return &JsonSqsMessenger{
+	return &JSONSqsMessenger{
 		sqsService: sqs.New(sess),
-		queueUrl:   os.Getenv("CC_AWS_SQS_QUEUE"),
+		queueURL:   os.Getenv("CC_AWS_SQS_QUEUE"),
 	}
 }

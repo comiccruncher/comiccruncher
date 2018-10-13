@@ -11,19 +11,20 @@ import (
 	"sync"
 )
 
-// A handler for applying a function to an incoming sync message.
+// SyncMessageFunc is a handler for applying a function to an incoming sync message.
 type SyncMessageFunc func(message *SyncMessage)
 
+// SyncMessageConsumer consumes message from a queue.
 type SyncMessageConsumer struct {
 	sqsService          *sqs.SQS
 	maxNumberOfMessages int64
 	visibilityTimeout   int64
 	waitTimeSeconds     int64
 	syncMessageHandler  SyncMessageFunc
-	queueUrl            string
+	queueURL            string
 }
 
-// Sequentially consume messages from the sqs.
+// Consume sequentially consume messages from the sqs.
 func (c *SyncMessageConsumer) Consume(indefinite bool) error {
 	result, err := c.receive()
 	if err != nil {
@@ -70,7 +71,7 @@ func (c *SyncMessageConsumer) receive() (*sqs.ReceiveMessageOutput, error) {
 		MessageAttributeNames: []*string{
 			aws.String(sqs.QueueAttributeNameAll),
 		},
-		QueueUrl:            &c.queueUrl,
+		QueueUrl:            &c.queueURL,
 		MaxNumberOfMessages: aws.Int64(c.maxNumberOfMessages),
 		VisibilityTimeout:   aws.Int64(c.visibilityTimeout), // 10 hours
 		WaitTimeSeconds:     aws.Int64(c.waitTimeSeconds),
@@ -84,7 +85,7 @@ func (c *SyncMessageConsumer) receive() (*sqs.ReceiveMessageOutput, error) {
 
 func (c *SyncMessageConsumer) handleMessage(m *sqs.Message, handler SyncMessageFunc, wg *sync.WaitGroup) {
 	defer c.sqsService.DeleteMessage(&sqs.DeleteMessageInput{
-		QueueUrl:      &c.queueUrl,
+		QueueUrl:      &c.queueURL,
 		ReceiptHandle: m.ReceiptHandle,
 	})
 	message, err := NewSyncMessageFromString(*m.Body)
@@ -106,6 +107,7 @@ func (c *SyncMessageConsumer) handleMessage(m *sqs.Message, handler SyncMessageF
 	}
 }
 
+// NewSyncMessageConsumerFromEnv creates a new consumer from env vars.
 func NewSyncMessageConsumerFromEnv(maxNumberOfMessages int64, waitTimeInSeconds int64, handler SyncMessageFunc) *SyncMessageConsumer {
 	creds := credentials.Value{
 		AccessKeyID:     os.Getenv("CC_AWS_ACCESS_KEY_ID"),
@@ -121,7 +123,7 @@ func NewSyncMessageConsumerFromEnv(maxNumberOfMessages int64, waitTimeInSeconds 
 		maxNumberOfMessages: maxNumberOfMessages,
 		visibilityTimeout:   3000,
 		waitTimeSeconds:     waitTimeInSeconds,
-		queueUrl:            os.Getenv("CC_AWS_SQS_QUEUE"),
+		queueURL:            os.Getenv("CC_AWS_SQS_QUEUE"),
 		syncMessageHandler:  handler,
 	}
 }

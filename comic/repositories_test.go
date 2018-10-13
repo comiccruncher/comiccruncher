@@ -49,14 +49,14 @@ func setupTestData() {
 	character := &comic.Character{
 		Name:        "Emma Frost",
 		Slug:        "emma-frost",
-		VendorId:    "1",
+		VendorID:    "1",
 		PublisherID: publisher.ID,
 	}
 	must(db.Model(character).Insert())
 	source := &comic.CharacterSource{
 		VendorName:  "Emma Frost (Marvel Universe)",
 		CharacterID: comic.CharacterID(character.ID),
-		VendorUrl:   "https://example.com",
+		VendorURL:   "https://example.com",
 		VendorType:  comic.VendorTypeCb,
 	}
 	must(db.Model(source).Insert())
@@ -69,7 +69,7 @@ func setupTestData() {
 	character2 := &comic.Character{
 		Name:        "Emma Frost",
 		Slug:        "emma-frost-2",
-		VendorId:    "2",
+		VendorID:    "2",
 		PublisherID: publisher.ID,
 	}
 	must(db.Model(character2).Insert())
@@ -148,7 +148,7 @@ func TestPGCharacterRepository_Create(t *testing.T) {
 		PublisherID:       p.ID,
 		Name:              "  Emma Frost",
 		VendorDescription: "asdsfsfd.",
-		VendorId:          "3",
+		VendorID:          "3",
 	}
 	err = charRepo.Create(c2)
 	assert.Nil(t, err)
@@ -168,7 +168,7 @@ func TestPGCharacterRepository_FindAll(t *testing.T) {
 }
 
 func TestPGCharacterSyncLogRepository_FindByIdReturnsNil(t *testing.T) {
-	sLog, err := testContainer.CharacterSyncLogRepository().FindById(999)
+	sLog, err := testContainer.CharacterSyncLogRepository().FindByID(999)
 
 	assert.Nil(t, err)
 	assert.Nil(t, sLog)
@@ -179,7 +179,7 @@ func TestCharacterSyncLogRepository_Update(t *testing.T) {
 	characterRepo := testContainer.CharacterRepository()
 	c, err := characterRepo.FindBySlug("emma-frost", true)
 	assert.Nil(t, err)
-	syncLogs, err := syncLogRepo.FindAllByCharacterId(c.ID)
+	syncLogs, err := syncLogRepo.FindAllByCharacterID(c.ID)
 	assert.Len(t, syncLogs, 1)
 	syncLog := syncLogs[0]
 	status := syncLog.SyncStatus
@@ -234,7 +234,7 @@ func TestCharacterIssueRepository_Create_And_FindOneBy(t *testing.T) {
 }
 
 func TestPGIssueRepository_FindByVendorIdReturnsNil(t *testing.T) {
-	result, err := testContainer.IssueRepository().FindByVendorId("98332")
+	result, err := testContainer.IssueRepository().FindByVendorID("98332")
 	assert.Nil(t, result)
 	assert.Nil(t, err)
 }
@@ -459,7 +459,7 @@ func TestPGCharacterSyncLogRepository_Create_and_Find(t *testing.T) {
 
 	id := syncLog.ID
 
-	syncLog, err = testContainer.CharacterSyncLogRepository().FindById(syncLog.ID)
+	syncLog, err = testContainer.CharacterSyncLogRepository().FindByID(syncLog.ID)
 	assert.Nil(t, err)
 	assert.Equal(t, id, syncLog.ID)
 }

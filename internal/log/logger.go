@@ -47,6 +47,8 @@ func loggerfromEnv(name string) *zap.Logger {
 	if env == "production" {
 		cfg := zap.NewProductionConfig()
 		cfg.Encoding = "console"
+		// we want the development encoder config since we use papertrail to
+		// read the logs.
 		cfg.EncoderConfig = zap.NewDevelopmentEncoderConfig()
 		logger, err := cfg.Build()
 		logger = logger.Named(name)
@@ -54,14 +56,14 @@ func loggerfromEnv(name string) *zap.Logger {
 			panic(err)
 		}
 		return logger
-	} else {
-		logger, err := zap.NewDevelopment()
-		logger = logger.Named(slug.Make(name))
-		if err != nil {
-			panic(err)
-		}
-		return logger
 	}
+	// defaul to development.
+	logger, err := zap.NewDevelopment()
+	logger = logger.Named(slug.Make(name))
+	if err != nil {
+		panic(err)
+	}
+	return logger
 }
 
 // Logger safely gets a logger from a name (concurrent-safe).
