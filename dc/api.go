@@ -8,6 +8,7 @@ import (
 )
 
 const charactersURL = "https://www.dccomics.com/proxy/search"
+
 // APIURL is the base url for the API.
 const APIURL = "https://www.dccomics.com"
 

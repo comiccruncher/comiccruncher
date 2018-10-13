@@ -1,13 +1,13 @@
 package cerebro
 
 import (
-	"github.com/avast/retry-go"
-	"time"
-	"strings"
-	"github.com/aimeelaplant/externalissuesource"
-	"net/http"
-	"log"
 	"fmt"
+	"github.com/aimeelaplant/externalissuesource"
+	"github.com/avast/retry-go"
+	"log"
+	"net/http"
+	"strings"
+	"time"
 )
 
 // The default retry delay option.

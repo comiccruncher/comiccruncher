@@ -66,8 +66,8 @@ func NewCharacterMessageService(messenger JSONMessenger, repositoryContainer *co
 // NewCharacterMessageServiceP creates a new character message service from params w/o container.
 func NewCharacterMessageServiceP(messenger JSONMessenger, repository comic.CharacterRepository, syncLogRepository comic.CharacterSyncLogRepository) *CharacterMessageService {
 	return &CharacterMessageService{
-		messenger: messenger,
-		characterRepository: repository,
+		messenger:                  messenger,
+		characterRepository:        repository,
 		characterSyncLogRepository: syncLogRepository,
 	}
 }

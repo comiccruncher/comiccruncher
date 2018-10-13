@@ -1,15 +1,15 @@
 package cerebro
 
 import (
+	"errors"
 	"github.com/aimeelaplant/comiccruncher/comic"
 	"github.com/aimeelaplant/comiccruncher/internal/log"
+	"github.com/aimeelaplant/comiccruncher/internal/stringutil"
 	"github.com/aimeelaplant/externalissuesource"
 	"go.uber.org/zap"
 	"net/http"
 	"strings"
 	"sync"
-	"github.com/aimeelaplant/comiccruncher/internal/stringutil"
-	"errors"
 )
 
 // CharacterSourceImporter is responsible for importing a characters' sources into a persistence layer.
@@ -33,7 +33,6 @@ type searchResults struct {
 	SearchResults []externalissuesource.CharacterSearchResult
 	Error         error
 }
-
 
 // Retries to get a character page.
 func (i *CharacterSourceImporter) retryCharacterPage(url string) (*externalissuesource.CharacterPage, error) {
@@ -60,6 +59,7 @@ func (i *CharacterSourceImporter) retryCharacterPage(url string) (*externalissue
 	}
 	return page, nil
 }
+
 // Creates a source from a character and external link if it doesn't already exist.
 // If the source wasn't created, then it returns `nil`.
 // This also does a recursive call to create sources from other identities if they exist.
@@ -113,7 +113,7 @@ func (i *CharacterSourceImporter) createIfNotExists(c *comic.Character, l extern
 
 // Creates a source if the link doesn't already exist in the character sources.
 func (i *CharacterSourceImporter) importSources(c *comic.Character, l externalissuesource.CharacterLink) error {
-	if err :=  i.createIfNotExists(c, l); err != nil {
+	if err := i.createIfNotExists(c, l); err != nil {
 		i.logger.Error("error importing sources", zap.String("character", c.Slug.Value()), zap.Error(err))
 		return err
 	}

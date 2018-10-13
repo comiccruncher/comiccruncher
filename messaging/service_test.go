@@ -4,11 +4,11 @@ import (
 	"fmt"
 	"github.com/aimeelaplant/comiccruncher/comic"
 	"github.com/aimeelaplant/comiccruncher/internal/mocks/comic"
+	"github.com/aimeelaplant/comiccruncher/internal/mocks/messaging"
+	"github.com/aimeelaplant/comiccruncher/messaging"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"testing"
-	"github.com/aimeelaplant/comiccruncher/internal/mocks/messaging"
-	"github.com/aimeelaplant/comiccruncher/messaging"
 )
 
 func TestCharacterMessageService_Send(t *testing.T) {

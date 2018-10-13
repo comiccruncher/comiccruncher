@@ -213,10 +213,10 @@ func (s *CharacterService) UpdateSource(source *CharacterSource) error {
 // Source gets a unique character source by its character ID and vendor url
 func (s *CharacterService) Source(id CharacterID, vendorURL string) (*CharacterSource, error) {
 	sources, err := s.sourceRepository.FindAll(CharacterSourceCriteria{
-		CharacterIDs: []CharacterID{id},
+		CharacterIDs:      []CharacterID{id},
 		IncludeIsDisabled: true,
-		VendorUrls: []string{vendorURL},
-		Limit: 1,
+		VendorUrls:        []string{vendorURL},
+		Limit:             1,
 	})
 	if err != nil {
 		return nil, err

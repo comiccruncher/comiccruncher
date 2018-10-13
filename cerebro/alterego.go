@@ -20,7 +20,6 @@ type AlterEgoIdentifier struct {
 	characterSvc comic.CharacterServicer
 }
 
-
 func (i *AlterEgoIdentifier) get(url string) (io.ReadCloser, error) {
 	resp, err := i.httpClient.Get(url)
 	if err != nil {
@@ -118,10 +117,10 @@ type AlterEgoImporter struct {
 
 // Import imports a character's other_name by identifying a real name from an external source.
 func (i *AlterEgoImporter) Import(slugs []comic.CharacterSlug) error {
-	 characters, err := i.characterSvc.Characters(slugs, 0, 0)
-	 if err != nil {
-	 	return err
-	 }
+	characters, err := i.characterSvc.Characters(slugs, 0, 0)
+	if err != nil {
+		return err
+	}
 	for _, c := range characters {
 		if c.OtherName != "" {
 			// If a character already has an other name, then don't change it.

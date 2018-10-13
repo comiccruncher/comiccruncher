@@ -9,7 +9,7 @@ var (
 	// InternalServerMessage is a message string for an internal server error.
 	InternalServerMessage = "Internal server error."
 	// NotFoundMessage is a message string for when something wasn't found.
-	NotFoundMessage       = "The result was not found."
+	NotFoundMessage = "The result was not found."
 )
 
 // Meta is the meta struct for an HTTP JSON response.

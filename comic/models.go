@@ -31,7 +31,7 @@ const (
 	FormatDigitalMedia Format = "digital"
 	FormatMiniComic    Format = "mini"
 	FormatFlipbook     Format = "flipbook"
-	FormatPrestige	   Format = "prestige"
+	FormatPrestige     Format = "prestige"
 	FormatOther        Format = "other"
 )
 
@@ -39,7 +39,7 @@ const (
 // Bitwise values to represent appearance types.
 const (
 	// Main is their main universe(s)
-	Main      AppearanceType = 1 << 0
+	Main AppearanceType = 1 << 0
 	// Alternate is an alternate reality appearance or whatever.
 	Alternate AppearanceType = 1 << 1
 )
@@ -157,20 +157,20 @@ type Publisher struct {
 type Issue struct {
 	tableName          struct{} `pg:",discard_unknown_columns"`
 	ID                 IssueID
-	PublicationDate    time.Time  `sql:",notnull"`
-	SaleDate           time.Time  `sql:",notnull"` // @TODO: add an index.
-	IsVariant          bool       `sql:",notnull"`
-	MonthUncertain     bool       `sql:",notnull"`
-	Format             Format     `sql:",notnull"`
-	VendorPublisher    string     `sql:",notnull"`
-	VendorSeriesName   string     `sql:",notnull"`
-	VendorSeriesNumber string     `sql:",notnull"`
+	PublicationDate    time.Time `sql:",notnull"`
+	SaleDate           time.Time `sql:",notnull"` // @TODO: add an index.
+	IsVariant          bool      `sql:",notnull"`
+	MonthUncertain     bool      `sql:",notnull"`
+	Format             Format    `sql:",notnull"`
+	VendorPublisher    string    `sql:",notnull"`
+	VendorSeriesName   string    `sql:",notnull"`
+	VendorSeriesNumber string    `sql:",notnull"`
 	// IsReprint means the issue is a full reprint with no original story. (So something like Classic X-Men 7 would not count).
-	IsReprint          bool		  `sql:"default:false,notnull"`
-	VendorType         VendorType `sql:",notnull,unique:uix_vendor_type_vendor_id,type:smallint"`
-	VendorID           string     `sql:",notnull,unique:uix_vendor_type_vendor_id"`
-	CreatedAt          time.Time  `sql:",notnull,default:NOW()" json:"-"`
-	UpdatedAt          time.Time  `sql:",notnull,default:NOW()" json:"-"`
+	IsReprint  bool       `sql:"default:false,notnull"`
+	VendorType VendorType `sql:",notnull,unique:uix_vendor_type_vendor_id,type:smallint"`
+	VendorID   string     `sql:",notnull,unique:uix_vendor_type_vendor_id"`
+	CreatedAt  time.Time  `sql:",notnull,default:NOW()" json:"-"`
+	UpdatedAt  time.Time  `sql:",notnull,default:NOW()" json:"-"`
 }
 
 // IssueCriteria for querying issues.

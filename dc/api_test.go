@@ -1,13 +1,13 @@
 package dc_test
 
 import (
+	"github.com/aimeelaplant/comiccruncher/dc"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
-	"github.com/aimeelaplant/comiccruncher/dc"
 )
 
 func TestAPI_Characters(t *testing.T) {
