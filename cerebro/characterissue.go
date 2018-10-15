@@ -442,6 +442,7 @@ func (i *CharacterIssueImporter) requestIssues(workerID int, links <-chan Extern
 				externalIssue.OnSaleDate,
 				externalIssue.IsVariant,
 				externalIssue.MonthUncertain,
+				externalIssue.IsReprint,
 				issueFormat)
 			i.logger.Info("finished job and worker", zap.String("url", l.String()), zap.Int("workerId", workerID))
 		}

@@ -23,7 +23,7 @@ type IssueServicer interface {
 	CreateP(
 		vendorID, vendorPublisher, vendorSeriesName, vendorSeriesNumber string,
 		pubDate, saleDate time.Time,
-		isVariant, isMonthUncertain bool,
+		isVariant, isMonthUncertain, isReprint bool,
 		format Format) error
 }
 
@@ -140,7 +140,7 @@ func (s *IssueService) Create(i *Issue) error {
 }
 
 // CreateP Creates an issue from the parameters.
-func (s *IssueService) CreateP(vendorID, vendorPublisher, vendorSeriesName, vendorSeriesNumber string, pubDate, saleDate time.Time, isVariant, isMonthUncertain bool, format Format) error {
+func (s *IssueService) CreateP(vendorID, vendorPublisher, vendorSeriesName, vendorSeriesNumber string, pubDate, saleDate time.Time, isVariant, isMonthUncertain, isReprint bool, format Format) error {
 	return s.repository.Create(NewIssue(
 		vendorID,
 		vendorPublisher,
@@ -150,6 +150,7 @@ func (s *IssueService) CreateP(vendorID, vendorPublisher, vendorSeriesName, vend
 		saleDate,
 		isVariant,
 		isMonthUncertain,
+		isReprint,
 		format,
 	))
 }

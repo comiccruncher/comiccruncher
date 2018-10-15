@@ -417,7 +417,7 @@ func NewCharacterSyncLog(id CharacterID, status CharacterSyncLogStatus, syncedAt
 func NewIssue(
 	vendorID, vendorPublisher, vendorSeriesName, vendorSeriesNumber string,
 	publicationDate, saleDate time.Time,
-	isVariant, monthUncertain bool,
+	isVariant, monthUncertain, isReprint bool,
 	format Format) *Issue {
 	return &Issue{
 		VendorID:           vendorID,
@@ -427,6 +427,7 @@ func NewIssue(
 		PublicationDate:    publicationDate,
 		SaleDate:           saleDate,
 		IsVariant:          isVariant,
+		IsReprint:          isReprint,
 		VendorType:         VendorTypeCb, // Make this default for now.
 		MonthUncertain:     monthUncertain,
 		Format:             format,

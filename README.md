@@ -1,6 +1,6 @@
 # 💥 Comic Cruncher
 
-[![CircleCI](https://circleci.com/gh/aimeelaplant/comiccruncher.svg?style=shield&circle-token=f3af6bb29cb3d0dbedf644094dc86cb21b2a552f)](https://circleci.com/gh/aimeelaplant/comiccruncher) [![codecov](https://codecov.io/gh/aimeelaplant/comiccruncher/branch/master/graph/badge.svg?token=nPlAJ6Wzct)](https://codecov.io/gh/aimeelaplant/comiccruncher) ![CircleCI](https://img.shields.io/badge/status-WIP-red.svg)
+[![CircleCI](https://circleci.com/gh/aimeelaplant/comiccruncher.svg?style=shield&circle-token=f3af6bb29cb3d0dbedf644094dc86cb21b2a552f)](https://circleci.com/gh/aimeelaplant/comiccruncher) [![codecov](https://codecov.io/gh/aimeelaplant/comiccruncher/branch/master/graph/badge.svg?token=nPlAJ6Wzct)](https://codecov.io/gh/aimeelaplant/comiccruncher) ![CircleCI](https://img.shields.io/badge/status-WIP-red.svg) [![Go Report Card](https://goreportcard.com/badge/github.com/aimeelaplant/comiccruncher)](https://goreportcard.com/report/github.com/aimeelaplant/comiccruncher)
 
 ❗️ Currently **WIP**!
 
