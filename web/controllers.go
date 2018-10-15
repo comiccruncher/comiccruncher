@@ -73,16 +73,16 @@ func (c CharacterController) Character(ctx echo.Context) error {
 // Characters lists characters and can filter by publisher with `?publisher=marvel`.
 func (c CharacterController) Characters(ctx echo.Context) error {
 	var results []*comic.Character
-	publisher := comic.PublisherSlug(ctx.QueryParam("publisher"))
-	var err error
-	if pageNumber, err := strconv.Atoi(ctx.QueryParam("page")); pageNumber != 0 && err != nil {
-		return JSONBadRequest(ctx, "malformed `page` parameter")
+	page, err := pageNumber(ctx)
+	if err != nil {
+		return err
 	}
 	var slugs []comic.PublisherSlug
+	publisher := comic.PublisherSlug(ctx.QueryParam("publisher"))
 	if publisher != "" {
 		slugs = []comic.PublisherSlug{publisher}
 	}
-	results, err = c.characterSvc.CharactersByPublisher(slugs, true, 25+1, pageNumber*25)
+	results, err = c.characterSvc.CharactersByPublisher(slugs, true, 25+1, (page-1)*25)
 	if err != nil {
 		return JSONServerError(ctx)
 	}
@@ -91,6 +91,22 @@ func (c CharacterController) Characters(ctx echo.Context) error {
 		data[i] = v
 	}
 	return JSONListViewOK(ctx, data, 25)
+}
+
+// Gets the page number from the query parameter `page` with default value if empty.
+func pageNumber(ctx echo.Context) (int, error) {
+	query := ctx.QueryParam("page")
+	if query != "" {
+		page, err := strconv.Atoi(query)
+		if err != nil {
+			return 0, JSONBadRequest(ctx, "malformed `page` parameter")
+		}
+		if page == 1 {
+			return 0, nil
+		}
+		return page, nil
+	}
+	return 0, nil
 }
 
 // NewCharacterController creates a new character controller.
