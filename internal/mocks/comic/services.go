@@ -109,15 +109,15 @@ func (mr *MockIssueServicerMockRecorder) Create(issue interface{}) *gomock.Call 
 }
 
 // CreateP mocks base method
-func (m *MockIssueServicer) CreateP(vendorID, vendorPublisher, vendorSeriesName, vendorSeriesNumber string, pubDate, saleDate time.Time, isVariant, isMonthUncertain bool, format comic.Format) error {
-	ret := m.ctrl.Call(m, "CreateP", vendorID, vendorPublisher, vendorSeriesName, vendorSeriesNumber, pubDate, saleDate, isVariant, isMonthUncertain, format)
+func (m *MockIssueServicer) CreateP(vendorID, vendorPublisher, vendorSeriesName, vendorSeriesNumber string, pubDate, saleDate time.Time, isVariant, isMonthUncertain, isReprint bool, format comic.Format) error {
+	ret := m.ctrl.Call(m, "CreateP", vendorID, vendorPublisher, vendorSeriesName, vendorSeriesNumber, pubDate, saleDate, isVariant, isMonthUncertain, isReprint, format)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // CreateP indicates an expected call of CreateP
-func (mr *MockIssueServicerMockRecorder) CreateP(vendorID, vendorPublisher, vendorSeriesName, vendorSeriesNumber, pubDate, saleDate, isVariant, isMonthUncertain, format interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateP", reflect.TypeOf((*MockIssueServicer)(nil).CreateP), vendorID, vendorPublisher, vendorSeriesName, vendorSeriesNumber, pubDate, saleDate, isVariant, isMonthUncertain, format)
+func (mr *MockIssueServicerMockRecorder) CreateP(vendorID, vendorPublisher, vendorSeriesName, vendorSeriesNumber, pubDate, saleDate, isVariant, isMonthUncertain, isReprint, format interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateP", reflect.TypeOf((*MockIssueServicer)(nil).CreateP), vendorID, vendorPublisher, vendorSeriesName, vendorSeriesNumber, pubDate, saleDate, isVariant, isMonthUncertain, isReprint, format)
 }
 
 // MockCharacterServicer is a mock of CharacterServicer interface
