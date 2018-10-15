@@ -170,9 +170,9 @@ func (p *CharacterCBParser) Parse(sources []*comic.CharacterSource) (CharacterVe
 	return ei, nil
 }
 
-// appearanceType determines the type of appearance from the issue's vendor ID.
+// AppearanceType determines the type of appearance from the issue's vendor ID.
 // So if the issue's vendor ID is in the externalInfo's mainSources map, it's a main source, etc.
-func (vi CharacterVendorInfo) appearanceType(issue *comic.Issue) comic.AppearanceType {
+func (vi CharacterVendorInfo) AppearanceType(issue *comic.Issue) comic.AppearanceType {
 	externalToLocalVendorID := ExternalVendorID(issue.VendorID)
 	if vi.MainSources[externalToLocalVendorID] && vi.AltSources[externalToLocalVendorID] {
 		return comic.Main | comic.Alternate
@@ -228,7 +228,7 @@ func (i *CharacterIssueImporter) nonExistingURLs(vi CharacterVendorInfo, c comic
 		localIssueVendorIDs[localIssue.VendorID] = true
 		// create a character issue if it counts as an appearance
 		if isAppearance(localIssue, c.Publisher.Slug) {
-			characterIssues = append(characterIssues, comic.NewCharacterIssue(c.ID, localIssue.ID, vi.appearanceType(localIssue)))
+			characterIssues = append(characterIssues, comic.NewCharacterIssue(c.ID, localIssue.ID, vi.AppearanceType(localIssue)))
 		}
 	}
 	// Insert ignore what we possibly don't have.
@@ -313,7 +313,7 @@ func (i *CharacterIssueImporter) ImportWithSyncLog(character comic.Character, sy
 			return err
 		}
 		if isAppearance(ish, character.Publisher.Slug) {
-			if _, err := i.characterSvc.CreateIssueP(character.ID, ish.ID, vi.appearanceType(ish), nil); err != nil {
+			if _, err := i.characterSvc.CreateIssueP(character.ID, ish.ID, vi.AppearanceType(ish), nil); err != nil {
 				close(issueCh)
 				return err
 			}
