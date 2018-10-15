@@ -171,8 +171,6 @@ func (i *CharacterIssueImporter) ImportWithSyncLog(character comic.Character, sy
 		i.updateSyncLog(syncLog, comic.Fail, sigCh)
 		return err
 	}
-	// release the resource. no longer need the slice
-	characterIssues = nil
 	for k, v := range vendorIdsMap {
 		// if the vendor id isn't in the map of local issues, then we want to put the link in the `links` slice.
 		// it means we don't have the issue.
@@ -181,8 +179,6 @@ func (i *CharacterIssueImporter) ImportWithSyncLog(character comic.Character, sy
 		}
 	}
 
-	// release the resource. no longer needed.
-	localIssueVendorIds = nil
 	i.logger.Info("Total issues we have", zap.Int("count", len(localIssues)), zap.String("character", character.Slug.Value()))
 	i.logger.Info("Total issues we don't have and need to fetch", zap.Int("count", len(linksToFetch)), zap.String("character", character.Slug.Value()))
 

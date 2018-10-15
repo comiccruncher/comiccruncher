@@ -75,8 +75,7 @@ func (c CharacterController) Characters(ctx echo.Context) error {
 	var results []*comic.Character
 	publisher := comic.PublisherSlug(ctx.QueryParam("publisher"))
 	var err error
-	pageNumber := 1
-	if pageNumber, err = strconv.Atoi(ctx.QueryParam("page")); pageNumber != 0 && err != nil {
+	if pageNumber, err := strconv.Atoi(ctx.QueryParam("page")); pageNumber != 0 && err != nil {
 		return JSONBadRequest(ctx, "malformed `page` parameter")
 	}
 	var slugs []comic.PublisherSlug
