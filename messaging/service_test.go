@@ -1,49 +1,15 @@
-package messaging
+package messaging_test
 
 import (
 	"fmt"
 	"github.com/aimeelaplant/comiccruncher/comic"
 	"github.com/aimeelaplant/comiccruncher/internal/mocks/comic"
+	"github.com/aimeelaplant/comiccruncher/internal/mocks/messaging"
+	"github.com/aimeelaplant/comiccruncher/messaging"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	"reflect"
 	"testing"
 )
-
-// MockJsonMessenger is a mock of JsonMessenger interface
-type MockJsonMessenger struct {
-	ctrl     *gomock.Controller
-	recorder *MockJsonMessengerMockRecorder
-}
-
-// MockJsonMessengerMockRecorder is the mock recorder for MockJsonMessenger
-type MockJsonMessengerMockRecorder struct {
-	mock *MockJsonMessenger
-}
-
-// NewMockJsonMessenger creates a new mock instance
-func NewMockJsonMessenger(ctrl *gomock.Controller) *MockJsonMessenger {
-	mock := &MockJsonMessenger{ctrl: ctrl}
-	mock.recorder = &MockJsonMessengerMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockJsonMessenger) EXPECT() *MockJsonMessengerMockRecorder {
-	return m.recorder
-}
-
-// Send mocks base method
-func (m *MockJsonMessenger) Send(arg0 JsonMessage) error {
-	ret := m.ctrl.Call(m, "Send", arg0)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Send indicates an expected call of Send
-func (mr *MockJsonMessengerMockRecorder) Send(arg0 interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Send", reflect.TypeOf((*MockJsonMessenger)(nil).Send), arg0)
-}
 
 func TestCharacterMessageService_Send(t *testing.T) {
 	ctrl := gomock.NewController(t)
@@ -53,14 +19,11 @@ func TestCharacterMessageService_Send(t *testing.T) {
 	characterMock.EXPECT().FindAll(gomock.Any()).Return(characters, nil)
 	characterSyncLogMock := mock_comic.NewMockCharacterSyncLogRepository(ctrl)
 	characterSyncLogMock.EXPECT().Create(gomock.Any()).Return(nil).Times(len(characters))
-	messenger := NewMockJsonMessenger(ctrl)
-	messenger.EXPECT().Send(gomock.Any()).Return(nil).Times(len(characters))
-	svc := CharacterMessageService{
-		characterRepository:        characterMock,
-		characterSyncLogRepository: characterSyncLogMock,
-		messenger:                  messenger,
-	}
+	ctrlr := gomock.NewController(t)
+	msngr := mock_messaging.NewMockJSONMessenger(ctrlr)
+	msngr.EXPECT().Send(gomock.Any()).Return(nil).Times(len(characters))
 
+	svc := messaging.NewCharacterMessageServiceP(msngr, characterMock, characterSyncLogMock)
 	err := svc.Send(comic.CharacterCriteria{})
 	assert.Nil(t, err)
 }

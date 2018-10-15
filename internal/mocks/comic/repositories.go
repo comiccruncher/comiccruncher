@@ -105,17 +105,17 @@ func (mr *MockIssueRepositoryMockRecorder) Update(issue interface{}) *gomock.Cal
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockIssueRepository)(nil).Update), issue)
 }
 
-// FindByVendorId mocks base method
-func (m *MockIssueRepository) FindByVendorId(vendorId string) (*comic.Issue, error) {
-	ret := m.ctrl.Call(m, "FindByVendorId", vendorId)
+// FindByVendorID mocks base method
+func (m *MockIssueRepository) FindByVendorID(vendorID string) (*comic.Issue, error) {
+	ret := m.ctrl.Call(m, "FindByVendorID", vendorID)
 	ret0, _ := ret[0].(*comic.Issue)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// FindByVendorId indicates an expected call of FindByVendorId
-func (mr *MockIssueRepositoryMockRecorder) FindByVendorId(vendorId interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByVendorId", reflect.TypeOf((*MockIssueRepository)(nil).FindByVendorId), vendorId)
+// FindByVendorID indicates an expected call of FindByVendorID
+func (mr *MockIssueRepositoryMockRecorder) FindByVendorID(vendorID interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByVendorID", reflect.TypeOf((*MockIssueRepository)(nil).FindByVendorID), vendorID)
 }
 
 // FindAll mocks base method
@@ -290,7 +290,7 @@ func (mr *MockCharacterSourceRepositoryMockRecorder) FindAll(criteria interface{
 }
 
 // Remove mocks base method
-func (m *MockCharacterSourceRepository) Remove(id uint) error {
+func (m *MockCharacterSourceRepository) Remove(id comic.CharacterSourceID) error {
 	ret := m.ctrl.Call(m, "Remove", id)
 	ret0, _ := ret[0].(error)
 	return ret0
@@ -365,17 +365,17 @@ func (mr *MockCharacterSyncLogRepositoryMockRecorder) Create(s interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockCharacterSyncLogRepository)(nil).Create), s)
 }
 
-// FindAllByCharacterId mocks base method
-func (m *MockCharacterSyncLogRepository) FindAllByCharacterId(characterID comic.CharacterID) ([]*comic.CharacterSyncLog, error) {
-	ret := m.ctrl.Call(m, "FindAllByCharacterId", characterID)
+// FindAllByCharacterID mocks base method
+func (m *MockCharacterSyncLogRepository) FindAllByCharacterID(characterID comic.CharacterID) ([]*comic.CharacterSyncLog, error) {
+	ret := m.ctrl.Call(m, "FindAllByCharacterID", characterID)
 	ret0, _ := ret[0].([]*comic.CharacterSyncLog)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// FindAllByCharacterId indicates an expected call of FindAllByCharacterId
-func (mr *MockCharacterSyncLogRepositoryMockRecorder) FindAllByCharacterId(characterID interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAllByCharacterId", reflect.TypeOf((*MockCharacterSyncLogRepository)(nil).FindAllByCharacterId), characterID)
+// FindAllByCharacterID indicates an expected call of FindAllByCharacterID
+func (mr *MockCharacterSyncLogRepositoryMockRecorder) FindAllByCharacterID(characterID interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindAllByCharacterID", reflect.TypeOf((*MockCharacterSyncLogRepository)(nil).FindAllByCharacterID), characterID)
 }
 
 // Update mocks base method
@@ -390,17 +390,17 @@ func (mr *MockCharacterSyncLogRepositoryMockRecorder) Update(s interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockCharacterSyncLogRepository)(nil).Update), s)
 }
 
-// FindById mocks base method
-func (m *MockCharacterSyncLogRepository) FindById(id comic.CharacterSyncLogID) (*comic.CharacterSyncLog, error) {
-	ret := m.ctrl.Call(m, "FindById", id)
+// FindByID mocks base method
+func (m *MockCharacterSyncLogRepository) FindByID(id comic.CharacterSyncLogID) (*comic.CharacterSyncLog, error) {
+	ret := m.ctrl.Call(m, "FindByID", id)
 	ret0, _ := ret[0].(*comic.CharacterSyncLog)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// FindById indicates an expected call of FindById
-func (mr *MockCharacterSyncLogRepositoryMockRecorder) FindById(id interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindById", reflect.TypeOf((*MockCharacterSyncLogRepository)(nil).FindById), id)
+// FindByID indicates an expected call of FindByID
+func (mr *MockCharacterSyncLogRepositoryMockRecorder) FindByID(id interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByID", reflect.TypeOf((*MockCharacterSyncLogRepository)(nil).FindByID), id)
 }
 
 // MockCharacterIssueRepository is a mock of CharacterIssueRepository interface
@@ -427,15 +427,15 @@ func (m *MockCharacterIssueRepository) EXPECT() *MockCharacterIssueRepositoryMoc
 }
 
 // CreateAll mocks base method
-func (m *MockCharacterIssueRepository) CreateAll(arg0 []*comic.CharacterIssue) error {
-	ret := m.ctrl.Call(m, "CreateAll", arg0)
+func (m *MockCharacterIssueRepository) CreateAll(cis []*comic.CharacterIssue) error {
+	ret := m.ctrl.Call(m, "CreateAll", cis)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
 // CreateAll indicates an expected call of CreateAll
-func (mr *MockCharacterIssueRepositoryMockRecorder) CreateAll(arg0 interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAll", reflect.TypeOf((*MockCharacterIssueRepository)(nil).CreateAll), arg0)
+func (mr *MockCharacterIssueRepositoryMockRecorder) CreateAll(cis interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateAll", reflect.TypeOf((*MockCharacterIssueRepository)(nil).CreateAll), cis)
 }
 
 // Create mocks base method

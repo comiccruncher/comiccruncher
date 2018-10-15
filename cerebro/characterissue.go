@@ -109,16 +109,16 @@ func (i *CharacterIssueImporter) ImportWithSyncLog(character comic.Character, sy
 	// A map containing vendor ID's marked for alternate appearances.
 	altSourcesMap := make(map[string]bool)
 	for _, source := range sources {
-		page, err := i.requestCharacterPage(source.VendorUrl)
+		page, err := i.requestCharacterPage(source.VendorURL)
 		if err != nil {
-			i.logger.Warn("error getting character page. skipping", zap.Error(err), zap.String("character", character.Slug.Value()), zap.String("source", source.VendorUrl))
+			i.logger.Warn("error getting character page. skipping", zap.Error(err), zap.String("character", character.Slug.Value()), zap.String("source", source.VendorURL))
 			// Skip.
 			continue
 		}
 		i.logger.Info(
 			"got issue links from source",
 			zap.Int("issue links", len(page.IssueLinks)),
-			zap.String("source", source.VendorUrl),
+			zap.String("source", source.VendorURL),
 			zap.String("vendor name", source.VendorName),
 			zap.String("character", character.Slug.Value()))
 		for _, l := range page.IssueLinks {
@@ -395,7 +395,6 @@ func isAppearance(issue *comic.Issue, slug comic.PublisherSlug) bool {
 	}
 	return false
 }
-
 
 // NewCharacterIssueImporter creates a new character issue importer.
 func NewCharacterIssueImporter(

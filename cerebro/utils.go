@@ -1,13 +1,13 @@
 package cerebro
 
 import (
-	"github.com/avast/retry-go"
-	"time"
-	"strings"
-	"github.com/aimeelaplant/externalissuesource"
-	"net/http"
-	"log"
 	"fmt"
+	"github.com/aimeelaplant/externalissuesource"
+	"github.com/avast/retry-go"
+	"log"
+	"net/http"
+	"strings"
+	"time"
 )
 
 // The default retry delay option.
@@ -17,6 +17,7 @@ var retryDelay = retry.Delay(time.Duration(10 * time.Second))
 // The returned string should be the requested url.
 func retryConnectionError(f func() (string, error)) error {
 	errCh := make(chan error, 1)
+	defer close(errCh)
 	retry.Do(func() error {
 		url, err := f()
 		if err != nil {
@@ -27,11 +28,9 @@ func retryConnectionError(f func() (string, error)) error {
 			errCh <- err
 			return nil
 		}
-		close(errCh)
 		return nil
 	}, retryDelay)
 	if err, ok := <-errCh; ok {
-		close(errCh)
 		return err
 	}
 	return nil

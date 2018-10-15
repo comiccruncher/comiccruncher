@@ -1,6 +1,7 @@
-package marvel
+package marvel_test
 
 import (
+	"github.com/aimeelaplant/comiccruncher/marvel"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net/http"
@@ -23,12 +24,10 @@ func TestAPI_Characters(t *testing.T) {
 		w.Write(bytes)
 	}))
 
-	marvelApi := API{
-		httpClient:        ts.Client(),
-		CharacterEndpoint: ts.URL,
-	}
+	marvelApi := marvel.NewMarvelAPI(ts.Client())
+	marvelApi.CharacterEndpoint = ts.URL
 
-	result, apiError, err := marvelApi.Characters(&Criteria{})
+	result, apiError, err := marvelApi.Characters(&marvel.Criteria{})
 	assert.Nil(t, err)
 	assert.Nil(t, apiError)
 	assert.Len(t, result.Results, 50)
@@ -49,12 +48,10 @@ func TestAPI_FetchCharactersFails(t *testing.T) {
 		w.Write(bytes)
 	}))
 
-	marvelApi := API{
-		httpClient:        ts.Client(),
-		CharacterEndpoint: ts.URL,
-	}
+	marvelApi := marvel.NewMarvelAPI(ts.Client())
+	marvelApi.CharacterEndpoint = ts.URL
 
-	result, apiError, err := marvelApi.Characters(&Criteria{})
+	result, apiError, err := marvelApi.Characters(&marvel.Criteria{})
 	assert.Nil(t, apiError)
 	assert.Nil(t, err)
 	assert.Equal(t, "You may not request more than 100 items.", result.Status)

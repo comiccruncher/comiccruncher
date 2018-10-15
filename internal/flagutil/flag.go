@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-// Splits a flag and trims whitespace by the specified separator `sep`.
+// Split splits a flag and trims whitespace by the specified separator `sep`.
 func Split(flag pflag.Flag, sep string) []string {
 	var results []string
 	if flag.Value.String() != "" {

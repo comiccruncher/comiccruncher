@@ -19,7 +19,7 @@ var charactersCmd = &cobra.Command{
 		if len(slugs) > 0 {
 			criteria.Slugs = comic.NewCharacterSlugs(slugs...)
 		}
-		messenger := messaging.NewJsonSqsMessengerFromEnv()
+		messenger := messaging.NewJSONSqsMessengerFromEnv()
 		svc := messaging.NewCharacterMessageService(messenger, comic.NewPGRepositoryContainer(pgo.MustInstance()))
 		if err := svc.Send(criteria); err != nil {
 			fmt.Println(fmt.Sprintf("got error from service: %s", err))

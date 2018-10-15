@@ -12,21 +12,21 @@ import (
 
 const appearancesPerYearsKey = "yearly"
 
-// The repository interface for publishers.
+// PublisherRepository is the repository interface for publishers.
 type PublisherRepository interface {
 	FindBySlug(slug PublisherSlug) (*Publisher, error)
 }
 
-// The repository interface for issues.
+// IssueRepository is the repository interface for issues.
 type IssueRepository interface {
 	Create(issue *Issue) error
 	CreateAll(issues []*Issue) error
 	Update(issue *Issue) error
-	FindByVendorId(vendorId string) (*Issue, error)
+	FindByVendorID(vendorID string) (*Issue, error)
 	FindAll(c IssueCriteria) ([]*Issue, error)
 }
 
-// The repository interface for characters.
+// CharacterRepository is the repository interface for characters.
 type CharacterRepository interface {
 	Create(c *Character) error
 	Update(c *Character) error
@@ -37,87 +37,86 @@ type CharacterRepository interface {
 	Total(cr CharacterCriteria) (int64, error)
 }
 
-// The repository interface for character sources.
+// CharacterSourceRepository is the repository interface for character sources.
 type CharacterSourceRepository interface {
 	Create(s *CharacterSource) error
 	FindAll(criteria CharacterSourceCriteria) ([]*CharacterSource, error)
-	Remove(id uint) error
-	// Run a raw query on the character sources.
+	Remove(id CharacterSourceID) error
+	// Raw runs a raw query on the character sources.
 	Raw(query string, params ...interface{}) error
 	Update(s *CharacterSource) error
 }
 
-// The repository interface for character sync logs.
+// CharacterSyncLogRepository is the repository interface for character sync logs.
 type CharacterSyncLogRepository interface {
 	Create(s *CharacterSyncLog) error
-	FindAllByCharacterId(characterID CharacterID) ([]*CharacterSyncLog, error)
+	FindAllByCharacterID(characterID CharacterID) ([]*CharacterSyncLog, error)
 	Update(s *CharacterSyncLog) error
-	FindById(id CharacterSyncLogID) (*CharacterSyncLog, error)
+	FindByID(id CharacterSyncLogID) (*CharacterSyncLog, error)
 }
 
-// The repository interface for character issues.
+// CharacterIssueRepository is the repository interface for character issues.
 type CharacterIssueRepository interface {
-	CreateAll([]*CharacterIssue) error
+	CreateAll(cis []*CharacterIssue) error
 	Create(ci *CharacterIssue) error
 	FindOneBy(characterID CharacterID, issueID IssueID) (*CharacterIssue, error)
 	InsertFast(issues []*CharacterIssue) error
 }
 
-// The repository interface for getting a characters appearances per year.
+// AppearancesByYearsRepository is the repository interface for getting a characters appearances per year.
 type AppearancesByYearsRepository interface {
-	//	Set(character *AppearancesByYears) error
 	Both(slug CharacterSlug) (AppearancesByYears, error)
 	Main(slug CharacterSlug) (AppearancesByYears, error)
 	Alternate(slug CharacterSlug) (AppearancesByYears, error)
 	List(slug CharacterSlug) ([]AppearancesByYears, error)
 }
 
-// The repository interface for general stats about the db.
+// StatsRepository is the repository interface for general stats about the db.
 type StatsRepository interface {
 	Stats() (Stats, error)
 }
 
-// The postgres implementation for the appearances per year repository.
+// PGAppearancesByYearsRepository is the postgres implementation for the appearances per year repository.
 type PGAppearancesByYearsRepository struct {
 	db *pg.DB
 }
 
-// The postgres implementation for the character repository.
+// PGCharacterRepository is the postgres implementation for the character repository.
 type PGCharacterRepository struct {
 	db *pg.DB
 }
 
-// The postgres implementation for the publisher repository.
+// PGPublisherRepository is the postgres implementation for the publisher repository.
 type PGPublisherRepository struct {
 	db *pg.DB
 }
 
-// The postgres implementation for the issue repository.
+// PGIssueRepository is the postgres implementation for the issue repository.
 type PGIssueRepository struct {
 	db *pg.DB
 }
 
-// The postgres implementation for the character source repository.
+// PGCharacterSourceRepository is the postgres implementation for the character source repository.
 type PGCharacterSourceRepository struct {
 	db *pg.DB
 }
 
-// The postgres implementation for the character issue repository.
+// PGCharacterIssueRepository is the postgres implementation for the character issue repository.
 type PGCharacterIssueRepository struct {
 	db *pg.DB
 }
 
-// The postgres implementation for the character sync log repository.
+// PGCharacterSyncLogRepository is the postgres implementation for the character sync log repository.
 type PGCharacterSyncLogRepository struct {
 	db *pg.DB
 }
 
-// The postgres implementation for the stats repository.
+// PGStatsRepository is the postgres implementation for the stats repository.
 type PGStatsRepository struct {
 	db *pg.DB
 }
 
-// The container for all the postgres repositories.
+// PGRepositoryContainer is the container for all the postgres repositories.
 type PGRepositoryContainer struct {
 	publisherRepository          PublisherRepository
 	issueRepository              IssueRepository
@@ -129,12 +128,12 @@ type PGRepositoryContainer struct {
 	statsRepository              StatsRepository
 }
 
-// PGYearlyAppearancesRepository
-// The Redis implementation for appearances per year repository.
+// RedisAppearancesByYearsRepository is the Redis implementation for appearances per year repository.
 type RedisAppearancesByYearsRepository struct {
 	redisClient *redis.Client
 }
 
+// FindBySlug gets a publisher by its slug.
 func (r *PGPublisherRepository) FindBySlug(slug PublisherSlug) (*Publisher, error) {
 	publisher := &Publisher{}
 	if err := r.db.Model(publisher).Where("publisher.slug = ?", slug).Select(); err != nil {
@@ -146,6 +145,7 @@ func (r *PGPublisherRepository) FindBySlug(slug PublisherSlug) (*Publisher, erro
 	return publisher, nil
 }
 
+// Create creates a character.
 func (r *PGCharacterRepository) Create(c *Character) error {
 	c.Name = strings.TrimSpace(c.Name)
 	c.Slug = CharacterSlug(slug.Make(c.Name))
@@ -170,10 +170,13 @@ func (r *PGCharacterRepository) Create(c *Character) error {
 	return r.db.Model(c).Column("character.*", "Publisher").Where("character.id = ?", c.ID).Select()
 }
 
+// Update updates a character.
 func (r *PGCharacterRepository) Update(c *Character) error {
 	return r.db.Update(c)
 }
 
+// FindBySlug finds a character by its slug. `includeIsDisabled` means to also include disabled characters
+// in the find.
 func (r *PGCharacterRepository) FindBySlug(slug CharacterSlug, includeIsDisabled bool) (*Character, error) {
 	if result, err := r.FindAll(CharacterCriteria{
 		Slugs:             []CharacterSlug{slug},
@@ -186,6 +189,7 @@ func (r *PGCharacterRepository) FindBySlug(slug CharacterSlug, includeIsDisabled
 	return nil, nil
 }
 
+// Remove removes a character by its ID.
 func (r *PGCharacterRepository) Remove(id CharacterID) error {
 	if _, err := r.db.Model(&Character{}).Where("id = ?", id).Delete(); err != nil {
 		return err
@@ -193,6 +197,7 @@ func (r *PGCharacterRepository) Remove(id CharacterID) error {
 	return nil
 }
 
+// Total gets total number of characters based on the criteria.
 func (r *PGCharacterRepository) Total(cr CharacterCriteria) (int64, error) {
 	query := r.db.Model(&Character{})
 
@@ -234,6 +239,7 @@ func (r *PGCharacterRepository) Total(cr CharacterCriteria) (int64, error) {
 	return int64(count), err
 }
 
+// FindAll finds characters by the criteria.
 func (r *PGCharacterRepository) FindAll(cr CharacterCriteria) ([]*Character, error) {
 	var characters []*Character
 	query := r.db.Model(&characters).Column("character.*", "Publisher")
@@ -288,6 +294,7 @@ func (r *PGCharacterRepository) FindAll(cr CharacterCriteria) ([]*Character, err
 	return characters, nil
 }
 
+// UpdateAll updates all the characters in the slice.
 func (r *PGCharacterRepository) UpdateAll(characters []*Character) error {
 	if len(characters) > 0 {
 		_, err := r.db.Model(&characters).Update()
@@ -296,6 +303,7 @@ func (r *PGCharacterRepository) UpdateAll(characters []*Character) error {
 	return nil
 }
 
+// CreateAll creates the issues in the slice.
 func (r *PGCharacterIssueRepository) CreateAll(issues []*CharacterIssue) error {
 	// pg-go gives error if you pass an empty slice.
 	// interface should handle empty slice accordingly.
@@ -307,6 +315,9 @@ func (r *PGCharacterIssueRepository) CreateAll(issues []*CharacterIssue) error {
 	return nil
 }
 
+// InsertFast creates all the issues in the db ...
+// but NOTE it does not generate the autoincremented ID's into the models of the slice. :(
+// TODO: Find out why ORM can't do this?!?!
 func (r *PGCharacterIssueRepository) InsertFast(issues []*CharacterIssue) error {
 	if len(issues) > 0 {
 		query := `INSERT INTO character_issues (character_id, issue_id, appearance_type, importance, created_at, updated_at)
@@ -331,6 +342,7 @@ func (r *PGCharacterIssueRepository) InsertFast(issues []*CharacterIssue) error 
 	return nil
 }
 
+// Create creates a character issue.
 func (r *PGCharacterIssueRepository) Create(ci *CharacterIssue) error {
 	if _, err := r.db.Model(ci).Returning("*").Insert(); err != nil {
 		return err
@@ -338,6 +350,7 @@ func (r *PGCharacterIssueRepository) Create(ci *CharacterIssue) error {
 	return nil
 }
 
+// FindOneBy finds a character issue by the params.
 func (r *PGCharacterIssueRepository) FindOneBy(characterID CharacterID, issueID IssueID) (*CharacterIssue, error) {
 	characterIssue := &CharacterIssue{}
 	if err := r.db.Model(characterIssue).Where("character_id = ?", characterID).Where("issue_id = ?", issueID).Select(); err != nil {
@@ -349,11 +362,13 @@ func (r *PGCharacterIssueRepository) FindOneBy(characterID CharacterID, issueID 
 	return characterIssue, nil
 }
 
+// Create creates a character source.
 func (r *PGCharacterSourceRepository) Create(s *CharacterSource) error {
 	_, err := r.db.Model(s).Insert(s)
 	return err
 }
 
+// FindAll finds all the character sources for the criteria.
 func (r *PGCharacterSourceRepository) FindAll(cr CharacterSourceCriteria) ([]*CharacterSource, error) {
 	var characterSources []*CharacterSource
 
@@ -392,11 +407,13 @@ func (r *PGCharacterSourceRepository) FindAll(cr CharacterSourceCriteria) ([]*Ch
 	return characterSources, nil
 }
 
-func (r *PGCharacterSourceRepository) Remove(id uint) error {
+// Remove removes a character source by its ID.
+func (r *PGCharacterSourceRepository) Remove(id CharacterSourceID) error {
 	_, err := r.db.Model(&CharacterSource{}).Where("id = ?", id).Delete()
 	return err
 }
 
+// Raw performs a raw query on the character source. Not ideal but fine for now.
 func (r *PGCharacterSourceRepository) Raw(query string, params ...interface{}) error {
 	if _, err := r.db.Exec(query, params...); err != nil {
 		return err
@@ -404,20 +421,23 @@ func (r *PGCharacterSourceRepository) Raw(query string, params ...interface{}) e
 	return nil
 }
 
+// Update updates a character source...
 func (r *PGCharacterSourceRepository) Update(s *CharacterSource) error {
 	return r.db.Update(s)
 }
 
+// Create creates a new character sync log.
 func (r *PGCharacterSyncLogRepository) Create(s *CharacterSyncLog) error {
 	_, err := r.db.Model(s).Insert(s)
 	return err
 }
 
-func (r *PGCharacterSyncLogRepository) FindAllByCharacterId(characterID CharacterID) ([]*CharacterSyncLog, error) {
+// FindAllByCharacterID gets all the sync logs by the character ID.
+func (r *PGCharacterSyncLogRepository) FindAllByCharacterID(id CharacterID) ([]*CharacterSyncLog, error) {
 	var syncLogs []*CharacterSyncLog
 	if err := r.db.
 		Model(&syncLogs).
-		Where("character_id = ?", characterID).
+		Where("character_id = ?", id).
 		Select(); err != nil {
 		if err == pg.ErrNoRows {
 			return nil, nil
@@ -427,11 +447,13 @@ func (r *PGCharacterSyncLogRepository) FindAllByCharacterId(characterID Characte
 	return syncLogs, nil
 }
 
+// Update updates a sync log.
 func (r *PGCharacterSyncLogRepository) Update(l *CharacterSyncLog) error {
 	return r.db.Update(l)
 }
 
-func (r *PGCharacterSyncLogRepository) FindById(id CharacterSyncLogID) (*CharacterSyncLog, error) {
+// FindByID finds a character sync log by the id.
+func (r *PGCharacterSyncLogRepository) FindByID(id CharacterSyncLogID) (*CharacterSyncLog, error) {
 	syncLog := &CharacterSyncLog{}
 	if err := r.db.Model(syncLog).Where("id = ?", id).Select(); err != nil {
 		if err == pg.ErrNoRows {
@@ -442,11 +464,13 @@ func (r *PGCharacterSyncLogRepository) FindById(id CharacterSyncLogID) (*Charact
 	return syncLog, nil
 }
 
+// Create creates an issue.
 func (r *PGIssueRepository) Create(issue *Issue) error {
 	_, err := r.db.Model(issue).Returning("*").Insert(issue)
 	return err
 }
 
+// CreateAll creates all the issue in the slice.
 func (r *PGIssueRepository) CreateAll(issues []*Issue) error {
 	// pg-go returns an error if you bulk-insert an empty slice.
 	if len(issues) > 0 {
@@ -455,12 +479,14 @@ func (r *PGIssueRepository) CreateAll(issues []*Issue) error {
 	return nil
 }
 
+// Update updates an issue.
 func (r *PGIssueRepository) Update(issue *Issue) error {
 	return r.db.Update(issue)
 }
 
-func (r *PGIssueRepository) FindByVendorId(vendorId string) (*Issue, error) {
-	if issues, err := r.FindAll(IssueCriteria{VendorIds: []string{vendorId}, Limit: 1}); err != nil {
+// FindByVendorID finds the issues with the specified vendor IDs.
+func (r *PGIssueRepository) FindByVendorID(vendorID string) (*Issue, error) {
+	if issues, err := r.FindAll(IssueCriteria{VendorIds: []string{vendorID}, Limit: 1}); err != nil {
 		return nil, err
 	} else if len(issues) != 0 {
 		return issues[0], nil
@@ -469,6 +495,7 @@ func (r *PGIssueRepository) FindByVendorId(vendorId string) (*Issue, error) {
 	}
 }
 
+// FindAll finds all the issues from the criteria.
 func (r *PGIssueRepository) FindAll(cr IssueCriteria) ([]*Issue, error) {
 	var issues []*Issue
 
@@ -503,6 +530,7 @@ func (r *PGIssueRepository) FindAll(cr IssueCriteria) ([]*Issue, error) {
 	return issues, nil
 }
 
+// Stats gets stats for the comic repository.
 func (r *PGStatsRepository) Stats() (Stats, error) {
 	stats := Stats{}
 	_, err := r.db.QueryOne(&stats, `
@@ -518,7 +546,8 @@ func (r *PGStatsRepository) Stats() (Stats, error) {
 	return stats, err
 }
 
-// Gets all of a character's appearances per year, which includes its main and alternate counterparts.
+// Both gets all of a character's appearances per year, which includes its main and alternate counterparts
+// in one struct. (different from List)
 func (r *PGAppearancesByYearsRepository) Both(slug CharacterSlug) (AppearancesByYears, error) {
 	var appearancesPerYears []YearlyAggregate
 	_, err := r.db.Query(
@@ -550,7 +579,7 @@ func (r *PGAppearancesByYearsRepository) Both(slug CharacterSlug) (AppearancesBy
 	return AppearancesByYears{}, nil
 }
 
-// Gets a character's main appearances per year. No alternate realities.
+// Main gets a character's main appearances per year. No alternate realities.
 func (r *PGAppearancesByYearsRepository) Main(slug CharacterSlug) (AppearancesByYears, error) {
 	var appearances []YearlyAggregate
 	_, err := r.db.Query(
@@ -582,7 +611,7 @@ func (r *PGAppearancesByYearsRepository) Main(slug CharacterSlug) (AppearancesBy
 	return AppearancesByYears{}, nil
 }
 
-// Gets a character's alternate appearances per year. Yes to alternate realities.
+// Alternate gets a character's alternate appearances per year. Yes to alternate realities.
 func (r *PGAppearancesByYearsRepository) Alternate(slug CharacterSlug) (AppearancesByYears, error) {
 	var appearances []YearlyAggregate
 	_, err := r.db.Query(&appearances, fmt.Sprintf(`
@@ -612,7 +641,7 @@ func (r *PGAppearancesByYearsRepository) Alternate(slug CharacterSlug) (Appearan
 	return AppearancesByYears{}, nil
 }
 
-// Gets a slice of a character's main and alternate appearances.
+// List gets a slice of a character's main and alternate appearances.
 func (r *PGAppearancesByYearsRepository) List(slug CharacterSlug) ([]AppearancesByYears, error) {
 	main, err := r.Main(slug)
 	if err != nil {
@@ -659,18 +688,23 @@ func (r *RedisAppearancesByYearsRepository) byType(slug CharacterSlug, t Appeara
 	return c, nil
 }
 
+// Both gets all of a character's appearances per year, which includes its main and alternate counterparts
+// in one struct. (different from List)
 func (r *RedisAppearancesByYearsRepository) Both(slug CharacterSlug) (AppearancesByYears, error) {
 	return r.byType(slug, Main|Alternate)
 }
 
+// Main gets a character's main appearances per year. No alternate realities.
 func (r *RedisAppearancesByYearsRepository) Main(slug CharacterSlug) (AppearancesByYears, error) {
 	return r.byType(slug, Main)
 }
 
+// Alternate gets a character's alternate appearances per year. Yes alternate realities.
 func (r *RedisAppearancesByYearsRepository) Alternate(slug CharacterSlug) (AppearancesByYears, error) {
 	return r.byType(slug, Alternate)
 }
 
+// List returns a slice of appearances per year for their main and alternate appearances.
 func (r *RedisAppearancesByYearsRepository) List(slug CharacterSlug) ([]AppearancesByYears, error) {
 	main, err := r.Main(slug)
 	if err != nil {
@@ -690,7 +724,7 @@ func (r *RedisAppearancesByYearsRepository) List(slug CharacterSlug) ([]Appearan
 	return both, nil
 }
 
-// Set's the character's info like this: HMSET KEY name "character.Name"
+// Set sets the character's info like this: HMSET KEY name "character.Name"
 // Sets the character's appearances like this: ZADDNX KEY:yearly 1 "1979" 2 "1980"
 func (r *RedisAppearancesByYearsRepository) Set(character AppearancesByYears) error {
 	key := character.CharacterSlug
@@ -709,40 +743,42 @@ func (r *RedisAppearancesByYearsRepository) Set(character AppearancesByYears) er
 	return nil
 }
 
-// Gets the publisher repository.
+// PublisherRepository gets the publisher repository.
 func (c *PGRepositoryContainer) PublisherRepository() PublisherRepository {
 	return c.publisherRepository
 }
 
-// Gets the issue repository.
+// IssueRepository gets the issue repository.
 func (c *PGRepositoryContainer) IssueRepository() IssueRepository {
 	return c.issueRepository
 }
 
-// Gets the character repository.
+// CharacterRepository gets the character repository.
 func (c *PGRepositoryContainer) CharacterRepository() CharacterRepository {
 	return c.characterRepository
 }
 
-// Gets the character issue repository.
+// CharacterIssueRepository gets the character issue repository.
 func (c *PGRepositoryContainer) CharacterIssueRepository() CharacterIssueRepository {
 	return c.characterIssueRepository
 }
 
-// Gets the character source repository.
+// CharacterSourceRepository gets the character source repository.
 func (c *PGRepositoryContainer) CharacterSourceRepository() CharacterSourceRepository {
 	return c.characterSourceRepository
 }
 
-// Gets the character sync log repository.
+// CharacterSyncLogRepository gets the character sync log repository.
 func (c *PGRepositoryContainer) CharacterSyncLogRepository() CharacterSyncLogRepository {
 	return c.characterSyncLogRepository
 }
 
+// AppearancesByYearsRepository gets the appearances per year repository.
 func (c *PGRepositoryContainer) AppearancesByYearsRepository() *PGAppearancesByYearsRepository {
 	return c.appearancesByYearsRepository
 }
 
+// StatsRepository gets the stats repository.
 func (c *PGRepositoryContainer) StatsRepository() StatsRepository {
 	return c.statsRepository
 }
@@ -751,48 +787,56 @@ func appearancesPerYearsZKey(key CharacterSlug, cat AppearanceType) string {
 	return fmt.Sprintf("%s:%s:%d", key, appearancesPerYearsKey, cat)
 }
 
-// Returns a pointer to an instance of the gorm appearance repository.
+// NewPGAppearancesPerYearRepository creates the new appearances by year repository for postgres.
 func NewPGAppearancesPerYearRepository(db *pg.DB) *PGAppearancesByYearsRepository {
 	return &PGAppearancesByYearsRepository{
 		db: db,
 	}
 }
 
-// Returns a pointer to an instance of the redis yearly appearances repository.
+// NewRedisAppearancesPerYearRepository creates the redis yearly appearances repository.
 func NewRedisAppearancesPerYearRepository(client *redis.Client) *RedisAppearancesByYearsRepository {
 	return &RedisAppearancesByYearsRepository{redisClient: client}
 }
 
+// NewPGStatsRepository creates a new stats repository for the postgres implementation.
 func NewPGStatsRepository(db *pg.DB) StatsRepository {
 	return &PGStatsRepository{db: db}
 }
 
+// NewPGCharacterIssueRepository creates the new character issue repository for the postgres implementation.
 func NewPGCharacterIssueRepository(db *pg.DB) CharacterIssueRepository {
 	return &PGCharacterIssueRepository{db: db}
 }
 
+// NewPGCharacterSourceRepository creates the new character source repository for the postgres implementation.
 func NewPGCharacterSourceRepository(db *pg.DB) CharacterSourceRepository {
 	return &PGCharacterSourceRepository{
 		db: db,
 	}
 }
 
+// NewPGPublisherRepository creates a new publisher repository for the postgres implementation.
 func NewPGPublisherRepository(db *pg.DB) PublisherRepository {
 	return &PGPublisherRepository{db: db}
 }
 
+// NewPGIssueRepository creates a new issue repository for the postgres implementation.
 func NewPGIssueRepository(db *pg.DB) IssueRepository {
 	return &PGIssueRepository{db: db}
 }
 
+// NewPGCharacterRepository creates the new character repository.
 func NewPGCharacterRepository(db *pg.DB) CharacterRepository {
 	return &PGCharacterRepository{db: db}
 }
 
+// NewPGCharacterSyncLogRepository creates the new character sync log repository.
 func NewPGCharacterSyncLogRepository(db *pg.DB) CharacterSyncLogRepository {
 	return &PGCharacterSyncLogRepository{db: db}
 }
 
+// NewPGRepositoryContainer creates the new postgres repository container.
 func NewPGRepositoryContainer(db *pg.DB) *PGRepositoryContainer {
 	return &PGRepositoryContainer{
 		publisherRepository:          NewPGPublisherRepository(db),

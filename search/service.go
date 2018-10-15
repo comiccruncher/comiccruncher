@@ -5,17 +5,18 @@ import (
 	"github.com/go-pg/pg"
 )
 
-// The interface for searching.
+// Searcher is the interface for searching.
 type Searcher interface {
-	// Searches for characters by their names.
+	// Characters searches for characters by their names.
 	Characters(name string, limit, offset int) ([]*comic.Character, error)
 }
 
+// Service defines the service for searching.
 type Service struct {
 	db *pg.DB
 }
 
-// Searches for characters by their names using postgres' trigram similarities.
+// Characters searches for characters by their names using postgres' trigram similarities.
 func (s *Service) Characters(name string, limit, offset int) ([]*comic.Character, error) {
 	characters := make([]*comic.Character, 0)
 	err := s.db.
@@ -38,6 +39,7 @@ func (s *Service) Characters(name string, limit, offset int) ([]*comic.Character
 	return characters, nil
 }
 
+// NewSearchService creates the new search service implementation.
 func NewSearchService(db *pg.DB) Searcher {
 	return &Service{
 		db: db,

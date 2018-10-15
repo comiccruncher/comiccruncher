@@ -20,7 +20,6 @@ type AlterEgoIdentifier struct {
 	characterSvc comic.CharacterServicer
 }
 
-
 func (i *AlterEgoIdentifier) get(url string) (io.ReadCloser, error) {
 	resp, err := i.httpClient.Get(url)
 	if err != nil {
@@ -66,7 +65,7 @@ func (i *AlterEgoIdentifier) parseMarvel(c comic.Character) (string, error) {
 	}
 	var realName string
 	for _, source := range sources {
-		body, err := i.get(source.VendorUrl)
+		body, err := i.get(source.VendorURL)
 		if err != nil {
 			body.Close()
 			return "", err
@@ -96,13 +95,13 @@ func (i *AlterEgoIdentifier) parseMarvel(c comic.Character) (string, error) {
 
 // Name gets the alter-ego name for a character.
 func (i *AlterEgoIdentifier) Name(c comic.Character) (string, error) {
-	if c.VendorUrl == "" {
+	if c.VendorURL == "" {
 		return "", errors.New("empty vendor url")
 	}
 	var realName string
 	var err error
 	if c.Publisher.Slug == "dc" {
-		realName, err = i.parseDC(c.VendorUrl)
+		realName, err = i.parseDC(c.VendorURL)
 	}
 	if c.Publisher.Slug == "marvel" {
 		realName, err = i.parseMarvel(c)
@@ -118,10 +117,10 @@ type AlterEgoImporter struct {
 
 // Import imports a character's other_name by identifying a real name from an external source.
 func (i *AlterEgoImporter) Import(slugs []comic.CharacterSlug) error {
-	 characters, err := i.characterSvc.Characters(slugs, 0, 0)
-	 if err != nil {
-	 	return err
-	 }
+	characters, err := i.characterSvc.Characters(slugs, 0, 0)
+	if err != nil {
+		return err
+	}
 	for _, c := range characters {
 		if c.OtherName != "" {
 			// If a character already has an other name, then don't change it.

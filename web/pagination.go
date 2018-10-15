@@ -8,10 +8,11 @@ import (
 )
 
 var (
-	InvalidPageParameter = errors.New("invalid `page` parameter")
+	// ErrInvalidPageParameter is an error for an invalid page parameter from a request.
+	ErrInvalidPageParameter = errors.New("invalid `page` parameter")
 )
 
-// Represents a page number and link.
+// Page represents a page number and link.
 type Page struct {
 	Number int    `json:"number"`
 	Link   string `json:"link"`
@@ -36,7 +37,7 @@ func (p Page) nextPage(ctx echo.Context) *Page {
 	return &Page{Number: nextPageNumber, Link: fullPath(ctx.Request().URL.EscapedPath(), queryParams.Encode())}
 }
 
-// A view that displays pagination info.
+// Pagination is a view that displays pagination info.
 type Pagination struct {
 	PerPage      int   `json:"per_page"`
 	PreviousPage *Page `json:"previous_page"`
@@ -44,7 +45,7 @@ type Pagination struct {
 	NextPage     *Page `json:"next_page"`
 }
 
-// Creates a new pagination.
+// CreatePagination creates a new pagination.
 func CreatePagination(ctx echo.Context, data []interface{}, itemsPerPage int) (*Pagination, error) {
 	requestedPageParam := ctx.QueryParam("page")
 	// Start with default
@@ -54,14 +55,14 @@ func CreatePagination(ctx echo.Context, data []interface{}, itemsPerPage int) (*
 	}
 	requestedPageNumber, err := strconv.Atoi(requestedPageParam)
 	if requestedPageParam != "" && err != nil {
-		return nil, InvalidPageParameter
+		return nil, ErrInvalidPageParameter
 	}
 	if requestedPageParam != "" {
 		if requestedPageNumber > 0 {
 			pagination.CurrentPage = Page{Link: fullPath(ctx.Request().URL.EscapedPath(), ctx.QueryString()), Number: requestedPageNumber}
 			pagination.PreviousPage = pagination.CurrentPage.previousPage(ctx)
 		} else {
-			return nil, InvalidPageParameter
+			return nil, ErrInvalidPageParameter
 		}
 	}
 	if len(data) > itemsPerPage {

@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/hex"
-	"errors"
 	"fmt"
 	"github.com/aimeelaplant/comiccruncher/internal/hashutil"
 	"github.com/aws/aws-sdk-go/aws"
@@ -22,10 +21,12 @@ import (
 	"time"
 )
 
+// Storage defines the interface for uploading remote files to a remote directory.
 type Storage interface {
-	UploadFromRemote(remoteUrl string, remoteDir string) (UploadedImage, error)
+	UploadFromRemote(remoteURL string, remoteDir string) (UploadedImage, error)
 }
 
+// S3Storage is the Storage implementation for AWS S3.
 type S3Storage struct {
 	httpClient     *http.Client
 	s3             *s3.S3           // The s3 storage.
@@ -33,29 +34,29 @@ type S3Storage struct {
 	namingStrategy FileNameStrategy // The naming strategy for uploading a file to S3.
 }
 
-// A callable used for naming a file.
+// FileNameStrategy is a callable used for naming a file.
 type FileNameStrategy func(basename string) string
 
-// The uploaded image from S3 with its pathname and md5 hash of the image data.
+// UploadedImage is the uploaded image with its pathname and md5 hash of the image data.
 type UploadedImage struct {
 	Pathname string
 	MD5Hash  string
 }
 
-// Uploads a file from a remote url. The remote file gets temporarily read in memory.
+// UploadFromRemote uploads a file from a remote url. The remote file gets temporarily read in memory.
 func (storage *S3Storage) UploadFromRemote(remoteFile string, remoteDir string) (UploadedImage, error) {
 	var uploadImage UploadedImage
 	u, err := url.Parse(remoteFile)
 	if err != nil {
-		return uploadImage, errors.New(fmt.Sprintf("cannot parse url: %s", err))
+		return uploadImage, fmt.Errorf("cannot parse url: %s", err)
 	}
 	res, err := storage.httpClient.Get(remoteFile)
 	if err != nil {
-		return uploadImage, errors.New(fmt.Sprintf("error requesting the remote url: %s", err))
+		return uploadImage, fmt.Errorf("error requesting the remote url: %s", err)
 	}
 	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK && res.StatusCode != http.StatusNotModified {
-		return uploadImage, errors.New(fmt.Sprintf("got bad status code from remote url %s: %d", remoteFile, res.StatusCode))
+		return uploadImage, fmt.Errorf("got bad status code from remote url %s: %d", remoteFile, res.StatusCode)
 	}
 	// Check if there is not a leading slash in the remoteDir.
 	if !strings.HasSuffix(remoteDir, "/") {
@@ -71,7 +72,7 @@ func (storage *S3Storage) UploadFromRemote(remoteFile string, remoteDir string) 
 		return uploadImage, err
 	}
 	if err := storage.uploadBytes(b, remotePathName); err != nil {
-		return uploadImage, errors.New(fmt.Sprintf("could not upload: %s", err))
+		return uploadImage, fmt.Errorf("could not upload: %s", err)
 	}
 	md5Hash, err := hashutil.MD5Hash(nopCloser)
 	if err != nil {
@@ -102,34 +103,7 @@ func (storage *S3Storage) uploadBytes(b []byte, remotePathName string) error {
 	return nil
 }
 
-// Uploads an opened file to s3. The caller is responsible for closing the file.
-func (storage *S3Storage) upload(file *os.File, remotePathName string) error {
-	ctx := context.Background()
-	timeout := time.Duration(10 * time.Second) // 10 seconds
-	ctx, cancelFn := context.WithTimeout(ctx, timeout)
-	defer cancelFn()
-
-	fileInfo, _ := file.Stat()
-	var size = fileInfo.Size()
-	buffer := make([]byte, size)
-	if _, err := file.Read(buffer); err != nil {
-		return errors.New(fmt.Sprintf("could not read file: %s", err))
-	}
-	if _, err := storage.s3.PutObject(
-		&s3.PutObjectInput{
-			Bucket:        aws.String(storage.bucket),
-			Body:          bytes.NewReader(buffer),
-			ContentType:   aws.String(http.DetectContentType(buffer)),
-			ContentLength: aws.Int64(size),
-			Key:           aws.String(remotePathName),
-			CacheControl:  aws.String("max-age=2592000"),
-		},
-	); err != nil {
-		return err
-	}
-	return nil
-}
-
+// NewS3StorageFromEnv creates the new S3 storage implementation from env vars.
 func NewS3StorageFromEnv() (Storage, error) {
 	creds := credentials.Value{
 		AccessKeyID:     os.Getenv("CC_AWS_ACCESS_KEY_ID"),
@@ -151,7 +125,7 @@ func NewS3StorageFromEnv() (Storage, error) {
 	return &s3Storage, nil
 }
 
-// Returns the crc32 encoded string of the unix time in nanoseconds plus the file extension
+// Crc32TimeNamingStrategy returns the crc32 encoded string of the unix time in nanoseconds plus the file extension
 // of the given basename.
 func Crc32TimeNamingStrategy() FileNameStrategy {
 	return func(basename string) string {
@@ -162,6 +136,7 @@ func Crc32TimeNamingStrategy() FileNameStrategy {
 	}
 }
 
+// NewS3Storage creates a new S3 storage implementation from params.
 func NewS3Storage(httpClient *http.Client, s3 *s3.S3, bucket string, strategy FileNameStrategy) Storage {
 	return &S3Storage{
 		httpClient:     httpClient,

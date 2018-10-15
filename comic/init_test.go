@@ -1,8 +1,8 @@
 package comic_test
 
 import (
-	"github.com/aimeelaplant/comiccruncher/internal/pgo"
 	"github.com/aimeelaplant/comiccruncher/comic"
+	"github.com/aimeelaplant/comiccruncher/internal/pgo"
 	"github.com/go-pg/pg"
 )
 

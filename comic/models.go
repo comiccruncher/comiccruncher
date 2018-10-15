@@ -31,7 +31,7 @@ const (
 	FormatDigitalMedia Format = "digital"
 	FormatMiniComic    Format = "mini"
 	FormatFlipbook     Format = "flipbook"
-	FormatPrestige	   Format = "prestige"
+	FormatPrestige     Format = "prestige"
 	FormatOther        Format = "other"
 )
 
@@ -39,7 +39,7 @@ const (
 // Bitwise values to represent appearance types.
 const (
 	// Main is their main universe(s)
-	Main      AppearanceType = 1 << 0
+	Main AppearanceType = 1 << 0
 	// Alternate is an alternate reality appearance or whatever.
 	Alternate AppearanceType = 1 << 1
 )
@@ -82,7 +82,7 @@ var categoryToString = map[AppearanceType]string{
 	Main | Alternate: "all",
 }
 
-var cdnUrl = os.Getenv("CC_CDN_URL")
+var cdnURL = os.Getenv("CC_CDN_URL")
 
 // PublisherID is the PK identifier for the publisher.
 type PublisherID uint
@@ -157,20 +157,20 @@ type Publisher struct {
 type Issue struct {
 	tableName          struct{} `pg:",discard_unknown_columns"`
 	ID                 IssueID
-	PublicationDate    time.Time  `sql:",notnull"`
-	SaleDate           time.Time  `sql:",notnull"` // @TODO: add an index.
-	IsVariant          bool       `sql:",notnull"`
-	MonthUncertain     bool       `sql:",notnull"`
-	Format             Format     `sql:",notnull"`
-	VendorPublisher    string     `sql:",notnull"`
-	VendorSeriesName   string     `sql:",notnull"`
-	VendorSeriesNumber string     `sql:",notnull"`
+	PublicationDate    time.Time `sql:",notnull"`
+	SaleDate           time.Time `sql:",notnull"` // @TODO: add an index.
+	IsVariant          bool      `sql:",notnull"`
+	MonthUncertain     bool      `sql:",notnull"`
+	Format             Format    `sql:",notnull"`
+	VendorPublisher    string    `sql:",notnull"`
+	VendorSeriesName   string    `sql:",notnull"`
+	VendorSeriesNumber string    `sql:",notnull"`
 	// IsReprint means the issue is a full reprint with no original story. (So something like Classic X-Men 7 would not count).
-	IsReprint          bool		  `sql:"default:false,notnull"`
-	VendorType         VendorType `sql:",notnull,unique:uix_vendor_type_vendor_id,type:smallint"`
-	VendorID           string     `sql:",notnull,unique:uix_vendor_type_vendor_id"`
-	CreatedAt          time.Time  `sql:",notnull,default:NOW()" json:"-"`
-	UpdatedAt          time.Time  `sql:",notnull,default:NOW()" json:"-"`
+	IsReprint  bool       `sql:"default:false,notnull"`
+	VendorType VendorType `sql:",notnull,unique:uix_vendor_type_vendor_id,type:smallint"`
+	VendorID   string     `sql:",notnull,unique:uix_vendor_type_vendor_id"`
+	CreatedAt  time.Time  `sql:",notnull,default:NOW()" json:"-"`
+	UpdatedAt  time.Time  `sql:",notnull,default:NOW()" json:"-"`
 }
 
 // IssueCriteria for querying issues.
@@ -195,10 +195,10 @@ type Character struct {
 	Image             string        `json:"image"`
 	Slug              CharacterSlug `sql:",notnull,unique:uix_character_slug" json:"slug"`
 	VendorType        VendorType    `sql:",notnull,unique:uix_vendor_type_vendor_id" json:"-"`
-	VendorId          string        `sql:",notnull,unique:uix_vendor_type_vendor_id" json:"-"`
+	VendorID          string        `sql:",notnull,unique:uix_vendor_type_vendor_id" json:"-"`
 	VendorImage       string        `json:"vendor_image"`
 	VendorImageMd5    string        `sql:",type:varchar(32)," json:"-"`
-	VendorUrl         string        `json:"vendor_url"`
+	VendorURL         string        `json:"vendor_url"`
 	VendorDescription string        `json:"vendor_description"`
 	IsDisabled        bool          `json:"-" sql:",notnull"`
 	CreatedAt         time.Time     `sql:",notnull,default:NOW()" json:"-"`
@@ -212,7 +212,7 @@ type CharacterSource struct {
 	Character       *Character        // Pointer. Could be nil. Not eager-loaded.
 	CharacterID     CharacterID       `pg:",fk:character_id" sql:",notnull,unique:uix_character_id_vendor_url,on_delete:CASCADE" json:"character_id"`
 	VendorType      VendorType        `sql:",notnull,type:smallint" json:"type"`
-	VendorUrl       string            `sql:",notnull,unique:uix_character_id_vendor_url"`
+	VendorURL       string            `sql:",notnull,unique:uix_character_id_vendor_url"`
 	VendorName      string            `sql:",notnull"`
 	VendorOtherName string
 	IsDisabled      bool      `sql:",notnull"`
@@ -366,11 +366,11 @@ func (slug PublisherSlug) Value() string {
 func (c *Character) MarshalJSON() ([]byte, error) {
 	strctImage := ""
 	if c.Image != "" {
-		strctImage = fmt.Sprintf("%s/%s", cdnUrl, c.Image)
+		strctImage = fmt.Sprintf("%s/%s", cdnURL, c.Image)
 	}
 	strctVendorImage := ""
 	if c.VendorImage != "" {
-		strctVendorImage = fmt.Sprintf("%s/%s", cdnUrl, c.VendorImage)
+		strctVendorImage = fmt.Sprintf("%s/%s", cdnURL, c.VendorImage)
 	}
 	type Alias Character
 	return json.Marshal(&struct {
@@ -394,12 +394,12 @@ func NewCharacterSlugs(strs ...string) []CharacterSlug {
 }
 
 // NewCharacter Creates a new character.
-func NewCharacter(name string, publisherId PublisherID, vendorType VendorType, vendorId string) *Character {
+func NewCharacter(name string, publisherID PublisherID, vendorType VendorType, vendorID string) *Character {
 	return &Character{
 		Name:        name,
-		PublisherID: PublisherID(publisherId),
+		PublisherID: PublisherID(publisherID),
 		VendorType:  vendorType,
-		VendorId:    vendorId,
+		VendorID:    vendorID,
 	}
 }
 
@@ -415,12 +415,12 @@ func NewCharacterSyncLog(id CharacterID, status CharacterSyncLogStatus, syncedAt
 
 // NewIssue creates a new issue struct.
 func NewIssue(
-	vendorId, vendorPublisher, vendorSeriesName, vendorSeriesNumber string,
+	vendorID, vendorPublisher, vendorSeriesName, vendorSeriesNumber string,
 	publicationDate, saleDate time.Time,
 	isVariant, monthUncertain bool,
 	format Format) *Issue {
 	return &Issue{
-		VendorID:           vendorId,
+		VendorID:           vendorID,
 		VendorSeriesName:   vendorSeriesName,
 		VendorSeriesNumber: vendorSeriesNumber,
 		VendorPublisher:    vendorPublisher,
@@ -460,7 +460,7 @@ func NewSyncLogPending(
 // NewCharacterSource creates a new character source struct.
 func NewCharacterSource(url, name string, id CharacterID, vendorType VendorType) *CharacterSource {
 	return &CharacterSource{
-		VendorUrl:   url,
+		VendorURL:   url,
 		VendorName:  name,
 		CharacterID: id,
 		VendorType:  vendorType,

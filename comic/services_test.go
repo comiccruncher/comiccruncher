@@ -1,9 +1,9 @@
 package comic_test
 
 import (
-	"testing"
 	"github.com/aimeelaplant/comiccruncher/comic"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestCharacterService_NormalizeSources(t *testing.T) {

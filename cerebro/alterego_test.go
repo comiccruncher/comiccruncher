@@ -42,7 +42,7 @@ func TestAlterEgoIdentifier_Name_For_DC(t *testing.T) {
 		Publisher: comic.Publisher{
 			Slug: "dc",
 		},
-		VendorUrl: ts.URL,
+		VendorURL: ts.URL,
 	}
 
 	realName, err := identifier.Name(character)

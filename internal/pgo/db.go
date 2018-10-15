@@ -14,7 +14,7 @@ import (
 var once sync.Once
 var instance *pg.DB
 
-// A struct for configuring the connection to postgres.
+// Configuration is for configuring the connection to postgres.
 type Configuration struct {
 	Host     string
 	Port     string
@@ -24,6 +24,7 @@ type Configuration struct {
 	LogMode  bool
 }
 
+// NewConfiguration creates a new database configuration from the parameters.
 func NewConfiguration(host, port, database, user, password string, logMode bool) *Configuration {
 	return &Configuration{
 		Host:     host,
@@ -35,7 +36,7 @@ func NewConfiguration(host, port, database, user, password string, logMode bool)
 	}
 }
 
-// A test configuration from environment variables.
+// NewTestConfiguration is a test configuration from environment variables.
 func NewTestConfiguration() *Configuration {
 	return NewConfiguration(
 		os.Getenv("CC_POSTGRES_TEST_HOST"),
@@ -47,7 +48,7 @@ func NewTestConfiguration() *Configuration {
 	)
 }
 
-// A development configuration from environment variables.
+// NewDevelopmentConfiguration is a development configuration from environment variables.
 func NewDevelopmentConfiguration() *Configuration {
 	return NewConfiguration(
 		os.Getenv("CC_POSTGRES_DEV_HOST"),
@@ -59,7 +60,7 @@ func NewDevelopmentConfiguration() *Configuration {
 	)
 }
 
-// A production configuration from environment variables.
+// NewProductionConfiguration is a production configuration from environment variables.
 func NewProductionConfiguration() *Configuration {
 	return NewConfiguration(
 		os.Getenv("CC_POSTGRES_HOST"),
@@ -71,7 +72,7 @@ func NewProductionConfiguration() *Configuration {
 	)
 }
 
-// Creates a new db connection from the configuration struct.
+// DB creates a new db connection from the configuration struct.
 func DB(config *Configuration) (*pg.DB, error) {
 	db := pg.Connect(
 		&pg.Options{
@@ -96,12 +97,12 @@ func DB(config *Configuration) (*pg.DB, error) {
 	return db, queryError
 }
 
-// Returns a new instance of test database with configured env vars.
+// InstanceTest returns a new instance of test database with configured env vars.
 func InstanceTest() (*pg.DB, error) {
 	return DB(NewTestConfiguration())
 }
 
-// Returns a new instance of the test database with configured env vars and panics if there is an error.
+// MustInstanceTest returns a new instance of the test database with configured env vars and panics if there is an error.
 func MustInstanceTest() *pg.DB {
 	db, err := InstanceTest()
 	if err != nil {
@@ -110,7 +111,7 @@ func MustInstanceTest() *pg.DB {
 	return db
 }
 
-// Returns a singleton instance to the database.
+// Instance returns a singleton instance to the database.
 func Instance() (*pg.DB, error) {
 	var err error
 	once.Do(func() {
@@ -126,7 +127,7 @@ func Instance() (*pg.DB, error) {
 	return instance, err
 }
 
-// Returns a singleton instance to the database and panics if there's an error.
+// MustInstance returns a singleton instance to the database and panics if there's an error.
 func MustInstance() *pg.DB {
 	instance, err := Instance()
 	if err != nil {

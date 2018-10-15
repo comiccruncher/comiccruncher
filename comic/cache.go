@@ -6,18 +6,19 @@ import (
 	"go.uber.org/zap"
 )
 
+// Syncer is the interface for syncing yearly appearances from persistence to a cache.
 type Syncer interface {
 	// Syncs appearances from postgres to redis. Returns the number of issues synced and an error if any.
 	Sync(slug CharacterSlug) (int, error)
 }
 
-// A syncer to sync yearly appearances from Postgres to Redis.
+// AppearancesSyncer to sync yearly appearances from Postgres to Redis.
 type AppearancesSyncer struct {
 	pgAppearanceRepository    *PGAppearancesByYearsRepository
 	redisAppearanceRepository *RedisAppearancesByYearsRepository
 }
 
-// Gets all the character's appearances from the database and syncs them to Redis.
+// Sync gets all the character's appearances from the database and syncs them to Redis.
 // returns the total number of issues synced and an error if any.
 func (s *AppearancesSyncer) Sync(slug CharacterSlug) (int, error) {
 	mainAppsPerYear, err := s.pgAppearanceRepository.Main(slug)
@@ -50,7 +51,7 @@ func (s *AppearancesSyncer) Sync(slug CharacterSlug) (int, error) {
 	return total, nil
 }
 
-// Returns a new appearances syncer
+//NewAppearancesSyncer returns a new appearances syncer
 func NewAppearancesSyncer(container *PGRepositoryContainer, redisRepository *RedisAppearancesByYearsRepository) Syncer {
 	return &AppearancesSyncer{
 		pgAppearanceRepository:    container.AppearancesByYearsRepository(),
