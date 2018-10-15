@@ -71,6 +71,9 @@ func (i *AlterEgoIdentifier) parseMarvel(c comic.Character) (string, error) {
 			return "", err
 		}
 		doc, err := goquery.NewDocumentFromReader(charmap.ISO8859_1.NewDecoder().Reader(body))
+		if err != nil {
+			return "", err
+		}
 		doc.FindMatcher(cascadia.MustCompile("table[width=\"884\"]")).Each(func(i int, selection *goquery.Selection) {
 			selectionText := selection.Text()
 			if idx := strings.Index(selectionText, "Real Name: "); idx == -1 {

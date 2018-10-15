@@ -180,6 +180,7 @@ func TestCharacterSyncLogRepository_Update(t *testing.T) {
 	c, err := characterRepo.FindBySlug("emma-frost", true)
 	assert.Nil(t, err)
 	syncLogs, err := syncLogRepo.FindAllByCharacterID(c.ID)
+	assert.Nil(t, err)
 	assert.Len(t, syncLogs, 1)
 	syncLog := syncLogs[0]
 	status := syncLog.SyncStatus

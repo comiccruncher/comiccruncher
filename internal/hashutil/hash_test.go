@@ -9,6 +9,7 @@ import (
 
 func TestMD5Hash(t *testing.T) {
 	file, err := os.Open("./testdata/test.png")
+	assert.Nil(t, err)
 	defer file.Close()
 	md5, err := hashutil.MD5Hash(file)
 	assert.Nil(t, err)

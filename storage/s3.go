@@ -86,7 +86,7 @@ func (storage *S3Storage) UploadFromRemote(remoteFile string, remoteDir string) 
 func (storage *S3Storage) uploadBytes(b []byte, remotePathName string) error {
 	ctx := context.Background()
 	timeout := time.Duration(10 * time.Second) // 10 seconds
-	ctx, cancelFn := context.WithTimeout(ctx, timeout)
+	_, cancelFn := context.WithTimeout(ctx, timeout)
 	defer cancelFn()
 	if _, err := storage.s3.PutObject(
 		&s3.PutObjectInput{
