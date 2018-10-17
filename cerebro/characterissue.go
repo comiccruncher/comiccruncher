@@ -394,7 +394,6 @@ func (i *CharacterIssueImporter) updateSyncLog(cLog *comic.CharacterSyncLog, new
 // requestIssues requests issue information from an external source link (the caller sends string to the `links`) and then converts the
 // external issue to our own model and sends it over to the `issues` chan (this method sends strings to the `issues` chan).
 func (i *CharacterIssueImporter) requestIssues(workerID int, links <-chan ExternalVendorURL, issues chan<- *comic.Issue) {
-	i.logger.Info("started worker", zap.Int("workerId", workerID))
 	for l := range links {
 		externalIssueCh := make(chan *externalissuesource.Issue, 1)
 		retry.Do(func() error {
@@ -437,7 +436,6 @@ func (i *CharacterIssueImporter) requestIssues(workerID int, links <-chan Extern
 				externalIssue.MonthUncertain,
 				externalIssue.IsReprint,
 				issueFormat)
-			i.logger.Info("finished job and worker", zap.String("url", l.String()), zap.Int("workerId", workerID))
 		}
 	}
 }
