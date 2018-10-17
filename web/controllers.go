@@ -99,14 +99,14 @@ func pageNumber(ctx echo.Context) (int, error) {
 	if query != "" {
 		page, err := strconv.Atoi(query)
 		if err != nil {
-			return 0, JSONBadRequest(ctx, "malformed `page` parameter")
+			return 1, JSONBadRequest(ctx, "malformed `page` parameter")
 		}
 		if page == 1 {
-			return 0, nil
+			return 1, nil
 		}
 		return page, nil
 	}
-	return 0, nil
+	return 1, nil
 }
 
 // NewCharacterController creates a new character controller.
