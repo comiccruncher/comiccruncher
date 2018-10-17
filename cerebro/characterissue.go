@@ -280,12 +280,10 @@ func (i *CharacterIssueImporter) ImportWithSyncLog(character comic.Character, sy
 		i.updateSyncLog(syncLog, comic.Fail, nil)
 		return err
 	}
-	if len(linksToFetch) == 0 {
-		i.logger.Info("nothing to update", zap.String("character", character.Slug.Value()))
-		return nil
-	}
 	linkCh := make(chan ExternalVendorURL, len(linksToFetch))
+	defer close(linkCh)
 	issueCh := make(chan *comic.Issue, len(linksToFetch))
+	defer close(issueCh)
 	for w := 0; w < jobLimit; w++ {
 		go i.requestIssues(w, linkCh, issueCh)
 	}
@@ -293,8 +291,6 @@ func (i *CharacterIssueImporter) ImportWithSyncLog(character comic.Character, sy
 	for _, l := range linksToFetch {
 		linkCh <- l
 	}
-	// Close the channel for no more sends.
-	close(linkCh)
 	// Collect the results of the work.
 	for idx := 0; idx < len(linksToFetch); idx++ {
 		ish := <-issueCh
@@ -309,17 +305,14 @@ func (i *CharacterIssueImporter) ImportWithSyncLog(character comic.Character, sy
 		// There's too much info that gets lost if a caller quits the process and _ALL_ the issues don't get saved.
 		// So we want to save incrementally here and not do an all-or-nothing transaction for _ALL_ issues that get fetched.
 		if err := i.issueSvc.Create(ish); err != nil {
-			close(issueCh)
 			return err
 		}
 		if isAppearance(ish, character.Publisher.Slug) {
 			if _, err := i.characterSvc.CreateIssueP(character.ID, ish.ID, vi.AppearanceType(ish), nil); err != nil {
-				close(issueCh)
 				return err
 			}
 		}
 	}
-	close(issueCh)
 	i.logger.Info("issues to attempt to sync!", zap.Int("total", len(linksToFetch)), zap.String("character", character.Slug.Value()))
 
 	// Now send the new character issues over to redis.
