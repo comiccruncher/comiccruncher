@@ -70,7 +70,7 @@ func (r *ImportRunner) CharacterSources(slugs []comic.CharacterSlug, isStrict bo
 
 //CharacterIssues imports character issues and creates a sync log for each character that gets imported.
 func (r *ImportRunner) CharacterIssues(slugs []comic.CharacterSlug) error {
-	return r.characterIssueImporter.ImportAll(slugs)
+	return r.characterIssueImporter.MustImportAll(slugs)
 }
 
 // CharacterIssuesWithCharacterAndLog imports an existing character and existing sync log by their slug and sync log id.

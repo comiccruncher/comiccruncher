@@ -193,23 +193,23 @@ func (vi CharacterVendorInfo) vendorIDStrings() []string {
 	return vendorIDs
 }
 
-// createSig creates an os.Signal chan.
-func (i *CharacterIssueImporter) createSig(syncLog *comic.CharacterSyncLog) chan os.Signal {
+// listenOnSigInt creates an os.Signal chan and fails the sync logs if the caller interrupts the process.
+func (i *CharacterIssueImporter) listenOnSigInt(syncLogs []*comic.CharacterSyncLog) {
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, os.Interrupt, os.Kill)
-	go func() error {
-		for sig := range sigCh {
-			if sig == os.Interrupt || sig == os.Kill {
-				i.updateSyncLog(syncLog, comic.Fail, sigCh)
-				// TODO: ok, so it doesn't clean it _that_ gracefully ... would have to close the channels that get opened
-				// below for that to happen.
-				i.logger.Info("cleaned up gracefully and failed the sync log.", zap.Uint("sync log ID", syncLog.ID.Value()))
-				os.Exit(0)
+	for sig := range sigCh {
+		if sig == os.Interrupt || sig == os.Kill {
+			for idx := range syncLogs {
+				syncLog := syncLogs[idx]
+				syncLog.Message = "user quit process"
+				// todo: Fix data race even tho all sync logs fail
+				i.updateSyncLog(syncLog, comic.Fail)
+				i.logger.Info("failed sync log", zap.String("character", syncLog.Character.Slug.Value()))
 			}
+			i.logger.Info("quitting.")
+			os.Exit(-1)
 		}
-		return nil
-	}()
-	return sigCh
+	}
 }
 
 // Gets all the links to the issues we do not have in the database.
@@ -249,36 +249,25 @@ func (i *CharacterIssueImporter) nonExistingURLs(vi CharacterVendorInfo, c comic
 	return linksToFetch, nil
 }
 
-// ImportWithSyncLog does A LOT. It's for importing a character's issues with an existing sync log attached.
-// Imports a character's issues from their character sources and polls an external source for issue information
+// importIssues imports a character's issues from their character sources and polls an external source for issue information
 // and then persists the character's appearances to the db and Redis.
-// A channel is opened listening for a SIGINT if the caller quits the process.
-// In that case, the character sync log is set to failed and the process quits cleanly.
-func (i *CharacterIssueImporter) ImportWithSyncLog(character comic.Character, syncLog *comic.CharacterSyncLog) error {
-	sigCh := i.createSig(syncLog)
+func (i *CharacterIssueImporter) importIssues(character comic.Character) (int, error) {
 	// Set to in progress.
-	i.updateSyncLog(syncLog, comic.InProgress, nil)
 	i.logger.Info("started import", zap.String("character", character.Slug.Value()))
 	if character.IsDisabled {
-		i.updateSyncLog(syncLog, comic.Fail, sigCh)
-		// it's not a pressing error so just log and return nil.
-		i.logger.Warn("the character is disabled. won't sync appearances", zap.String("character", character.Slug.Value()))
-		return nil
+		return 0, errors.New("won't sync appearances for disabled character")
 	}
 	sources, err := i.characterSvc.Sources(character.ID, comic.VendorTypeCb, nil)
 	if err != nil {
-		i.updateSyncLog(syncLog, comic.Fail, nil)
-		return err
+		return 0, err
 	}
 	vi, err := i.vendorParser.Parse(sources)
 	if err != nil {
-		i.updateSyncLog(syncLog, comic.Fail, nil)
-		return err
+		return 0, err
 	}
 	linksToFetch, err := i.nonExistingURLs(vi, character)
 	if err != nil {
-		i.updateSyncLog(syncLog, comic.Fail, nil)
-		return err
+		return 0, err
 	}
 	linkCh := make(chan ExternalVendorURL, len(linksToFetch))
 	defer close(linkCh)
@@ -305,56 +294,69 @@ func (i *CharacterIssueImporter) ImportWithSyncLog(character comic.Character, sy
 		// There's too much info that gets lost if a caller quits the process and _ALL_ the issues don't get saved.
 		// So we want to save incrementally here and not do an all-or-nothing transaction for _ALL_ issues that get fetched.
 		if err := i.issueSvc.Create(ish); err != nil {
-			return err
+			return 0, err
 		}
 		if isAppearance(ish, character.Publisher.Slug) {
 			if _, err := i.characterSvc.CreateIssueP(character.ID, ish.ID, vi.AppearanceType(ish), nil); err != nil {
-				return err
+				return 0, err
 			}
 		}
 	}
 	i.logger.Info("issues to attempt to sync!", zap.Int("total", len(linksToFetch)), zap.String("character", character.Slug.Value()))
-
 	// Now send the new character issues over to redis.
 	total, err := i.appearanceSyncer.Sync(character.Slug)
 	if err != nil {
-		i.updateSyncLog(syncLog, comic.Fail, sigCh)
-		i.logger.Error("could not sync appearances", zap.Error(err))
+		return 0, err
+	}
+	return total, nil
+}
+
+// ImportWithSyncLog does A LOT. It's for importing a character's issues with an existing sync log attached.
+// Imports a character's issues from their character sources and polls an external source for issue information
+// and then persists the character's appearances to the db and Redis.
+// A channel is opened listening for a SIGINT if the caller quits the process.
+// In that case, the character sync log is set to failed and the process quits cleanly.
+func (i *CharacterIssueImporter) ImportWithSyncLog(character comic.Character, syncLog *comic.CharacterSyncLog) error {
+	// Set to in progress.
+	i.updateSyncLog(syncLog, comic.InProgress)
+	total, err := i.importIssues(character)
+	if err != nil {
+		i.updateSyncLog(syncLog, comic.Fail)
 		return err
 	}
-	// get the total appearances synced and use it as the message.
 	syncLog.Message = strconv.Itoa(total)
-	i.updateSyncLog(syncLog, comic.Success, sigCh)
+	i.updateSyncLog(syncLog, comic.Success)
 	return nil
 }
 
-// ImportAll imports characters from the specified slugs and creates the sync log for each character and sets it to PENDING,
+// MustImportAll imports characters from the specified slugs and creates the sync log for each character and sets it to PENDING,
 // then sequentially imports the issues for the character.
-func (i *CharacterIssueImporter) ImportAll(slugs []comic.CharacterSlug) error {
+// Fatals if failed to create a sync log or character cannot be fetched.
+func (i *CharacterIssueImporter) MustImportAll(slugs []comic.CharacterSlug) error {
 	characters, err := i.characterSvc.CharactersWithSources(slugs, 0, 0)
 	if err != nil {
-		return err
+		i.logger.Fatal("cannot get characters", zap.Error(err))
 	}
 	// A channel for sync logs that are done being created.
 	syncLogCh := make(chan *comic.CharacterSyncLog, len(characters))
 	defer close(syncLogCh)
+	syncLogs := make([]*comic.CharacterSyncLog, len(characters))
 	for idx := range characters {
-		go func(idx int) {
-			character := characters[idx]
-			// create the sync log
-			syncLog := comic.NewSyncLogPending(character.ID, comic.YearlyAppearances)
-			if err := i.characterSvc.CreateSyncLog(syncLog); err != nil {
-				i.logger.Error("error creating sync log", zap.String("character", character.Slug.Value()), zap.Error(err))
-				// send a blank one
-				syncLogCh <- &comic.CharacterSyncLog{}
-			} else {
-				// attach the character to the sync log (a lil hacky)
-				syncLog.Character = character
-				// send the sync log over
-				syncLogCh <- syncLog
-			}
-		}(idx)
+		i.logger.Info("idx", zap.Int("idx", idx))
+		character := characters[idx]
+		// create the sync log
+		syncLog := comic.NewSyncLogPending(character.ID, comic.YearlyAppearances)
+		if err := i.characterSvc.CreateSyncLog(syncLog); err != nil {
+			i.logger.Fatal("error creating sync log", zap.String("character", character.Slug.Value()), zap.Error(err))
+		}
+		// TODO: This is hacky.
+		syncLog.Character = character
+		syncLogs[idx] = syncLog
+		// send the sync log over
+		syncLogCh <- syncLog
 	}
+	// listen for sig int. TODO: make better.
+	go i.listenOnSigInt(syncLogs)
 	// Read results from the channel.
 	for idx := 0; idx < len(characters); idx++ {
 		syncLog, ok := <-syncLogCh
@@ -363,11 +365,6 @@ func (i *CharacterIssueImporter) ImportAll(slugs []comic.CharacterSlug) error {
 			// start the import. one-by-one -- no concurrency here. maybe in the future if the external source can handle it. :)
 			if err := i.ImportWithSyncLog(*character, syncLog); err != nil {
 				i.logger.Error("error importing character issues", zap.String("character", character.Slug.Value()), zap.Error(err))
-				if syncLog.SyncStatus != comic.Fail {
-					// we need to fail it!
-					i.logger.Info("failing sync log", zap.String("character", character.Slug.Value()))
-					i.updateSyncLog(syncLog, comic.Fail, nil)
-				}
 			}
 		}
 	}
@@ -375,11 +372,7 @@ func (i *CharacterIssueImporter) ImportAll(slugs []comic.CharacterSlug) error {
 }
 
 // Persists the sync log with the new status and closes the signal channel if the new status is fail or success.
-func (i *CharacterIssueImporter) updateSyncLog(cLog *comic.CharacterSyncLog, newStatus comic.CharacterSyncLogStatus, sigCh chan<- os.Signal) {
-	if sigCh != nil && (newStatus == comic.Fail || newStatus == comic.Success) {
-		// TODO: https://go101.org/article/channel-closing.html
-		defer close(sigCh)
-	}
+func (i *CharacterIssueImporter) updateSyncLog(cLog *comic.CharacterSyncLog, newStatus comic.CharacterSyncLogStatus) {
 	if newStatus == comic.Success {
 		now := time.Now()
 		cLog.SyncedAt = &now
