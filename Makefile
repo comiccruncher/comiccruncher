@@ -54,7 +54,7 @@ docker-stop:
 # Show the docker logs from the services.
 .PHONY: docker-logs
 docker-logs:
-	docker-compose -f docker-compose.yml logs postgres redis comiccruncher
+	docker-compose -f docker-compose.yml logs --tail="100" -f postgres redis comiccruncher
 
 # Run the migrations for the test db.
 .PHONY: docker-migrations-test
@@ -130,6 +130,25 @@ lint:
 .PHONY: docker-lint
 docker-lint:
 	${DOCKER_RUN} /gocode/bin/golint $(shell go list ./...)
+
+# Reports any cyclomatic complexilities over 15. For goreportcard.
+.PHONY: cyclo
+cyclo:
+	gocyclo -over 15 $(shell ls -d */ | grep -v vendor | awk '{print $$$11}')
+
+# Reports any ineffectual if assignments. For goreportcard.
+.PHONY: ineffassign
+ineffassign:
+	ineffassign .
+
+# Reports any misspellings. For goreportcard.
+.PHONY: misspell
+misspell:
+	misspell $(shell go list ./...)
+
+# Generate any errors for go report card.
+.PHONY: reportcard
+reportcard: ineffassign misspell lint vet cyclo
 
 # Run the Docker redis-cli.
 .PHONY: redis-cli
@@ -221,6 +240,7 @@ mockgen:
 	mockgen -destination=internal/mocks/comic/services.go -source=comic/services.go
 	mockgen -destination=internal/mocks/comic/cache.go -source=comic/cache.go
 	mockgen -destination=internal/mocks/messaging/messenger.go -source=messaging/messenger.go
+	mockgen -destination=internal/mocks/cerebro/characterissue.go -source=cerebro/characterissue.go
 
 # Generate mocks for testing.
 docker-mockgen:

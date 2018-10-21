@@ -246,11 +246,8 @@ func (i *CharacterSourceImporter) Import(slugs []comic.CharacterSlug, isStrict b
 		}
 		// Now normalize sources for the character if no error from importing sources.
 		if sourceErr == nil {
-			if errN := i.characterSvc.NormalizeSources(c.ID); errN != nil {
-				i.logger.Error("error normalizing sources", zap.Error(errN), zap.String("character", c.Slug.Value()))
-			} else {
-				i.logger.Info("normalized character sources", zap.String("character", c.Slug.Value()))
-			}
+			i.characterSvc.MustNormalizeSources(c)
+			i.logger.Info("normalized sources", zap.String("character", c.Slug.Value()))
 		}
 	}
 	i.logger.Info("Done!")
