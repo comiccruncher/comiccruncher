@@ -17,6 +17,8 @@ var  (
 		"Beyond",
 		"Bombshells",
 		"Earth -44",
+		"Earth -32",
+		"Earth -13",
 		"Earth-16", // The Just
 		"The Just",
 		"Earth-14", // Assassins
@@ -30,9 +32,12 @@ var  (
 		"Earth-19", // Gotham By Gaslight
 		"Gaslight",
 		"Earth One",
-		"Earth-1", // All Earth-1xx
-		"Earth-2", // All Earth-2xx
-		"Earth-3", // All Earth-3xx
+		"Earth-1",
+		"Earth 1", // All Earth*1xx
+		"Earth-2",
+		"Earth 2", // All Earth*2xx
+		"Earth 3", // All Earth*3xx
+		"Earth-3",
 		"All-Star",
 		"Thrillkiller",
 		"All-Star",
@@ -40,7 +45,9 @@ var  (
 		"Liberty Files",
 		"Metal Men",
 		"Earth-5",
+		"Earth 5",
 		"Utopia",
+		"Earth 9",
 		"Earth-9",
 		"Tangent",
 		"Earth-A",
@@ -48,7 +55,7 @@ var  (
 		"Reverse Gender",
 		"Lawless League",
 		"Injustice",
-		"JL 3000",
+		"JL%3000",
 		"Just Imagine",
 		"Li'l Gotham",
 		"New Order",
@@ -63,7 +70,6 @@ var  (
 		"Digital Justice",
 		"First Wave",
 		"Gotham City Garage",
-		"3000",
 		"White Knight",
 		"Century",
 		"Beware",
@@ -182,6 +188,8 @@ var  (
 		"Zombies",
 		"Howard the Human",
 		"Battleworld",
+		"Mesozic",
+		"(Earth",
 	}
 	// marvelDisabledUniverses defines the universes that should be disabled for character sources.
 	marvelDisabledUniverses = []universeDefinition{
