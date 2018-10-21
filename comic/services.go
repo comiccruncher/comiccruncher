@@ -6,6 +6,30 @@ import (
 	"fmt"
 )
 
+const (
+	// disableSourcesSql is the SQL for disabling character sources.
+	disableSourcesSql = `
+	UPDATE character_sources
+	SET is_disabled = TRUE	
+	WHERE character_id = ?
+		AND is_disabled = false -- no need to reset ones already disabled
+		AND vendor_name ILIKE ANY(ARRAY[%s]);`
+	// mainSourcesSql is the SQL for setting main sources.
+	mainSourcesSql = `
+	UPDATE character_sources
+	SET is_main = TRUE	
+	WHERE character_id = ?
+		AND is_disabled = FALSE -- ignore disabled ones
+		AND vendor_name NOT ILIKE ALL(ARRAY[%s]);`
+	// altSourcesSql is the sql for setting alternate sources.
+	altSourcesSql = `
+	UPDATE character_sources
+	SET is_main = FALSE
+	WHERE character_id = ?
+		AND is_disabled = FALSE -- ignore disabled ones
+		AND vendor_name ILIKE ANY(ARRAY[%s])`
+)
+
 // PublisherServicer is the service interface for publishers.
 type PublisherServicer interface {
 	// Publisher gets a publisher by its slug.
@@ -245,48 +269,25 @@ func (s *CharacterService) Sources(id CharacterID, vendorType VendorType, isMain
 // MustNormalizeSources normalizes sources for main and alternate sources and disables any unneeded sources.
 func (s *CharacterService) MustNormalizeSources(c *Character) {
 	id := c.ID.Value()
+	var altUniverses []universeDefinition
+	var disabledUniverses []universeDefinition
 	if c.Publisher.Slug == "marvel" {
-		// disable clones, impostors, etc.
-		must(s.sourceRepository.Raw(fmt.Sprintf(`
-		UPDATE character_sources cs
-		SET is_disabled = TRUE	
-		FROM characters c
-		WHERE c.id = cs.character_id
-		  AND c.id = ?
-		  AND c.publisher_id = 1
-		  AND cs.vendor_name ILIKE ANY(ARRAY[%s]);`, pgSearchString(marvelDisabledUniverses)), id))
-		// set the alt universes.
-		must(s.sourceRepository.Raw(fmt.Sprintf(`
-		UPDATE character_sources cs
-		SET is_main = TRUE	
-		FROM characters c
-		WHERE c.id = cs.character_id
-		  AND c.id = ?
-		  AND c.publisher_id = 1
-		  AND cs.is_disabled = FALSE
-		  AND cs.vendor_name NOT ILIKE ALL(ARRAY[%s]);`, pgSearchString(marvelAltUniverses)), id))
+		altUniverses = marvelAltUniverses
+		disabledUniverses = marvelDisabledUniverses
+	} else if c.Publisher.Slug == "dc" {
+		altUniverses = dcAltUniverses
+		disabledUniverses = dcDisabledUniverses
+	} else {
+		panic(fmt.Sprintf("unknown publisher: %s", c.Publisher.Slug.Value()))
 	}
-	if c.Publisher.Slug == "dc" {
-		// disable clones, fakes
-		must(s.sourceRepository.Raw(fmt.Sprintf(`
-		UPDATE character_sources cs
-		SET is_disabled = TRUE	
-		FROM characters c
-		WHERE c.id = cs.character_id
-		  AND c.id = ?
-		  AND c.publisher_id = 1
-		  AND cs.vendor_name ILIKE ANY(ARRAY[%s]);`, pgSearchString(dcDisabledUniverses)), id))
-		// set alt universes for dc
-		must(s.sourceRepository.Raw(fmt.Sprintf(`
-		UPDATE character_sources cs
-		SET is_main = true
-		FROM characters c	
-		WHERE c.id = cs.character_id
-          AND c.id = ?
-		  AND c.publisher_id = 2
-		  AND cs.is_disabled = FALSE
-		  AND cs.vendor_name NOT ILIKE ALL(ARRAY[%s]);`, pgSearchString(dcAltUniverses)), id))
-	}
+	// disable clones, impostors, etc.
+	must(s.sourceRepository.Raw(fmt.Sprintf(disableSourcesSql, pgSearchString(disabledUniverses)), id))
+	// set the main universes from alt universes.
+	must(s.sourceRepository.Raw(fmt.Sprintf(mainSourcesSql, pgSearchString(altUniverses)), id))
+	// now set the alternate sources from alternate sources.
+	// if we add any more sources after running the above query, we
+	// won't be able to set is_main = false for any of them. sooo stupid but whatever.
+	must(s.sourceRepository.Raw(fmt.Sprintf(altSourcesSql, pgSearchString(altUniverses)), id))
 }
 
 // TotalSources gets the total number of sources for a character

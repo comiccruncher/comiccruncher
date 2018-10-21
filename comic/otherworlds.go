@@ -29,6 +29,7 @@ var  (
 		"Justice Riders",
 		"Earth-19", // Gotham By Gaslight
 		"Gaslight",
+		"Earth One",
 		"Earth-1", // All Earth-1xx
 		"Earth-2", // All Earth-2xx
 		"Earth-3", // All Earth-3xx
@@ -79,6 +80,9 @@ var  (
 		"Pocket",
 		"Golden Age",
 		"'77",
+		"Superman Red",
+		"Superman Blue",
+		"Superboy",
 	}
 	// marvelAltUniverses defines the alternate universes of the MU.
 	// Unfortunately have to define all possible alternate universes versus just 616
@@ -174,6 +178,7 @@ var  (
 		"PS4",
 		"Hail Hydra",
 		"Spider-Island",
+		"Zombies",
 	}
 	// marvelDisabledUniverses defines the universes that should be disabled for character sources.
 	marvelDisabledUniverses = []universeDefinition{
