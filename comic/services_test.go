@@ -6,8 +6,10 @@ import (
 	"testing"
 )
 
-func TestCharacterService_NormalizeSources(t *testing.T) {
+// db test to test query.
+func TestCharacterService_MustNormalizeSources(t *testing.T) {
 	svc := comic.NewCharacterService(testContainer)
-	err := svc.NormalizeSources(1)
+	c, err := svc.Character("emma-frost")
 	assert.Nil(t, err)
+	svc.MustNormalizeSources(c)
 }

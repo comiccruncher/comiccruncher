@@ -11,14 +11,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:4908cb8337d7cb8948f58bc8a824521e42b76940e205fa1fce4cb97ff52af32f"
+  digest = "1:4b7b3304cb69958ef058345c10dccf8c3ebe33940dd0879094bf380a855e4791"
   name = "github.com/aimeelaplant/externalissuesource"
   packages = [
     ".",
     "internal/stringutil",
   ]
   pruneopts = "UT"
-  revision = "78a38839253b88ae0a3d9656661c0d910e6792dd"
+  revision = "bbe374ac11895d92798f4aa474cd53d50ea08f77"
 
 [[projects]]
   digest = "1:66b3310cf22cdc96c35ef84ede4f7b9b370971c4025f394c89a2638729653b11"
@@ -37,7 +37,7 @@
   version = "1.0.2"
 
 [[projects]]
-  digest = "1:ad1872973b1eed5703162a6144611432ab5acf3d4c6215700de89ae3dd43226a"
+  digest = "1:b11cd27f5e6983b753fdd97db32a673bdeb3962e14a86355e68ace7f635ce010"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -57,6 +57,7 @@
     "aws/request",
     "aws/session",
     "aws/signer/v4",
+    "internal/ini",
     "internal/s3err",
     "internal/sdkio",
     "internal/sdkrand",
@@ -75,8 +76,8 @@
     "service/sts",
   ]
   pruneopts = "UT"
-  revision = "46fe04784968cd7b54e859fcce45753456f736ac"
-  version = "v1.15.52"
+  revision = "c0037b52736b07cea4e0cb6521f7995adef833bc"
+  version = "v1.15.59"
 
 [[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
@@ -93,14 +94,6 @@
   pruneopts = "UT"
   revision = "06ea1031745cb8b3dab3f6a236daf2b0aa468b7e"
   version = "v3.2.0"
-
-[[projects]]
-  digest = "1:b98e7574fc27ec166fb31195ec72c3bd0bffd73926d3612eb4c929bc5236f75b"
-  name = "github.com/go-ini/ini"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "7b294651033cd7d9e7f0d9ffa1b75ed1e198e737"
-  version = "v1.38.3"
 
 [[projects]]
   digest = "1:ad54c61fc6dd6a28a08ca2ae639138249ba7c2c5ce68e00aae307b75b9b30549"
@@ -143,12 +136,12 @@
   version = "v1.1.1"
 
 [[projects]]
-  digest = "1:492ed619f52ea17d1139585493efe633bd4307dbde75bd054284052250a6370a"
+  digest = "1:336a3f4034b62469e9adf046b084fa7b8b756339d5cff9e61bbd810adece75d5"
   name = "github.com/gosimple/slug"
   packages = ["."]
   pruneopts = "UT"
-  revision = "91d42f4c3433698e88e87b17a3efbfe40b67c323"
-  version = "v1.2.0"
+  revision = "283c8d10b72e48ecfd721b1739de574713e57a0b"
+  version = "v1.3.0"
 
 [[projects]]
   digest = "1:870d441fe217b8e689d7949fef6e43efbc787e50f200cb1e70dbca9204a1d6be"
@@ -317,7 +310,7 @@
     "acme/autocert",
   ]
   pruneopts = "UT"
-  revision = "7c1a557ab941a71c619514f229f0b27ccb0c27cf"
+  revision = "0c41d7ab0a0ee717d4590a44bcb987dfd9e183eb"
 
 [[projects]]
   branch = "master"
@@ -329,15 +322,15 @@
     "html/atom",
   ]
   pruneopts = "UT"
-  revision = "146acd28ed5894421fb5aac80ca93bc1b1f46f87"
+  revision = "04a2e542c03f1d053ab3e4d6e5abcd4b66e2be8e"
 
 [[projects]]
   branch = "master"
-  digest = "1:c2789211d4035eb0843b85958ecf7cb4a5ea91c2d4decee652c94ce898e433cb"
+  digest = "1:7c3df2196024d551abb4615780dca13e1d1f77388a2c9f5f4152010be2ffd528"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
-  revision = "4497e2df6f9e69048a54498c7affbbec3294ad47"
+  revision = "eda9bb28ed513021f3e6a2a361031adc3d8a6301"
 
 [[projects]]
   digest = "1:e2e7f5211c3327ff52e02773e4fd477842b2fed07ead33ec342970de162610ac"

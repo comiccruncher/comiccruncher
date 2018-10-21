@@ -3,6 +3,7 @@ package comic
 import (
 	"github.com/go-redis/redis"
 	"time"
+	"fmt"
 )
 
 // PublisherServicer is the service interface for publishers.
@@ -50,8 +51,9 @@ type CharacterServicer interface {
 	CreateSource(source *CharacterSource) error
 	// UpdateSource updates a character source
 	UpdateSource(source *CharacterSource) error
-	// NormalizeSources so that main vs alternate sources are categorized correctly.
-	NormalizeSources(id CharacterID) error
+	// MustNormalizeSources so that main vs alternate sources are categorized correctly and disables any unnecessary sources.
+	// panics if there's an error.
+	MustNormalizeSources(*Character)
 	// Source gets a unique source by its character ID and vendor url.
 	Source(id CharacterID, vendorURL string) (*CharacterSource, error)
 	// Sources gets all the sources for a  character.
@@ -240,9 +242,21 @@ func (s *CharacterService) Sources(id CharacterID, vendorType VendorType, isMain
 	})
 }
 
-// NormalizeSources normalizes sources for main and alternate sources.
-func (s *CharacterService) NormalizeSources(id CharacterID) error {
-	err := s.sourceRepository.Raw(`
+// MustNormalizeSources normalizes sources for main and alternate sources and disables any unneeded sources.
+func (s *CharacterService) MustNormalizeSources(c *Character) {
+	id := c.ID.Value()
+	if c.Publisher.Slug == "marvel" {
+		// disable clones, impostors, etc.
+		must(s.sourceRepository.Raw(fmt.Sprintf(`
+		UPDATE character_sources cs
+		SET is_disabled = TRUE	
+		FROM characters c
+		WHERE c.id = cs.character_id
+		  AND c.id = ?
+		  AND c.publisher_id = 1
+		  AND cs.vendor_name ILIKE ANY(ARRAY[%s]);`, pgSearchString(marvelDisabledUniverses)), id))
+		// set the alt universes.
+		must(s.sourceRepository.Raw(fmt.Sprintf(`
 		UPDATE character_sources cs
 		SET is_main = TRUE	
 		FROM characters c
@@ -250,107 +264,20 @@ func (s *CharacterService) NormalizeSources(id CharacterID) error {
 		  AND c.id = ?
 		  AND c.publisher_id = 1
 		  AND cs.is_disabled = FALSE
-		  AND cs.vendor_name NOT ILIKE ALL(ARRAY[
-			'%616%',
-			'%earth-%',
-			'%2020%',
-			'%2099%',
-			'%26th Century%'
-			'%Agent of Hydra%',
-			'%100th Anniversary%',
-			'%A-Babies%',
-			'%(Marvel)(Adventures)%',
-			'%Animated%',
-			'%Cancerverse%',
-			'%Earth X%',
-			'%Bullet Points%',
-			'%Undead%',
-			'%Knowhere%',
-			'%Mangaverse%',
-			'%Mini Marvels%',
-			'%Movies%',
-			'%Noir%',
-			'%Last Gun on Earth%',
-			'%Super Hero Squad%',
-			'%Next Avengers%',
-			'%Timeslip%',
-			'%Ultimate%',
-			'%MC2%',
-			'%Mutant X%',
-			'%20xx%',
-			'%(Marvel)(Spider-Gwen)%',
-			'%Battle of the Atom%',
-			'%E is for Extincti%',
-			'%Exiles%',
-			'%Vampire%',
-			'%Egyptia%',
-			'%(Marvel)(Forward)%',
-			'%Old Man Logan%',
-			'%Old Woman Laura%',
-			'%X-Campus%',
-			'%(Secret War)(Limbo)%',
-			'%Age Of Apocalypse%',
-			'%Age of Ultron%',
-			'%Apes%',
-			'%Age of X%',
-			'%venomverse%',
-			'%India%',
-			'%Mitey ''vengers%',
-			'%2211%',
-			'%X-Men The End%',
-			'%1872%',
-			'%1602%',
-			'%Inferno%',
-			'%Mutopia%',
-			'%2055%',
-			'%Babies%',
-			'%Mojoverse%',
-			'%Killville%',
-			'%What If%',
-			'%Spider-Verse%',
-			'%Shadow-X%',
-			'%Days Of%',
-			'%Omega World%',
-			'%Killiseum%',
-			'%imposter%',
-			'%impostor%',
-			'%mutate%',
-			'%clone%',
-			'%zombie%',
-			'%a-force%',
-			'%1,000,000 B.C.%',
-			'%Guardians 3000%',
-			'%Armor Wars%',
-			'%Secret Wars%',
-			'%Future Imperfect%',
-			'%Dystopia%',
-			'%Children''s Crusade Future%',
-			'%X-Tinction Agenda%',
-			'%Renew Your Vow%',
-			'%Hex-men%',
-			'%scorched earth%',
-			'%(Thors)%',
-			'%(Heroes Reborn)%',
-			'%Years of Future%',
-			'%newuniversal%',
-			'%spider-island%',
-			'%Contest of Champions%',
-			'%(Deadpool %',
-			'%5 Ronin%',
-			'%Ghost Racers%',
-			'%Spirit of Vengeance%',
-			'%x-men forever%',
-			'%(Red Skull)%',
-			'%(Robot)%',
-			'%cartoon%',
-			'%(Spider-Woman)%',
-			'%Attilan Rising%',
-			'%PS4%'
-		]);`, id.Value())
-	if err != nil {
-		return err
+		  AND cs.vendor_name NOT ILIKE ALL(ARRAY[%s]);`, pgSearchString(marvelAltUniverses)), id))
 	}
-	err = s.sourceRepository.Raw(`
+	if c.Publisher.Slug == "dc" {
+		// disable clones, fakes
+		must(s.sourceRepository.Raw(fmt.Sprintf(`
+		UPDATE character_sources cs
+		SET is_disabled = TRUE	
+		FROM characters c
+		WHERE c.id = cs.character_id
+		  AND c.id = ?
+		  AND c.publisher_id = 1
+		  AND cs.vendor_name ILIKE ANY(ARRAY[%s]);`, pgSearchString(dcDisabledUniverses)), id))
+		// set alt universes for dc
+		must(s.sourceRepository.Raw(fmt.Sprintf(`
 		UPDATE character_sources cs
 		SET is_main = true
 		FROM characters c	
@@ -358,30 +285,8 @@ func (s *CharacterService) NormalizeSources(id CharacterID) error {
           AND c.id = ?
 		  AND c.publisher_id = 2
 		  AND cs.is_disabled = FALSE
-		  AND cs.vendor_name NOT ILIKE ALL(ARRAY[
-			'%Animated Universe%',
-			'%non-continuity%',
-			'%Smallville%',
-			'%Titans%',
-			'%Li''l Gotham%',
-			'%Nazi%',
-			'%bombshells%',
-			'%injustice%',
-			'%Arkhamverse%',
-			'%batman beyond%',
-			'%Ame-Comi Universe%',
-			'%Gotham by Gaslight%',
-			'%Gotham City Garage%',
-			'%Red Rain%',
-			'%Batman ''66%',
-			'%White Knight%',
-			'%Arrow%',
-			'%New Order%',
-			'%Wonder Woman ''77%',
-			'%One Million%',
-			'%reverse gender%'
-		  ]);`, id.Value())
-	return err
+		  AND cs.vendor_name NOT ILIKE ALL(ARRAY[%s]);`, pgSearchString(dcAltUniverses)), id))
+	}
 }
 
 // TotalSources gets the total number of sources for a character

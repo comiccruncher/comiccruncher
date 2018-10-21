@@ -268,16 +268,14 @@ func (mr *MockCharacterServicerMockRecorder) UpdateSource(source interface{}) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateSource", reflect.TypeOf((*MockCharacterServicer)(nil).UpdateSource), source)
 }
 
-// NormalizeSources mocks base method
-func (m *MockCharacterServicer) NormalizeSources(id comic.CharacterID) error {
-	ret := m.ctrl.Call(m, "NormalizeSources", id)
-	ret0, _ := ret[0].(error)
-	return ret0
+// MustNormalizeSources mocks base method
+func (m *MockCharacterServicer) MustNormalizeSources(arg0 *comic.Character) {
+	m.ctrl.Call(m, "MustNormalizeSources", arg0)
 }
 
-// NormalizeSources indicates an expected call of NormalizeSources
-func (mr *MockCharacterServicerMockRecorder) NormalizeSources(id interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "NormalizeSources", reflect.TypeOf((*MockCharacterServicer)(nil).NormalizeSources), id)
+// MustNormalizeSources indicates an expected call of MustNormalizeSources
+func (mr *MockCharacterServicerMockRecorder) MustNormalizeSources(arg0 interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MustNormalizeSources", reflect.TypeOf((*MockCharacterServicer)(nil).MustNormalizeSources), arg0)
 }
 
 // Source mocks base method
