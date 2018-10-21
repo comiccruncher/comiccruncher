@@ -71,6 +71,7 @@ var  (
 		"Ame-Comi",
 		"Arrowverse",
 		"Arrow/Flash",
+		"Arrow",
 		"cartoon",
 		"Legion - 5 Years",
 		"DKR",
@@ -179,6 +180,8 @@ var  (
 		"Hail Hydra",
 		"Spider-Island",
 		"Zombies",
+		"Howard the Human",
+		"Battleworld",
 	}
 	// marvelDisabledUniverses defines the universes that should be disabled for character sources.
 	marvelDisabledUniverses = []universeDefinition{
@@ -194,8 +197,15 @@ var  (
 		"clone",
 		"fake",
 		"robot",
+		"villain",
+		"vampire",
+	}
+	// actual clones/robots/vampires that shouldn't have their sources disabled lol.
+	ignoreIDsForDisabled = map[uint]bool{
+		561: true,  // Madelyne Pryor
 	}
 )
+
 // pgSearchString returns a string suitable for a postgres array.
 func pgSearchString(ud []universeDefinition) string {
 	str := ""

@@ -19,6 +19,7 @@ const (
 	UPDATE character_sources
 	SET is_main = TRUE	
 	WHERE character_id = ?
+		AND is_main = FALSE -- ignore ones already already set
 		AND is_disabled = FALSE -- ignore disabled ones
 		AND vendor_name NOT ILIKE ALL(ARRAY[%s]);`
 	// altSourcesSql is the sql for setting alternate sources.
@@ -26,6 +27,7 @@ const (
 	UPDATE character_sources
 	SET is_main = FALSE
 	WHERE character_id = ?
+		AND is_main = TRUE -- ignore ones already already set
 		AND is_disabled = FALSE -- ignore disabled ones
 		AND vendor_name ILIKE ANY(ARRAY[%s])`
 )
@@ -281,7 +283,9 @@ func (s *CharacterService) MustNormalizeSources(c *Character) {
 		panic(fmt.Sprintf("unknown publisher: %s", c.Publisher.Slug.Value()))
 	}
 	// disable clones, impostors, etc.
-	must(s.sourceRepository.Raw(fmt.Sprintf(disableSourcesSql, pgSearchString(disabledUniverses)), id))
+	if !ignoreIDsForDisabled[id] {
+		must(s.sourceRepository.Raw(fmt.Sprintf(disableSourcesSql, pgSearchString(disabledUniverses)), id))
+	}
 	// set the main universes from alt universes.
 	must(s.sourceRepository.Raw(fmt.Sprintf(mainSourcesSql, pgSearchString(altUniverses)), id))
 	// now set the alternate sources from alternate sources.
