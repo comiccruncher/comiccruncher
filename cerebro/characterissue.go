@@ -202,7 +202,6 @@ func (i *CharacterIssueImporter) listenOnSigInt(syncLogs []*comic.CharacterSyncL
 			for idx := range syncLogs {
 				syncLog := syncLogs[idx]
 				syncLog.Message = "user quit process"
-				// todo: Fix data race even tho all sync logs fail
 				i.updateSyncLog(syncLog, comic.Fail)
 				i.logger.Info("failed sync log", zap.String("character", syncLog.Character.Slug.Value()))
 			}
