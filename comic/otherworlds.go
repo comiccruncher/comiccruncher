@@ -71,7 +71,7 @@ var  (
 		"Ame-Comi",
 		"Arrowverse",
 		"Arrow/Flash",
-		"Arrow",
+		"(Arrow)",
 		"cartoon",
 		"Legion - 5 Years",
 		"DKR",
