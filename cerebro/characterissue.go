@@ -355,7 +355,6 @@ func (i *CharacterIssueImporter) MustImportAll(slugs []comic.CharacterSlug) erro
 	defer close(syncLogCh)
 	syncLogs := make([]*comic.CharacterSyncLog, len(characters))
 	for idx := range characters {
-		i.logger.Info("idx", zap.Int("idx", idx))
 		character := characters[idx]
 		// create the sync log
 		syncLog := comic.NewSyncLogPending(character.ID, comic.YearlyAppearances)
