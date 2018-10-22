@@ -2,7 +2,7 @@ version: "3.1"
 services:
   postgres_test:
     container_name: comicruncher_postgres_test
-    image: postgres:10.4-alpine
+    image: postgres:10.5-alpine
     ports:
       - "5434:5432"
     volumes:
