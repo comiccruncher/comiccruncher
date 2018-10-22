@@ -2,6 +2,8 @@ bin
 vendor
 tmp
 .netrc
-build/docker/postgres/*
-build/docker/postgres-test/*
+build/docker/postgres/data/*
+!build/docker/postgres/data/postgresql.conf
+build/docker/postgres-test/data/*
+!build/docker/postgres-test/data/postgresql.conf
 coverage.txt
