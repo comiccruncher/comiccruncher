@@ -8,6 +8,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"errors"
 )
 
 const appearancesPerYearsKey = "yearly"
@@ -715,20 +716,31 @@ func (r *RedisAppearancesByYearsRepository) List(slug CharacterSlug) ([]Appearan
 // Set sets the character's info like this: HMSET KEY name "character.Name"
 // Sets the character's appearances like this: ZADDNX KEY:yearly 1 "1979" 2 "1980"
 func (r *RedisAppearancesByYearsRepository) Set(character AppearancesByYears) error {
-	key := character.CharacterSlug
-	var zScores []redis.Z
-	for _, appearance := range character.Aggregates {
+	if character.CharacterSlug.Value() == "" {
+		return errors.New("wtf. got blank character slug")
+	}
+	key := appearancesPerYearsZKey(character.CharacterSlug, character.Category)
+	// First clear the cache for the character.
+	// If the new aggregates have a missing year from the current cache, then the missing year
+	// won't be reflected in the final result.
+	err := r.redisClient.Del(key).Err()
+	if err != nil {
+		return err
+	}
+	// if no aggregates then just return.
+	if len(character.Aggregates) == 0 {
+		return nil
+	}
+	zScores := make([]redis.Z, len(character.Aggregates))
+	for idx, appearance := range character.Aggregates {
 		z := redis.Z{
 			Score:  float64(appearance.Count),
 			Member: appearance.Year,
 		}
-		zScores = append(zScores, z)
+		zScores[idx] = z
 	}
-	if len(zScores) > 0 {
-		zResult := r.redisClient.ZAdd(appearancesPerYearsZKey(key, character.Category), zScores...)
-		return zResult.Err()
-	}
-	return nil
+	zResult := r.redisClient.ZAdd(key, zScores...)
+	return zResult.Err()
 }
 
 func appearancesPerYearsZKey(key CharacterSlug, cat AppearanceType) string {

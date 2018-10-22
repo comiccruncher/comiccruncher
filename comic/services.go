@@ -282,6 +282,7 @@ func (s *CharacterService) MustNormalizeSources(c *Character) {
 	} else {
 		panic(fmt.Sprintf("unknown publisher: %s", c.Publisher.Slug.Value()))
 	}
+	// todo: better to run all this in a transaction.
 	// disable clones, impostors, etc.
 	if !ignoreIDsForDisabled[id] {
 		must(s.sourceRepository.Raw(fmt.Sprintf(disableSourcesSql, pgSearchString(disabledUniverses)), id))

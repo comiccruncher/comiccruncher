@@ -38,7 +38,10 @@ func (s *AppearancesSyncer) Sync(slug CharacterSlug) (int, error) {
 	}
 	if altAppsPerYear.Aggregates != nil {
 		log.COMIC().Info("alt appearances to send to redis", zap.Int("total", altAppsPerYear.Total()))
-		s.redisAppearanceRepository.Set(altAppsPerYear)
+		err = s.redisAppearanceRepository.Set(altAppsPerYear)
+		if err != nil {
+			return 0, err
+		}
 	}
 	all, err := s.pgAppearanceRepository.Both(slug)
 	total := all.Total()
