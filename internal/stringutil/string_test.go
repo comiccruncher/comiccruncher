@@ -3,6 +3,7 @@ package stringutil
 import (
 	"github.com/stretchr/testify/assert"
 	"testing"
+	"strings"
 )
 
 func TestHasAnyPrefix(t *testing.T) {
@@ -41,4 +42,13 @@ func TestEmpty(t *testing.T) {
 	e := ""
 	assert.True(t, Empty(&e))
 	assert.True(t, Empty(nil))
+}
+
+func TestContains(t *testing.T) {
+	assert.False(t, AnyFunc("blah", []string{"boo", "bla"}, strings.Contains))
+	assert.False(t, AnyFunc("", []string{"boo", "bla"}, strings.Contains))
+	assert.False(t, AnyFunc("blah", []string{""}, strings.Contains))
+	assert.True(t, AnyFunc("blah", []string{"boo", "blah"}, strings.Contains))
+	assert.True(t, AnyFunc("blah", []string{"boo", "booblah"}, strings.Contains))
+	assert.True(t, AnyFunc("", []string{""}, strings.Contains))
 }

@@ -72,3 +72,17 @@ func RandString(n int) string {
 	rand.Int63()
 	return string(b)
 }
+
+// AnyFunc checks if the `s` string is in any of the `strs` slices that satisfy the given `f` func
+func AnyFunc(s string, strs []string, f func(s, substr string) bool) bool {
+	for idx := range strs {
+		// blank strings
+		if s == "" && strs[idx] == "" {
+			return true
+		}
+		if s != "" && f(strs[idx], s) {
+			return true
+		}
+	}
+	return false
+}
