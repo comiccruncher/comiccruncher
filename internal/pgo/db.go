@@ -131,8 +131,7 @@ func Instance() (*pg.DB, error) {
 func MustInstance() *pg.DB {
 	instance, err := Instance()
 	if err != nil {
-		log.Db().Error("error", zap.Error(err))
-		panic(err)
+		log.Db().Panic("error instantiating database", zap.Error(err))
 	}
 	return instance
 }
