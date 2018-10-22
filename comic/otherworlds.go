@@ -51,6 +51,8 @@ var  (
 		"Earth-9",
 		"Tangent",
 		"Earth-A",
+		"Earth-S",
+		"Earth-X",
 		"Lawless League",
 		"Reverse Gender",
 		"Lawless League",
