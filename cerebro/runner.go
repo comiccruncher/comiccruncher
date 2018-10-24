@@ -30,31 +30,13 @@ type ImportRunner struct {
 func (r *ImportRunner) Characters(publishers []string) error {
 	start := time.Now()
 	if len(publishers) == 0 || listutil.StringInSlice(publishers, "dc") {
-		dcErrCh := make(chan error, 1)
-		go func() {
-			dcErr := r.dcImporter.ImportAll()
-			if dcErr != nil {
-				dcErrCh <- dcErr
-			} else {
-				close(dcErrCh)
-			}
-		}()
-		dcErr := <-dcErrCh
+		dcErr := r.dcImporter.ImportAll()
 		if dcErr != nil {
 			log.CEREBRO().Error(fmt.Sprintf("Error from DC importer: %s", dcErr))
 		}
 	}
 	if len(publishers) == 0 || listutil.StringInSlice(publishers, "marvel") {
-		marvelErrCh := make(chan error, 1)
-		go func() {
-			marvelErr := r.marvelImporter.ImportAll()
-			if marvelErr != nil {
-				marvelErrCh <- marvelErr
-			} else {
-				close(marvelErrCh)
-			}
-		}()
-		marvelErr := <-marvelErrCh
+		marvelErr := r.marvelImporter.ImportAll()
 		if marvelErr != nil {
 			log.CEREBRO().Error(fmt.Sprintf("Error from Marvel importer: %s", marvelErr))
 		}
