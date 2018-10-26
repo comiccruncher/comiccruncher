@@ -5,10 +5,10 @@ import (
 	"github.com/go-pg/pg"
 	"github.com/go-redis/redis"
 	"github.com/gosimple/slug"
-	"strconv"
 	"strings"
 	"time"
 	"errors"
+	"github.com/aimeelaplant/comiccruncher/internal/stringutil"
 )
 
 const appearancesPerYearsKey = "yearly"
@@ -651,26 +651,18 @@ func (r *PGAppearancesByYearsRepository) List(slug CharacterSlug) ([]Appearances
 }
 
 func (r *RedisAppearancesByYearsRepository) byType(slug CharacterSlug, t AppearanceType) (AppearancesByYears, error) {
-	sortedResult, err := r.redisClient.Sort(appearancesPerYearsZKey(slug, t), &redis.Sort{}).Result()
-	if err != nil {
-		return AppearancesByYears{}, err
-	}
-	if len(sortedResult) == 0 {
-		return AppearancesByYears{}, nil
-	}
 	c := AppearancesByYears{}
-	// Get the years sorted by member. TODO: Ugh, probably a better way to do this. Still faster than SQL!
-	for _, year := range sortedResult {
-		// Get each year's score.
-		zScore, err := r.redisClient.ZScore(appearancesPerYearsZKey(slug, t), year).Result()
-		if err != nil {
-			return AppearancesByYears{}, err
-		}
-		yearInt, err := strconv.Atoi(year)
-		if err != nil {
-			return AppearancesByYears{}, err
-		}
-		c.AddAppearance(YearlyAggregate{Year: yearInt, Count: int(zScore)})
+	value, err := r.redisClient.Get(redisKey(slug, t)).Result()
+	if err != nil {
+		return c, err
+	}
+	// since we sore the appearances values in the form of `1948:1;1949:2;1950:3`, we need to parse out the values.
+	values := strings.Split(value, ";")
+	for _, val := range values {
+		idx := strings.Index(val, ":")
+		year := stringutil.MustAtoi(val[:idx])
+		count := stringutil.MustAtoi(val[idx+1:])
+		c.AddAppearance(YearlyAggregate{Year: year, Count: count})
 	}
 	c.Category = t
 	c.CharacterSlug = slug
@@ -719,31 +711,23 @@ func (r *RedisAppearancesByYearsRepository) Set(character AppearancesByYears) er
 	if character.CharacterSlug.Value() == "" {
 		return errors.New("wtf. got blank character slug")
 	}
-	key := appearancesPerYearsZKey(character.CharacterSlug, character.Category)
-	// First clear the cache for the character.
-	// If the new aggregates have a missing year from the current cache, then the missing year
-	// won't be reflected in the final result.
-	err := r.redisClient.Del(key).Err()
-	if err != nil {
-		return err
-	}
-	// if no aggregates then just return.
-	if len(character.Aggregates) == 0 {
-		return nil
-	}
-	zScores := make([]redis.Z, len(character.Aggregates))
+	lenAggregates := len(character.Aggregates)
+	val := ""
+	// sets the value in the form of `year:count;year:count;year:count`
+	// this is just a fast, simple, and cheap way to keep them sorted and packed.
 	for idx, appearance := range character.Aggregates {
-		z := redis.Z{
-			Score:  float64(appearance.Count),
-			Member: appearance.Year,
+		val += fmt.Sprintf("%d:%d", appearance.Year, appearance.Count)
+		// if it's not the last one in the slice
+		if idx != lenAggregates-1  {
+			// append the semicolon
+			val += ";"
 		}
-		zScores[idx] = z
 	}
-	zResult := r.redisClient.ZAdd(key, zScores...)
-	return zResult.Err()
+	return r.redisClient.Set(redisKey(character.CharacterSlug, character.Category), val, 0).Err()
 }
 
-func appearancesPerYearsZKey(key CharacterSlug, cat AppearanceType) string {
+// Returns the redis key for appearances per year for a character and appearance type.
+func redisKey(key CharacterSlug, cat AppearanceType) string {
 	return fmt.Sprintf("%s:%s:%d", key, appearancesPerYearsKey, cat)
 }
 

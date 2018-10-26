@@ -52,3 +52,14 @@ func TestContains(t *testing.T) {
 	assert.True(t, AnyFunc("blah", []string{"boo", "booblah"}, strings.Contains))
 	assert.True(t, AnyFunc("", []string{""}, strings.Contains))
 }
+
+func TestMustAtoi(t *testing.T) {
+	f := func() {
+		MustAtoi("1:")
+	}
+	assert.Panics(t, f)
+	f2 := func() {
+		MustAtoi("1")
+	}
+	assert.NotPanics(t, f2)
+}

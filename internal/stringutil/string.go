@@ -5,6 +5,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"strconv"
 )
 
 const randCharMap = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890"
@@ -85,4 +86,13 @@ func AnyFunc(s string, strs []string, f func(s, substr string) bool) bool {
 		}
 	}
 	return false
+}
+
+// MustAtoi converts an `s` string using `strconv.Atoi` but panics if there's an error.
+func MustAtoi(s string) int {
+	res, err := strconv.Atoi(s)
+	if err != nil {
+		panic(err)
+	}
+	return res
 }
