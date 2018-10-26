@@ -5,13 +5,6 @@ import (
 	"net/http"
 )
 
-var (
-	// InternalServerMessage is a message string for an internal server error.
-	InternalServerMessage = "Internal server error."
-	// NotFoundMessage is a message string for when something wasn't found.
-	NotFoundMessage = "The result was not found."
-)
-
 // Meta is the meta struct for an HTTP JSON response.
 type Meta struct {
 	StatusCode int         `json:"status_code"`
@@ -31,21 +24,6 @@ type ListView struct {
 	Data []interface{} `json:"data"`
 }
 
-// JSONServerError returns a server error view.
-func JSONServerError(e echo.Context) error {
-	return e.JSONPretty(http.StatusInternalServerError, NewDetailViewServerError(), "  ")
-}
-
-// JSONNotFound returns a not found view.
-func JSONNotFound(e echo.Context) error {
-	return e.JSONPretty(http.StatusNotFound, NewDetailViewNotFound(), "  ")
-}
-
-//JSONBadRequest returns a bad request view.
-func JSONBadRequest(e echo.Context, message string) error {
-	return e.JSONPretty(http.StatusBadRequest, NewDetailViewBadRequest(message), "  ")
-}
-
 // JSONDetailViewOK returns a detail view.
 func JSONDetailViewOK(ctx echo.Context, data interface{}) error {
 	return ctx.JSONPretty(http.StatusOK, NewDetailViewOK(data), "  ")
@@ -55,7 +33,7 @@ func JSONDetailViewOK(ctx echo.Context, data interface{}) error {
 func JSONListViewOK(ctx echo.Context, data []interface{}, itemsPerPage int) error {
 	pagination, err := CreatePagination(ctx, data, itemsPerPage)
 	if err != nil {
-		return JSONBadRequest(ctx, err.Error())
+		return ErrInvalidPageParameter
 	}
 	if len(data) > itemsPerPage {
 		return ctx.JSONPretty(http.StatusOK, NewListViewOK(data[:len(data)-1], pagination), "  ")
@@ -63,33 +41,9 @@ func JSONListViewOK(ctx echo.Context, data []interface{}, itemsPerPage int) erro
 	return ctx.JSONPretty(http.StatusOK, NewListViewOK(data, pagination), "  ")
 }
 
-// JSONDetailViewUnauthorized returns a detail view for unauthorized requests.
-func JSONDetailViewUnauthorized(ctx echo.Context) error {
-	return ctx.JSONPretty(http.StatusUnauthorized, NewDetailViewUnauthorized("Invalid credentials"), "  ")
-}
-
-// NewDetailViewUnauthorized creates a new detail view for unauthorized.
-func NewDetailViewUnauthorized(message string) DetailView {
-	dv := DetailView{}
-	dv.Meta = Meta{StatusCode: http.StatusUnauthorized, Error: &message}
-	return dv
-}
-
-// NewDetailViewBadRequest creates a new detail view with a bad request.
-func NewDetailViewBadRequest(message string) DetailView {
-	dv := DetailView{}
-	dv.Meta = Meta{StatusCode: http.StatusBadRequest, Error: &message}
-	return dv
-}
-
-// NewDetailViewServerError creates a new detail view with a server error.
-func NewDetailViewServerError() DetailView {
-	return DetailView{Meta: Meta{StatusCode: 500, Error: &InternalServerMessage}}
-}
-
-// NewDetailViewNotFound creates a new detail view with a server error.
-func NewDetailViewNotFound() DetailView {
-	return DetailView{Meta: Meta{StatusCode: http.StatusNotFound, Error: &NotFoundMessage}}
+// NewJSONErrorView returns a new view JSON view with an error message and status code.
+func NewJSONErrorView(ctx echo.Context, err string, statusCode int) error {
+	return ctx.JSONPretty(statusCode, DetailView{Meta: Meta{StatusCode: statusCode, Error: &err}}, "  ")
 }
 
 // NewDetailViewOK returns a new detail view with a 200.
