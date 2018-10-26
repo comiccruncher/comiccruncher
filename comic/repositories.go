@@ -653,6 +653,10 @@ func (r *PGAppearancesByYearsRepository) List(slug CharacterSlug) ([]Appearances
 func (r *RedisAppearancesByYearsRepository) byType(slug CharacterSlug, t AppearanceType) (AppearancesByYears, error) {
 	c := AppearancesByYears{}
 	value, err := r.redisClient.Get(redisKey(slug, t)).Result()
+	if err == redis.Nil {
+		// satisfy the interface and return
+		return c, nil
+	}
 	if err != nil {
 		return c, err
 	}
