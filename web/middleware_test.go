@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"github.com/aimeelaplant/comiccruncher/web"
 	"github.com/stretchr/testify/assert"
+	"errors"
 )
 
 func TestErrorHandler(t *testing.T) {
@@ -39,6 +40,6 @@ func TestErrorHandler(t *testing.T) {
 	req = httptest.NewRequest(http.MethodGet, "/", nil)
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
-	web.ErrorHandler(nil, c)
-	assert.Equal(t, 0, c.Response().Status)
+	web.ErrorHandler(errors.New("an error"), c)
+	assert.Equal(t, http.StatusInternalServerError, c.Response().Status)
 }
