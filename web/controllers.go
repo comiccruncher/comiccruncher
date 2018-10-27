@@ -69,7 +69,7 @@ func (c CharacterController) Character(ctx echo.Context) error {
 	if character == nil {
 		return ErrNotFound
 	}
-	cStrct, err := c.withAppearances(character.Slug)
+	cStrct, err := c.withAppearances(character)
 	if err != nil {
 		return err
 	}
@@ -90,7 +90,7 @@ func (c CharacterController) Characters(ctx echo.Context) error {
 	}
 	var data = make([]interface{}, len(results))
 	for i, v := range results {
-		character, err := c.withAppearances(v.Slug)
+		character, err := c.withAppearances(v)
 		if err != nil {
 			return err
 		}
@@ -100,12 +100,8 @@ func (c CharacterController) Characters(ctx echo.Context) error {
 }
 
 // Gets a character struct with the appearances attached.
-func (c CharacterController) withAppearances(slug comic.CharacterSlug) (Character, error) {
-	character, err := c.characterSvc.Character(slug)
-	if err != nil || character == nil {
-		return Character{}, err
-	}
-	apps, err := c.characterSvc.ListAppearances(slug)
+func (c CharacterController) withAppearances(character *comic.Character) (Character, error) {
+	apps, err := c.characterSvc.ListAppearances(character.Slug)
 	if err != nil {
 		return Character{}, err
 	}

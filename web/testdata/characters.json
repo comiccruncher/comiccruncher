@@ -1,0 +1,47 @@
+{
+  "meta": {
+    "status_code": 200,
+    "error": null,
+    "pagination": {
+      "per_page": 25,
+      "previous_page": null,
+      "current_page": {
+        "number": 1,
+        "link": "/characters?page=1"
+      },
+      "next_page": null
+    }
+  },
+  "data": [
+    {
+      "publisher": {
+        "name": "Marvel",
+        "slug": "marvel"
+      },
+      "name": "Emma-Frost",
+      "other_name": "",
+      "description": "Blah",
+      "image": "",
+      "slug": "emma-frost",
+      "vendor_image": "",
+      "vendor_url": "",
+      "vendor_description": "",
+      "appearances": []
+    },
+    {
+      "publisher": {
+        "name": "Marvel",
+        "slug": "marvel"
+      },
+      "name": "Emma-Frost",
+      "other_name": "",
+      "description": "Blah",
+      "image": "",
+      "slug": "emma-frost",
+      "vendor_image": "",
+      "vendor_url": "",
+      "vendor_description": "",
+      "appearances": []
+    }
+  ]
+}
