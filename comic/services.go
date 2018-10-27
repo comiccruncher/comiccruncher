@@ -19,13 +19,15 @@ const (
 	UPDATE character_sources
 	SET is_main = TRUE	
 	WHERE character_id = ?
+		AND is_main = FALSE -- ignore ones already already set
 		AND is_disabled = FALSE -- ignore disabled ones
-		AND vendor_name NOT ILIKE ALL(ARRAY[%s]);`
+		AND vendor_name NOT ILIKE ALL(ARRAY[%s])`
 	// altSourcesSql is the sql for setting alternate sources.
 	altSourcesSql = `
 	UPDATE character_sources
 	SET is_main = FALSE
 	WHERE character_id = ?
+		AND is_main = TRUE -- ignore ones already already set
 		AND is_disabled = FALSE -- ignore disabled ones
 		AND vendor_name ILIKE ANY(ARRAY[%s])`
 )
@@ -280,14 +282,21 @@ func (s *CharacterService) MustNormalizeSources(c *Character) {
 	} else {
 		panic(fmt.Sprintf("unknown publisher: %s", c.Publisher.Slug.Value()))
 	}
+	// todo: better to run all this in a transaction.
 	// disable clones, impostors, etc.
-	must(s.sourceRepository.Raw(fmt.Sprintf(disableSourcesSql, pgSearchString(disabledUniverses)), id))
+	if !ignoreIDsForDisabled[id] {
+		must(s.sourceRepository.Raw(fmt.Sprintf(disableSourcesSql, pgSearchString(disabledUniverses)), id))
+	}
 	// set the main universes from alt universes.
 	must(s.sourceRepository.Raw(fmt.Sprintf(mainSourcesSql, pgSearchString(altUniverses)), id))
 	// now set the alternate sources from alternate sources.
-	// if we add any more sources after running the above query, we
-	// won't be able to set is_main = false for any of them. sooo stupid but whatever.
+	// b/c if we add any more sources after running the above query, we
+	// won't be able to set is_main = false for any of them. sooo stupid and i'm sure there's a better way to do this but whatever.
 	must(s.sourceRepository.Raw(fmt.Sprintf(altSourcesSql, pgSearchString(altUniverses)), id))
+	// Now make sure earth-616 is set as main. (Some sources have 616 .. some don't. :( )
+	if c.Publisher.Slug == "marvel" {
+		must(s.sourceRepository.Raw("UPDATE character_sources SET is_main = TRUE WHERE vendor_name ILIKE '%earth-616)%' AND character_id = ?", id))
+	}
 }
 
 // TotalSources gets the total number of sources for a character

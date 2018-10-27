@@ -2,11 +2,19 @@ package web
 
 import (
 	"github.com/aimeelaplant/comiccruncher/comic"
-	"github.com/aimeelaplant/comiccruncher/internal/log"
 	"github.com/aimeelaplant/comiccruncher/search"
 	"github.com/labstack/echo"
-	"go.uber.org/zap"
 	"strconv"
+	"errors"
+)
+
+var (
+	// ErrInvalidPageParameter is for when an invalid page parameter is received.
+	ErrInvalidPageParameter = errors.New("invalid page parameter")
+	// ErrInternalServerError is for when something bad happens internally.
+	ErrInternalServerError = errors.New("internal server error")
+	// ErrNotFound is for when something can't be found.
+	ErrNotFound = errors.New("object cannot be found")
 )
 
 // StatsController is the controller for stats about comic cruncher.
@@ -18,7 +26,7 @@ type StatsController struct {
 func (c StatsController) Stats(ctx echo.Context) error {
 	stats, err := c.statsRepository.Stats()
 	if err != nil {
-		return JSONServerError(ctx)
+		return err
 	}
 	return JSONDetailViewOK(ctx, stats)
 }
@@ -36,8 +44,7 @@ func (c SearchController) SearchCharacters(ctx echo.Context) error {
 	if query != "" {
 		results, err = c.searcher.Characters(ctx.QueryParam("query"), 5, 0)
 		if err != nil {
-			log.WEB().Error("error", zap.String("query", query), zap.Error(err))
-			return JSONServerError(ctx)
+			return err
 		}
 	}
 	var data = make([]interface{}, len(results))
@@ -57,20 +64,19 @@ func (c CharacterController) Character(ctx echo.Context) error {
 	slug := comic.CharacterSlug(ctx.Param("slug"))
 	character, err := c.characterSvc.Character(slug)
 	if err != nil {
-		return JSONServerError(ctx)
+		return err
 	}
 	if character == nil {
-		return JSONNotFound(ctx)
+		return ErrNotFound
 	}
-	apps, err := c.characterSvc.ListAppearances(slug)
+	cStrct, err := c.withAppearances(character)
 	if err != nil {
-		return JSONServerError(ctx)
+		return err
 	}
-	characterModel := NewCharacter(*character, apps)
-	return JSONDetailViewOK(ctx, characterModel)
+	return JSONDetailViewOK(ctx, cStrct)
 }
 
-// Characters lists characters and can filter by publisher with `?publisher=marvel`.
+// Characters lists the characters.
 func (c CharacterController) Characters(ctx echo.Context) error {
 	var results []*comic.Character
 	page, err := pageNumber(ctx)
@@ -78,19 +84,28 @@ func (c CharacterController) Characters(ctx echo.Context) error {
 		return err
 	}
 	var slugs []comic.PublisherSlug
-	publisher := comic.PublisherSlug(ctx.QueryParam("publisher"))
-	if publisher != "" {
-		slugs = []comic.PublisherSlug{publisher}
-	}
 	results, err = c.characterSvc.CharactersByPublisher(slugs, true, 25+1, (page-1)*25)
 	if err != nil {
-		return JSONServerError(ctx)
+		return err
 	}
 	var data = make([]interface{}, len(results))
 	for i, v := range results {
-		data[i] = v
+		character, err := c.withAppearances(v)
+		if err != nil {
+			return err
+		}
+		data[i] = character
 	}
 	return JSONListViewOK(ctx, data, 25)
+}
+
+// Gets a character struct with the appearances attached.
+func (c CharacterController) withAppearances(character *comic.Character) (Character, error) {
+	apps, err := c.characterSvc.ListAppearances(character.Slug)
+	if err != nil {
+		return Character{}, err
+	}
+	return NewCharacter(*character, apps), nil
 }
 
 // Gets the page number from the query parameter `page` with default value if empty.
@@ -99,10 +114,7 @@ func pageNumber(ctx echo.Context) (int, error) {
 	if query != "" {
 		page, err := strconv.Atoi(query)
 		if err != nil {
-			return 1, JSONBadRequest(ctx, "malformed `page` parameter")
-		}
-		if page == 1 {
-			return 1, nil
+			return 1, ErrInvalidPageParameter
 		}
 		return page, nil
 	}

@@ -38,7 +38,7 @@ type searchResults struct {
 func (i *CharacterSourceImporter) retryCharacterPage(url string) (*externalissuesource.CharacterPage, error) {
 	pageChan := make(chan *externalissuesource.CharacterPage, 1)
 	defer close(pageChan)
-	err := retryConnectionError(func() (string, error) {
+	err := retryURL(func() (string, error) {
 		i.logger.Info("requesting page...", zap.String("link", url))
 		cPage, err := i.externalSource.CharacterPage(url)
 		if err != nil {
@@ -135,7 +135,7 @@ func (i *CharacterSourceImporter) retrySearchByName(name string) (externalissues
 	defer close(resultCh)
 	resultErrCh := make(chan error, 1)
 	defer close(resultErrCh)
-	err := retryConnectionError(func() (string, error) {
+	err := retryURL(func() (string, error) {
 		i.logger.Info("searching for character name", zap.String("query", name))
 		// Gonna have to lock this resource to avoid race conditions.
 		// Or I can just pass in a copy of the external source.

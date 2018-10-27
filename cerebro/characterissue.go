@@ -13,6 +13,7 @@ import (
 	"time"
 	"fmt"
 	"os/signal"
+	"github.com/aimeelaplant/comiccruncher/internal/stringutil"
 )
 
 // Concurrency limit for fetching issues from an external source.
@@ -49,6 +50,19 @@ var (
 		comic.FormatDigitalMedia: true,
 		comic.FormatManga:        true,
 		comic.FormatPrestige:     true,
+	}
+	// allowedPublishers is the list of publishers allowed to count as an appearance for a character.
+ 	allowedPublishers = []string{
+		"Archie",
+		"Atlas Comics",
+		"Dark Horse",
+		"DC Comics",
+		"Dynamite Entertainment",
+		"Marvel",
+		"IDW Publishing",
+		"Image Comics",
+		"Malibu",
+		"Timely Comics",
 	}
 )
 
@@ -202,7 +216,6 @@ func (i *CharacterIssueImporter) listenOnSigInt(syncLogs []*comic.CharacterSyncL
 			for idx := range syncLogs {
 				syncLog := syncLogs[idx]
 				syncLog.Message = "user quit process"
-				// todo: Fix data race even tho all sync logs fail
 				i.updateSyncLog(syncLog, comic.Fail)
 				i.logger.Info("failed sync log", zap.String("character", syncLog.Character.Slug.Value()))
 			}
@@ -227,7 +240,7 @@ func (i *CharacterIssueImporter) nonExistingURLs(vi CharacterVendorInfo, c comic
 		// add the vendor id to the map
 		localIssueVendorIDs[localIssue.VendorID] = true
 		// create a character issue if it counts as an appearance
-		if isAppearance(localIssue, c.Publisher.Slug) {
+		if isAppearance(localIssue) {
 			characterIssues = append(characterIssues, comic.NewCharacterIssue(c.ID, localIssue.ID, vi.AppearanceType(localIssue)))
 		}
 	}
@@ -296,7 +309,7 @@ func (i *CharacterIssueImporter) importIssues(character comic.Character) (int, e
 		if err := i.issueSvc.Create(ish); err != nil {
 			return 0, err
 		}
-		if isAppearance(ish, character.Publisher.Slug) {
+		if isAppearance(ish) {
 			if _, err := i.characterSvc.CreateIssueP(character.ID, ish.ID, vi.AppearanceType(ish), nil); err != nil {
 				return 0, err
 			}
@@ -342,7 +355,6 @@ func (i *CharacterIssueImporter) MustImportAll(slugs []comic.CharacterSlug) erro
 	defer close(syncLogCh)
 	syncLogs := make([]*comic.CharacterSyncLog, len(characters))
 	for idx := range characters {
-		i.logger.Info("idx", zap.Int("idx", idx))
 		character := characters[idx]
 		// create the sync log
 		syncLog := comic.NewSyncLogPending(character.ID, comic.YearlyAppearances)
@@ -389,26 +401,20 @@ func (i *CharacterIssueImporter) updateSyncLog(cLog *comic.CharacterSyncLog, new
 func (i *CharacterIssueImporter) requestIssues(workerID int, links <-chan ExternalVendorURL, issues chan<- *comic.Issue) {
 	for l := range links {
 		externalIssueCh := make(chan *externalissuesource.Issue, 1)
-		retry.Do(func() error {
-			i.logger.Info("fetching issue", zap.String("url", l.String()))
+		err := retryURL(func() (string, error) {
 			externalIssue, err := i.externalSource.Issue(l.String())
 			if err != nil {
-				if isConnectionError(err) {
-					i.logger.Info("got connection issue. retrying", zap.String("url", l.String()), zap.Error(err))
-					return err
-				}
-				i.logger.Error("received error from external source", zap.Int("workerId", workerID), zap.String("link", l.String()), zap.Error(err))
-				// Send a blank issue
-				issues <- &comic.Issue{}
-				// close the channel. won't send anymore.
-				close(externalIssueCh)
-				// return nil to exit the retry.
-				return nil
+				return l.String(), err
 			}
-			// send over the issue.
 			externalIssueCh <- externalIssue
-			return nil
-		}, retryDelay)
+			return l.String(), err
+		})
+		if err != nil {
+			i.logger.Error("received error from external source", zap.Int("workerId", workerID), zap.String("link", l.String()), zap.Error(err))
+			// Send a blank issue
+			issues <- &comic.Issue{}
+			continue
+		}
 		// read from it if the value was sent.
 		if externalIssue, ok := <-externalIssueCh; ok {
 			issueFormat := comic.FormatOther
@@ -434,15 +440,16 @@ func (i *CharacterIssueImporter) requestIssues(workerID int, links <-chan Extern
 }
 
 // isAppearance checks that the issue should count as an issue appearance for the character.
-func isAppearance(issue *comic.Issue, slug comic.PublisherSlug) bool {
+func isAppearance(issue *comic.Issue) bool {
 	if !issue.IsVariant && // it's not a variant
 		!issue.IsReprint && // it's not a reprint.
 		countsAsAppearance[issue.Format] && // the format counts as an appearance
-		// Checks that the external issue's publisher matches up with the publisher of the character.
-		// check their slugs since it is lower cased and just "marvel" or "dc".
-		strings.Contains(strings.ToLower(issue.VendorPublisher), slug.Value()) &&
 		// the issue actually has a sale date.
-		issue.SaleDate.Year() > 1 {
+		issue.SaleDate.Year() > 1 &&
+		// Checks that the external issue's publisher matches up with allowed publishers
+		// There can be multiple publishers such as Timely Comics that are actually Marvel
+		// or crossovers with different publishers.
+		stringutil.AnyFunc(issue.VendorPublisher, allowedPublishers, strings.Contains) {
 		return true
 	}
 	return false

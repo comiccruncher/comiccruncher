@@ -20,13 +20,14 @@ type App struct {
 // MustRun runs the web application from the specified port. Logs and exits if there is an error.
 func (a App) MustRun(port string) {
 	// TODO: This is temporary until the site is ready.
-	a.echo.Use(RequireAuthentication)
 	a.echo.Use(middleware.Recover())
 	a.echo.Use(middleware.CSRF())
 	a.echo.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		// TODO: allow appropriate access-control-allow-origin
 		AllowHeaders: []string{"application/json"},
 	}))
+	a.echo.Use(RequireAuthentication)
+	a.echo.HTTPErrorHandler = ErrorHandler
 	// Stats
 	a.echo.GET("/stats", a.statsController.Stats)
 	// Search

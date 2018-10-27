@@ -13,9 +13,9 @@ import (
 // The default retry delay option.
 var retryDelay = retry.Delay(time.Duration(10 * time.Second))
 
-// Retries the func if a connection error is returned.
+// Retries the URL if a connection error is returned.
 // The returned string should be the requested url.
-func retryConnectionError(f func() (string, error)) error {
+func retryURL(f func() (string, error)) error {
 	errCh := make(chan error, 1)
 	retry.Do(func() error {
 		url, err := f()
@@ -25,8 +25,6 @@ func retryConnectionError(f func() (string, error)) error {
 				return err
 			}
 			errCh <- err
-			close(errCh)
-			return nil
 		}
 		close(errCh)
 		return nil

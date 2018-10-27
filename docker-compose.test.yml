@@ -1,20 +1,22 @@
 version: "3.1"
 services:
   postgres_test:
-    container_name: comicruncher_postgres_test
-    image: postgres:10.4-alpine
+    container_name: comiccruncher_postgres_test
+    image: postgres:10.5-alpine
     ports:
       - "5434:5432"
     volumes:
-      - ./build/docker/postgres-test/data:/var/lib/postgresql/data
+      - ./build/docker/postgres-test/data:/tmp
+      - ./build/docker/postgres/postgresql.conf:/etc/postgresql.conf
     environment:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: root
       POSTGRES_DB: comiccruncher_db_test
+      PGDATA: /tmp
   comiccruncher: # Override environment variables.
     environment:
       - "CC_ENVIRONMENT=test"
-      - "CC_POSTGRES_TEST_HOST=comicruncher_postgres_test"
+      - "CC_POSTGRES_TEST_HOST=comiccruncher_postgres_test"
       - "CC_POSTGRES_TEST_PORT=5432"
       - "CC_POSTGRES_TEST_DB=comiccruncher_db_test"
       - "CC_POSTGRES_TEST_USER=root"

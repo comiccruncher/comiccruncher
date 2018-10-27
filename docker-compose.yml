@@ -6,11 +6,13 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      - ./build/docker/postgres/data:/var/lib/postgresql/data
+      - ./build/docker/postgres/data:/tmp
+      - ./build/docker/postgres/postgresql.conf:/etc/postgresql.conf
     environment:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: root
       POSTGRES_DB: comiccruncher_db
+      PGDATA: /tmp
   redis:
     container_name: comiccruncher_redis
     image: redis:3.2.12-alpine

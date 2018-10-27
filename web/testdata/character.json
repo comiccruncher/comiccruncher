@@ -1,0 +1,22 @@
+{
+  "meta": {
+    "status_code": 200,
+    "error": null,
+    "pagination": null
+  },
+  "data": {
+    "publisher": {
+      "name": "Marvel",
+      "slug": "marvel"
+    },
+    "name": "Emma-Frost",
+    "other_name": "",
+    "description": "Blah",
+    "image": "",
+    "slug": "emma-frost",
+    "vendor_image": "",
+    "vendor_url": "",
+    "vendor_description": "",
+    "appearances": []
+  }
+}

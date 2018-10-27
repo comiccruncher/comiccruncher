@@ -56,7 +56,7 @@ func NewDevelopmentConfiguration() *Configuration {
 		os.Getenv("CC_POSTGRES_DEV_DB"),
 		os.Getenv("CC_POSTGRES_DEV_USER"),
 		os.Getenv("CC_POSTGRES_DEV_PASSWORD"),
-		true,
+		false, // Can look at Docker logs for postgres container instead.
 	)
 }
 
@@ -131,8 +131,7 @@ func Instance() (*pg.DB, error) {
 func MustInstance() *pg.DB {
 	instance, err := Instance()
 	if err != nil {
-		log.Db().Error("error", zap.Error(err))
-		panic(err)
+		log.Db().Panic("error instantiating database", zap.Error(err))
 	}
 	return instance
 }

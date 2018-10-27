@@ -5,6 +5,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"strconv"
 )
 
 const randCharMap = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890"
@@ -71,4 +72,27 @@ func RandString(n int) string {
 	}
 	rand.Int63()
 	return string(b)
+}
+
+// AnyFunc checks if the `s` string is in any of the `strs` slices that satisfy the given `f` func
+func AnyFunc(s string, strs []string, f func(s, substr string) bool) bool {
+	for idx := range strs {
+		// blank strings
+		if s == "" && strs[idx] == "" {
+			return true
+		}
+		if s != "" && f(strs[idx], s) {
+			return true
+		}
+	}
+	return false
+}
+
+// MustAtoi converts an `s` string using `strconv.Atoi` but panics if there's an error.
+func MustAtoi(s string) int {
+	res, err := strconv.Atoi(s)
+	if err != nil {
+		panic(err)
+	}
+	return res
 }

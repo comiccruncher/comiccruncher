@@ -241,6 +241,7 @@ mockgen:
 	mockgen -destination=internal/mocks/comic/cache.go -source=comic/cache.go
 	mockgen -destination=internal/mocks/messaging/messenger.go -source=messaging/messenger.go
 	mockgen -destination=internal/mocks/cerebro/characterissue.go -source=cerebro/characterissue.go
+	mockgen -destination=internal/mocks/search/service.go -source=search/service.go
 
 # Generate mocks for testing.
 docker-mockgen:

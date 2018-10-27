@@ -2,14 +2,8 @@ package web
 
 import (
 	"bytes"
-	"errors"
 	"github.com/labstack/echo"
 	"strconv"
-)
-
-var (
-	// ErrInvalidPageParameter is an error for an invalid page parameter from a request.
-	ErrInvalidPageParameter = errors.New("invalid `page` parameter")
 )
 
 // Page represents a page number and link.
@@ -45,7 +39,7 @@ type Pagination struct {
 	NextPage     *Page `json:"next_page"`
 }
 
-// CreatePagination creates a new pagination.
+// CreatePagination creates a new pagination. TODO: clean this crap up.
 func CreatePagination(ctx echo.Context, data []interface{}, itemsPerPage int) (*Pagination, error) {
 	requestedPageParam := ctx.QueryParam("page")
 	// Start with default
