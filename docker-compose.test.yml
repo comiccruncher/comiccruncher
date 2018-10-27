@@ -6,11 +6,13 @@ services:
     ports:
       - "5434:5432"
     volumes:
-      - ./build/docker/postgres-test/data:/var/lib/postgresql/data
+      - ./build/docker/postgres-test/data:/tmp
+      - ./build/docker/postgres/postgresql.conf:/etc/postgresql.conf
     environment:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: root
       POSTGRES_DB: comiccruncher_db_test
+      PGDATA: /tmp
   comiccruncher: # Override environment variables.
     environment:
       - "CC_ENVIRONMENT=test"
