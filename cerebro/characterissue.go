@@ -401,26 +401,20 @@ func (i *CharacterIssueImporter) updateSyncLog(cLog *comic.CharacterSyncLog, new
 func (i *CharacterIssueImporter) requestIssues(workerID int, links <-chan ExternalVendorURL, issues chan<- *comic.Issue) {
 	for l := range links {
 		externalIssueCh := make(chan *externalissuesource.Issue, 1)
-		retry.Do(func() error {
-			i.logger.Info("fetching issue", zap.String("url", l.String()))
+		err := retryURL(func() (string, error) {
 			externalIssue, err := i.externalSource.Issue(l.String())
 			if err != nil {
-				if isConnectionError(err) {
-					i.logger.Info("got connection issue. retrying", zap.String("url", l.String()), zap.Error(err))
-					return err
-				}
-				i.logger.Error("received error from external source", zap.Int("workerId", workerID), zap.String("link", l.String()), zap.Error(err))
-				// Send a blank issue
-				issues <- &comic.Issue{}
-				// close the channel. won't send anymore.
-				close(externalIssueCh)
-				// return nil to exit the retry.
-				return nil
+				return l.String(), err
 			}
-			// send over the issue.
 			externalIssueCh <- externalIssue
-			return nil
-		}, retryDelay)
+			return l.String(), err
+		})
+		if err != nil {
+			i.logger.Error("received error from external source", zap.Int("workerId", workerID), zap.String("link", l.String()), zap.Error(err))
+			// Send a blank issue
+			issues <- &comic.Issue{}
+			continue
+		}
 		// read from it if the value was sent.
 		if externalIssue, ok := <-externalIssueCh; ok {
 			issueFormat := comic.FormatOther
