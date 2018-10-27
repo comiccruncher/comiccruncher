@@ -7,7 +7,6 @@ services:
       - "5434:5432"
     volumes:
       - ./build/docker/postgres-test/data:/var/lib/postgresql/data
-      - ./build/docker/postgres/postgresql.conf:/etc/postgresql.conf
     environment:
       POSTGRES_USER: root
       POSTGRES_PASSWORD: root
