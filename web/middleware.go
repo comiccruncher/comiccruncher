@@ -56,5 +56,6 @@ func logContext(err error, ctx echo.Context) {
 		zap.Time("time", time.Now()),
 		zap.String("Method", req.Method),
 		zap.String("RemoteAddr", req.RemoteAddr),
+		zap.String("RealIP", ctx.RealIP()),
 		zap.String("URL", req.URL.String()))
 }
