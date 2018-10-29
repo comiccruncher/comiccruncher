@@ -5,7 +5,7 @@ import "strings"
 // universeDefinition is a definition for main and alternate universes.
 type universeDefinition string
 
-var  (
+var (
 	// dcAltUniverses defines the alternate universes for DC.
 	// Unfortunately have to define all possible alternate universes versus just Earth-0, etc.,
 	// since there's no indicator for main sources.
@@ -203,7 +203,7 @@ var  (
 		"clone",
 	}
 	// dcDisabledUniverses defines the sources that should be disabled for DC characters.
-	dcDisabledUniverses = []universeDefinition {
+	dcDisabledUniverses = []universeDefinition{
 		"clone",
 		"fake",
 		"robot",
@@ -212,7 +212,7 @@ var  (
 	}
 	// actual clones/robots/vampires that shouldn't have their sources disabled lol.
 	ignoreIDsForDisabled = map[uint]bool{
-		561: true,  // Madelyne Pryor
+		561: true, // Madelyne Pryor
 	}
 )
 

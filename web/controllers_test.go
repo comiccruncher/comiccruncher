@@ -1,29 +1,29 @@
 package web_test
 
 import (
-	"testing"
-	"github.com/aimeelaplant/comiccruncher/internal/mocks/comic"
-	"github.com/golang/mock/gomock"
-	"github.com/aimeelaplant/comiccruncher/comic"
-	"github.com/aimeelaplant/comiccruncher/web"
-	"github.com/labstack/echo"
-	"net/http/httptest"
-	"net/http"
-	"github.com/stretchr/testify/assert"
-	"github.com/aimeelaplant/comiccruncher/internal/mocks/search"
 	"errors"
+	"github.com/aimeelaplant/comiccruncher/comic"
+	"github.com/aimeelaplant/comiccruncher/internal/mocks/comic"
+	"github.com/aimeelaplant/comiccruncher/internal/mocks/search"
+	"github.com/aimeelaplant/comiccruncher/web"
+	"github.com/golang/mock/gomock"
+	"github.com/labstack/echo"
+	"github.com/stretchr/testify/assert"
 	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
+	"testing"
 )
 
 func TestStatsControllerStatsReturnsOK(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	stats := comic.Stats{
-		TotalCharacters: 1,
+		TotalCharacters:  1,
 		TotalAppearances: 1,
-		MinYear: 1,
-		MaxYear: 10,
-		TotalIssues: 1,
+		MinYear:          1,
+		MaxYear:          10,
+		TotalIssues:      1,
 	}
 	statsMock := mock_comic.NewMockStatsRepository(ctrl)
 	statsMock.EXPECT().Stats().Return(stats, nil)
@@ -181,12 +181,12 @@ func TestCharacterControllerCharacters(t *testing.T) {
 func mockCharacter() *comic.Character {
 	publisher := comic.Publisher{Name: "Marvel", Slug: "marvel", ID: 1}
 	return &comic.Character{
-		ID: 1,
-		Slug:  "emma-frost",
-		Name: "Emma-Frost",
+		ID:          1,
+		Slug:        "emma-frost",
+		Name:        "Emma-Frost",
 		Description: "Blah",
 		PublisherID: 1,
-		Publisher: publisher,
-		IsDisabled: false,
+		Publisher:   publisher,
+		IsDisabled:  false,
 	}
 }

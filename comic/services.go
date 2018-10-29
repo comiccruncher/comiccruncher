@@ -1,9 +1,9 @@
 package comic
 
 import (
+	"fmt"
 	"github.com/go-redis/redis"
 	"time"
-	"fmt"
 )
 
 const (

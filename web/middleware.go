@@ -1,12 +1,12 @@
 package web
 
 import (
-	"github.com/labstack/echo"
-	"os"
 	"github.com/aimeelaplant/comiccruncher/internal/log"
+	"github.com/labstack/echo"
 	"go.uber.org/zap"
-	"time"
 	"net/http"
+	"os"
+	"time"
 )
 
 // RequireAuthentication is a cheap, temporary authentication middleware for handling requests.

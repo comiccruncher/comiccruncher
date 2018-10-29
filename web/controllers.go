@@ -1,11 +1,11 @@
 package web
 
 import (
+	"errors"
 	"github.com/aimeelaplant/comiccruncher/comic"
 	"github.com/aimeelaplant/comiccruncher/search"
 	"github.com/labstack/echo"
 	"strconv"
-	"errors"
 )
 
 var (
