@@ -554,6 +554,41 @@ func (mr *MockAppearancesByYearsRepositoryMockRecorder) List(slugs ...interface{
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockAppearancesByYearsRepository)(nil).List), slugs...)
 }
 
+// MockAppearancesByYearsWriter is a mock of AppearancesByYearsWriter interface
+type MockAppearancesByYearsWriter struct {
+	ctrl     *gomock.Controller
+	recorder *MockAppearancesByYearsWriterMockRecorder
+}
+
+// MockAppearancesByYearsWriterMockRecorder is the mock recorder for MockAppearancesByYearsWriter
+type MockAppearancesByYearsWriterMockRecorder struct {
+	mock *MockAppearancesByYearsWriter
+}
+
+// NewMockAppearancesByYearsWriter creates a new mock instance
+func NewMockAppearancesByYearsWriter(ctrl *gomock.Controller) *MockAppearancesByYearsWriter {
+	mock := &MockAppearancesByYearsWriter{ctrl: ctrl}
+	mock.recorder = &MockAppearancesByYearsWriterMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockAppearancesByYearsWriter) EXPECT() *MockAppearancesByYearsWriterMockRecorder {
+	return m.recorder
+}
+
+// Set mocks base method
+func (m *MockAppearancesByYearsWriter) Set(apps comic.AppearancesByYears) error {
+	ret := m.ctrl.Call(m, "Set", apps)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Set indicates an expected call of Set
+func (mr *MockAppearancesByYearsWriterMockRecorder) Set(apps interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Set", reflect.TypeOf((*MockAppearancesByYearsWriter)(nil).Set), apps)
+}
+
 // MockAppearancesByYearsMapRepository is a mock of AppearancesByYearsMapRepository interface
 type MockAppearancesByYearsMapRepository struct {
 	ctrl     *gomock.Controller

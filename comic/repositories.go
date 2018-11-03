@@ -72,6 +72,11 @@ type AppearancesByYearsRepository interface {
 	List(slugs ...CharacterSlug) ([]AppearancesByYears, error)
 }
 
+// AppearancesByYearsWriter sets the appearances by years for a character.
+type AppearancesByYearsWriter interface {
+	Set(apps AppearancesByYears) error
+}
+
 // AppearancesByYearsMapRepository is the repository for listing a character's appearances by years in a map.
 type AppearancesByYearsMapRepository interface {
 	ListMap(slugs ...CharacterSlug) (map[CharacterSlug][]AppearancesByYears, error)
@@ -940,4 +945,8 @@ func NewRedisAppearancesMapRepository(r *redis.Client) AppearancesByYearsMapRepo
 	return &RedisAppearancesByYearsRepository{
 		redisClient: r,
 	}
+}
+
+func NewAppearancesByYearsWriter(c *redis.Client) AppearancesByYearsWriter {
+	return &RedisAppearancesByYearsRepository{redisClient: c}
 }
