@@ -33,3 +33,5 @@ ignore:
   - "messaging"
   - "internal/mocks"
   - "build"
+  - "cerebro/cmd"
+  - "web/cmd"
