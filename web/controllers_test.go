@@ -116,8 +116,8 @@ func TestCharacterControllerCharacter(t *testing.T) {
 	rankedSvc := mock_comic.NewMockRankedServicer(ctrl)
 	characterCtrl := web.NewCharacterController(characterSvc, rankedSvc)
 	err = characterCtrl.Character(c)
+	assert.Nil(t, err)
 	read, err := ioutil.ReadAll(rec.Body)
-
 	assert.Nil(t, err)
 	assert.Equal(t, http.StatusOK, c.Response().Status)
 	assert.True(t, c.Response().Committed)

@@ -69,6 +69,9 @@ func (c PublisherController) DC(ctx echo.Context) error {
 		return err
 	}
 	results, err := c.rankedSvc.DCPopular(cr)
+	if err != nil {
+		return err
+	}
 	return JSONListViewOK(ctx, listRanked(results), pageLimit)
 }
 
