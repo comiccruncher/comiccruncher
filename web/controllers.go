@@ -1,12 +1,15 @@
 package web
 
 import (
+	"errors"
 	"github.com/aimeelaplant/comiccruncher/comic"
 	"github.com/aimeelaplant/comiccruncher/search"
 	"github.com/labstack/echo"
 	"strconv"
-	"errors"
 )
+
+// Pagination limit.
+const pageLimit = 24
 
 var (
 	// ErrInvalidPageParameter is for when an invalid page parameter is received.
@@ -14,7 +17,7 @@ var (
 	// ErrInternalServerError is for when something bad happens internally.
 	ErrInternalServerError = errors.New("internal server error")
 	// ErrNotFound is for when something can't be found.
-	ErrNotFound = errors.New("object cannot be found")
+	ErrNotFound = errors.New("page cannot be found")
 )
 
 // StatsController is the controller for stats about comic cruncher.
@@ -54,9 +57,41 @@ func (c SearchController) SearchCharacters(ctx echo.Context) error {
 	return JSONListViewOK(ctx, data, 5)
 }
 
+// PublisherController is the controller for publishers.
+type PublisherController struct {
+	rankedSvc comic.RankedServicer
+}
+
+// DC gets the publisher's characters with their appearances.
+func (c PublisherController) DC(ctx echo.Context) error {
+	cr, err := popularCriteria(ctx)
+	if err != nil {
+		return err
+	}
+	results, err := c.rankedSvc.DCPopular(cr)
+	if err != nil {
+		return err
+	}
+	return JSONListViewOK(ctx, listRanked(results), pageLimit)
+}
+
+// Marvel gets the publisher's characters with their appearances.
+func (c PublisherController) Marvel(ctx echo.Context) error {
+	cr, err := popularCriteria(ctx)
+	if err != nil {
+		return err
+	}
+	results, err := c.rankedSvc.MarvelPopular(cr)
+	if err != nil {
+		return err
+	}
+	return JSONListViewOK(ctx, listRanked(results), pageLimit)
+}
+
 // CharacterController is the character controller.
 type CharacterController struct {
 	characterSvc comic.CharacterServicer
+	rankedSvc    comic.RankedServicer
 }
 
 // Character gets a character by its slug.
@@ -69,43 +104,29 @@ func (c CharacterController) Character(ctx echo.Context) error {
 	if character == nil {
 		return ErrNotFound
 	}
-	cStrct, err := c.withAppearances(character)
+	// TODO: Query for ranked character instead.
+	apps, err := c.characterSvc.ListAppearances(character.Slug)
 	if err != nil {
 		return err
 	}
-	return JSONDetailViewOK(ctx, cStrct)
+	ch := NewCharacter(*character, apps)
+	if err != nil {
+		return err
+	}
+	return JSONDetailViewOK(ctx, ch)
 }
 
 // Characters lists the characters.
 func (c CharacterController) Characters(ctx echo.Context) error {
-	var results []*comic.Character
-	page, err := pageNumber(ctx)
+	cr, err := popularCriteria(ctx)
 	if err != nil {
 		return err
 	}
-	var slugs []comic.PublisherSlug
-	results, err = c.characterSvc.CharactersByPublisher(slugs, true, 25+1, (page-1)*25)
+	results, err := c.rankedSvc.AllPopular(cr)
 	if err != nil {
 		return err
 	}
-	var data = make([]interface{}, len(results))
-	for i, v := range results {
-		character, err := c.withAppearances(v)
-		if err != nil {
-			return err
-		}
-		data[i] = character
-	}
-	return JSONListViewOK(ctx, data, 25)
-}
-
-// Gets a character struct with the appearances attached.
-func (c CharacterController) withAppearances(character *comic.Character) (Character, error) {
-	apps, err := c.characterSvc.ListAppearances(character.Slug)
-	if err != nil {
-		return Character{}, err
-	}
-	return NewCharacter(*character, apps), nil
+	return JSONListViewOK(ctx, listRanked(results), pageLimit)
 }
 
 // Gets the page number from the query parameter `page` with default value if empty.
@@ -121,10 +142,49 @@ func pageNumber(ctx echo.Context) (int, error) {
 	return 1, nil
 }
 
+// Gets a popular criteria struct based on the context.
+func popularCriteria(ctx echo.Context) (comic.PopularCriteria, error) {
+	page, err := pageNumber(ctx)
+	if err != nil {
+		return comic.PopularCriteria{}, err
+	}
+	sortBy := comic.MostIssues
+	sortReq := ctx.QueryParam("sort")
+	if sortReq == "average" {
+		sortBy = comic.AverageIssuesPerYear
+	}
+	appearanceType := comic.Main | comic.Alternate
+	typeReq := ctx.QueryParam("type")
+	switch typeReq {
+	case "main":
+		appearanceType = comic.Main
+		break
+	case "alternate":
+		appearanceType = comic.Alternate
+		break
+	}
+	return comic.PopularCriteria{
+		SortBy:         sortBy,
+		AppearanceType: appearanceType,
+		Limit:          pageLimit + 1,
+		Offset:         (page - 1) * pageLimit,
+	}, nil
+}
+
+// Transforms ranked characters into an interface for pagination.
+func listRanked(results []*comic.RankedCharacter) []interface{} {
+	var data = make([]interface{}, len(results))
+	for i, v := range results {
+		data[i] = v
+	}
+	return data
+}
+
 // NewCharacterController creates a new character controller.
-func NewCharacterController(service comic.CharacterServicer) CharacterController {
+func NewCharacterController(service comic.CharacterServicer, rankedSvc comic.RankedServicer) CharacterController {
 	return CharacterController{
 		characterSvc: service,
+		rankedSvc:    rankedSvc,
 	}
 }
 
@@ -139,5 +199,12 @@ func NewSearchController(searcher search.Searcher) SearchController {
 func NewStatsController(repository comic.StatsRepository) StatsController {
 	return StatsController{
 		statsRepository: repository,
+	}
+}
+
+// NewPublisherController creates a new publisher controller.
+func NewPublisherController(s comic.RankedServicer) PublisherController {
+	return PublisherController{
+		rankedSvc: s,
 	}
 }

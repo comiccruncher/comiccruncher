@@ -20,11 +20,13 @@ var startCmd = &cobra.Command{
 		if err != nil {
 			log.WEB().Fatal("cannot instantiate database connection", zap.Error(err))
 		}
+		redis := rediscache.Instance()
 		container := comic.NewPGRepositoryContainer(instance)
-		characterSvc := comic.NewCharacterServiceWithCache(container, rediscache.Instance())
+		characterSvc := comic.NewCharacterServiceWithCache(container, redis)
 		searchSvc := search.NewSearchService(instance)
 		statsRepository := comic.NewPGStatsRepository(instance)
-		app := web.NewApp(characterSvc, searchSvc, statsRepository)
+		rankedSvc := comic.NewRankedService(comic.NewPGPopularRepositoryWithCache(instance, redis))
+		app := web.NewApp(characterSvc, searchSvc, statsRepository, rankedSvc)
 		port := cmd.Flag("port")
 		app.MustRun(port.Value.String())
 	},

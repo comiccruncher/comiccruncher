@@ -1,13 +1,13 @@
 package web_test
 
 import (
-	"testing"
-	"github.com/labstack/echo"
-	"net/http/httptest"
-	"net/http"
-	"github.com/aimeelaplant/comiccruncher/web"
-	"github.com/stretchr/testify/assert"
 	"errors"
+	"github.com/aimeelaplant/comiccruncher/web"
+	"github.com/labstack/echo"
+	"github.com/stretchr/testify/assert"
+	"net/http"
+	"net/http/httptest"
+	"testing"
 )
 
 func TestErrorHandler(t *testing.T) {

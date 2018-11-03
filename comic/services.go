@@ -1,9 +1,9 @@
 package comic
 
 import (
+	"fmt"
 	"github.com/go-redis/redis"
 	"time"
-	"fmt"
 )
 
 const (
@@ -108,14 +108,39 @@ type CharacterServicer interface {
 	CreateSyncLog(syncLog *CharacterSyncLog) error
 	// UpdateSyncLog updates a sync log
 	UpdateSyncLog(syncLog *CharacterSyncLog) error
-	// MainAppearances gets all the character's main appearances.
-	MainAppearances(slug CharacterSlug) (AppearancesByYears, error)
-	// AlternateAppearances gets all the character's alternate apppearances.
-	AlternateAppearances(slug CharacterSlug) (AppearancesByYears, error)
 	// BothAppearances gets the combined appearances for main + alternate
 	BothAppearances(slug CharacterSlug) (AppearancesByYears, error)
 	// ListAppearances gets main and alternate appearances as lists (so not combined)
 	ListAppearances(slug CharacterSlug) ([]AppearancesByYears, error)
+}
+
+// RankedServicer is the interface for getting ranked and popular characters.
+type RankedServicer interface {
+	AllPopular(cr PopularCriteria) ([]*RankedCharacter, error)
+	DCPopular(cr PopularCriteria) ([]*RankedCharacter, error)
+	MarvelPopular(cr PopularCriteria) ([]*RankedCharacter, error)
+}
+
+// RankedService is the service for getting ranked and popular characters.
+type RankedService struct {
+	popRepo PopularRepository
+}
+
+// AllPopular gets the most popular characters per year ordered by either issue count or
+// average appearances per year.
+func (s *RankedService) AllPopular(cr PopularCriteria) ([]*RankedCharacter, error) {
+	return s.popRepo.All(cr)
+}
+
+// DCPopular gets DC's most popular characters per year.
+func (s *RankedService) DCPopular(cr PopularCriteria) ([]*RankedCharacter, error) {
+	return s.popRepo.DC(cr)
+}
+
+// MarvelPopular gets Marvel's most popular characters per year ordered by either issue count o
+// or average appearances per year.
+func (s *RankedService) MarvelPopular(cr PopularCriteria) ([]*RankedCharacter, error) {
+	return s.popRepo.Marvel(cr)
 }
 
 // PublisherService is the service for publishers.
@@ -381,16 +406,6 @@ func (s *CharacterService) CharactersByPublisher(slugs []PublisherSlug, filterSo
 	})
 }
 
-// MainAppearances lists the main appearances for a character.
-func (s *CharacterService) MainAppearances(slug CharacterSlug) (AppearancesByYears, error) {
-	return s.appearancesRepository.Main(slug)
-}
-
-// AlternateAppearances lists the alternate appearances for a character.
-func (s *CharacterService) AlternateAppearances(slug CharacterSlug) (AppearancesByYears, error) {
-	return s.appearancesRepository.Alternate(slug)
-}
-
 // BothAppearances lists the combination of main + alt appearances in one struct.
 func (s *CharacterService) BothAppearances(slug CharacterSlug) (AppearancesByYears, error) {
 	return s.appearancesRepository.Both(slug)
@@ -398,18 +413,7 @@ func (s *CharacterService) BothAppearances(slug CharacterSlug) (AppearancesByYea
 
 // ListAppearances lists both main and alternate appearances.
 func (s *CharacterService) ListAppearances(slug CharacterSlug) ([]AppearancesByYears, error) {
-	apps := make([]AppearancesByYears, 0)
-	if main, err := s.MainAppearances(slug); err != nil {
-		return nil, err
-	} else if main.CharacterSlug != "" {
-		apps = append(apps, main)
-	}
-	if alt, err := s.AlternateAppearances(slug); err != nil {
-		return nil, err
-	} else if alt.CharacterSlug != "" {
-		apps = append(apps, alt)
-	}
-	return apps, nil
+	return s.appearancesRepository.List(slug)
 }
 
 // NewPublisherService creates a new publisher service
@@ -445,5 +449,12 @@ func NewCharacterServiceWithCache(container *PGRepositoryContainer, redis *redis
 func NewIssueService(container *PGRepositoryContainer) IssueServicer {
 	return &IssueService{
 		repository: container.IssueRepository(),
+	}
+}
+
+// NewRankedService creates a new service for ranked characters.
+func NewRankedService(repository PopularRepository) RankedServicer {
+	return &RankedService{
+		popRepo: repository,
 	}
 }

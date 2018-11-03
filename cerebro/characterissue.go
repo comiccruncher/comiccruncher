@@ -2,18 +2,18 @@ package cerebro
 
 import (
 	"errors"
+	"fmt"
 	"github.com/aimeelaplant/comiccruncher/comic"
 	"github.com/aimeelaplant/comiccruncher/internal/log"
+	"github.com/aimeelaplant/comiccruncher/internal/stringutil"
 	"github.com/aimeelaplant/externalissuesource"
 	"github.com/avast/retry-go"
 	"go.uber.org/zap"
 	"os"
+	"os/signal"
 	"strconv"
 	"strings"
 	"time"
-	"fmt"
-	"os/signal"
-	"github.com/aimeelaplant/comiccruncher/internal/stringutil"
 )
 
 // Concurrency limit for fetching issues from an external source.
@@ -52,7 +52,7 @@ var (
 		comic.FormatPrestige:     true,
 	}
 	// allowedPublishers is the list of publishers allowed to count as an appearance for a character.
- 	allowedPublishers = []string{
+	allowedPublishers = []string{
 		"Archie",
 		"Atlas Comics",
 		"Dark Horse",
@@ -89,7 +89,7 @@ type CharacterIssueImporter struct {
 	characterSvc     comic.CharacterServicer
 	issueSvc         comic.IssueServicer
 	externalSource   externalissuesource.ExternalSource
-	vendorParser 	 CharacterVendorParser
+	vendorParser     CharacterVendorParser
 	logger           *zap.Logger
 }
 
@@ -106,7 +106,7 @@ type CharacterVendorInfo struct {
 
 // CharacterCBParser parses a character's sources and into CharacterVendorInfo.
 type CharacterCBParser struct {
-	src externalissuesource.ExternalSource
+	src    externalissuesource.ExternalSource
 	logger *zap.Logger
 }
 
@@ -466,7 +466,7 @@ func NewCharacterIssueImporter(
 		externalSource:   externalSource,
 		appearanceSyncer: appearancesSyncer,
 		logger:           log.CEREBRO(),
-		vendorParser: 	  NewCharacterCBParser(externalSource),
+		vendorParser:     NewCharacterCBParser(externalSource),
 	}
 }
 

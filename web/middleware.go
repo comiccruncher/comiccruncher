@@ -1,12 +1,12 @@
 package web
 
 import (
-	"github.com/labstack/echo"
-	"os"
 	"github.com/aimeelaplant/comiccruncher/internal/log"
+	"github.com/labstack/echo"
 	"go.uber.org/zap"
-	"time"
 	"net/http"
+	"os"
+	"time"
 )
 
 // RequireAuthentication is a cheap, temporary authentication middleware for handling requests.
@@ -28,13 +28,15 @@ func ErrorHandler(err error, ctx echo.Context) {
 	if err == nil {
 		return
 	}
-	errInvalidPageStr, errNotFoundStr := ErrInvalidPageParameter.Error(), ErrNotFound.Error()
+	errInvalidPageStr, errNotFoundStr, echo404 := ErrInvalidPageParameter.Error(),
+		ErrNotFound.Error(),
+		echo.ErrNotFound.Error()
 	var response error
 	switch err.Error() {
 	case errInvalidPageStr:
 		response = NewJSONErrorView(ctx, errInvalidPageStr, http.StatusBadRequest)
 		break
-	case errNotFoundStr:
+	case errNotFoundStr, echo404:
 		response = NewJSONErrorView(ctx, errNotFoundStr, http.StatusNotFound)
 		break
 	default: // for ErrInternalServerError or anything else...
@@ -56,5 +58,6 @@ func logContext(err error, ctx echo.Context) {
 		zap.Time("time", time.Now()),
 		zap.String("Method", req.Method),
 		zap.String("RemoteAddr", req.RemoteAddr),
+		zap.String("RealIP", ctx.RealIP()),
 		zap.String("URL", req.URL.String()))
 }

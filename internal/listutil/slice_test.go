@@ -25,3 +25,11 @@ func TestStringKeys(t *testing.T) {
 	assert.True(t, in(stringKeys, "b"))
 	assert.True(t, in(stringKeys, "c"))
 }
+
+func TestStringInSlice(t *testing.T) {
+	strs := []string{"a", "b", "c"}
+	assert.True(t, listutil.StringInSlice(strs, "a"))
+	assert.True(t, listutil.StringInSlice(strs, "b"))
+	assert.True(t, listutil.StringInSlice(strs, "c"))
+	assert.False(t, listutil.StringInSlice(strs, "d"))
+}

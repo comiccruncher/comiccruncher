@@ -1,13 +1,13 @@
 package cerebro_test
 
 import (
-	"testing"
 	"github.com/aimeelaplant/comiccruncher/cerebro"
-	"github.com/aimeelaplant/comiccruncher/internal/mocks/externalissuesource"
-	"github.com/golang/mock/gomock"
-	"github.com/aimeelaplant/externalissuesource"
 	"github.com/aimeelaplant/comiccruncher/comic"
+	"github.com/aimeelaplant/comiccruncher/internal/mocks/externalissuesource"
+	"github.com/aimeelaplant/externalissuesource"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+	"testing"
 )
 
 func TestCharacterCBParser_Parse(t *testing.T) {
@@ -34,11 +34,11 @@ func TestCharacterCBParser_Parse(t *testing.T) {
 	}
 	sources := []*comic.CharacterSource{
 		{
-			IsMain: true,
+			IsMain:    true,
 			VendorURL: "test",
 		},
 		{
-			IsMain: false,
+			IsMain:    false,
 			VendorURL: "test2",
 		},
 	}

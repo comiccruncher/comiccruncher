@@ -2,10 +2,10 @@ package stringutil
 
 import (
 	"math/rand"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
-	"strconv"
 )
 
 const randCharMap = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890"

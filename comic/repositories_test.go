@@ -112,25 +112,25 @@ func setupTestData() {
 	}
 }
 
-func TestPGPublisherRepository_FindBySlug(t *testing.T) {
+func TestPGPublisherRepositoryFindBySlug(t *testing.T) {
 	marvel, err := testContainer.PublisherRepository().FindBySlug("marvel")
 	assert.Nil(t, err)
 	assert.Equal(t, "marvel", string(marvel.Slug))
 }
 
-func TestNewPGPublisherRepository_FindBySlugReturnsNil(t *testing.T) {
+func TestNewPGPublisherRepositoryFindBySlugReturnsNil(t *testing.T) {
 	bogus, err := testContainer.PublisherRepository().FindBySlug("bogus")
 	assert.Nil(t, err)
 	assert.Nil(t, bogus)
 }
 
-func TestPGCharacterRepository_FindBySlugReturnsNil(t *testing.T) {
+func TestPGCharacterRepositoryFindBySlugReturnsNil(t *testing.T) {
 	bogus, err := testContainer.CharacterRepository().FindBySlug("bogus", true)
 	assert.Nil(t, bogus)
 	assert.Nil(t, err)
 }
 
-func TestCharacterRepository_FindBySlug(t *testing.T) {
+func TestCharacterRepositoryFindBySlug(t *testing.T) {
 	c, err := testContainer.CharacterRepository().FindBySlug("emma-frost", false)
 	assert.Nil(t, err)
 	assert.NotNil(t, c)
@@ -139,7 +139,7 @@ func TestCharacterRepository_FindBySlug(t *testing.T) {
 	assert.True(t, c.ID > 0)
 }
 
-func TestPGCharacterRepository_Create(t *testing.T) {
+func TestPGCharacterRepositoryCreate(t *testing.T) {
 	p, err := testContainer.PublisherRepository().FindBySlug("marvel")
 	assert.Nil(t, err)
 
@@ -159,7 +159,7 @@ func TestPGCharacterRepository_Create(t *testing.T) {
 	assert.True(t, c2.Publisher.ID > 0)
 }
 
-func TestPGCharacterRepository_FindAll(t *testing.T) {
+func TestPGCharacterRepositoryFindAll(t *testing.T) {
 	c, err := testContainer.CharacterRepository().FindAll(comic.CharacterCriteria{
 		Slugs: []comic.CharacterSlug{comic.CharacterSlug("emma-frost"), comic.CharacterSlug("emma-frost-2")},
 	})
@@ -167,14 +167,14 @@ func TestPGCharacterRepository_FindAll(t *testing.T) {
 	assert.Len(t, c, 2)
 }
 
-func TestPGCharacterSyncLogRepository_FindByIdReturnsNil(t *testing.T) {
+func TestPGCharacterSyncLogRepositoryFindByIdReturnsNil(t *testing.T) {
 	sLog, err := testContainer.CharacterSyncLogRepository().FindByID(999)
 
 	assert.Nil(t, err)
 	assert.Nil(t, sLog)
 }
 
-func TestCharacterSyncLogRepository_Update(t *testing.T) {
+func TestCharacterSyncLogRepositoryUpdate(t *testing.T) {
 	syncLogRepo := testContainer.CharacterSyncLogRepository()
 	characterRepo := testContainer.CharacterRepository()
 	c, err := characterRepo.FindBySlug("emma-frost", true)
@@ -191,13 +191,13 @@ func TestCharacterSyncLogRepository_Update(t *testing.T) {
 	assert.Equal(t, string(comic.Success), string(syncLog.SyncStatus))
 }
 
-func TestPGCharacterIssueRepository_FindOneByReturnsNil(t *testing.T) {
+func TestPGCharacterIssueRepositoryFindOneByReturnsNil(t *testing.T) {
 	res, err := testContainer.CharacterIssueRepository().FindOneBy(100, 100)
 	assert.Nil(t, res)
 	assert.Nil(t, err)
 }
 
-func TestCharacterIssueRepository_Create_And_FindOneBy(t *testing.T) {
+func TestCharacterIssueRepositoryCreateAndFindOneBy(t *testing.T) {
 	issue := &comic.Issue{
 		PublicationDate:    time.Now(),
 		SaleDate:           time.Now(),
@@ -234,13 +234,13 @@ func TestCharacterIssueRepository_Create_And_FindOneBy(t *testing.T) {
 	assert.Equal(t, issue.ID, nci.IssueID)
 }
 
-func TestPGIssueRepository_FindByVendorIdReturnsNil(t *testing.T) {
+func TestPGIssueRepositoryFindByVendorIdReturnsNil(t *testing.T) {
 	result, err := testContainer.IssueRepository().FindByVendorID("98332")
 	assert.Nil(t, result)
 	assert.Nil(t, err)
 }
 
-func TestPGIssueRepository_CreateAll(t *testing.T) {
+func TestPGIssueRepositoryCreateAll(t *testing.T) {
 	issue := &comic.Issue{
 		PublicationDate:    time.Now(),
 		SaleDate:           time.Now(),
@@ -269,7 +269,7 @@ func TestPGIssueRepository_CreateAll(t *testing.T) {
 	assert.Equal(t, issue2.ID, issues[1].ID)
 }
 
-func TestPGCharacterIssueRepository_CreateAll(t *testing.T) {
+func TestPGCharacterIssueRepositoryCreateAll(t *testing.T) {
 	character, err := testContainer.CharacterRepository().FindBySlug("emma-frost", true)
 	assert.Nil(t, err)
 
@@ -321,7 +321,7 @@ func TestNewPGRepositoryContainer(t *testing.T) {
 }
 
 // Tests that the query returns the correct values for Main | Alternate appearances.
-func TestPGAppearanceRepository_All(t *testing.T) {
+func TestPGAppearanceRepositoryAll(t *testing.T) {
 	result, err := testContainer.AppearancesByYearsRepository().Both("emma-frost-2")
 
 	assert.Nil(t, err)
@@ -356,7 +356,7 @@ func TestPGAppearanceRepository_All(t *testing.T) {
 }
 
 // Tests that the query returns the correct values for Main appearances.
-func TestPGAppearanceRepository_Main(t *testing.T) {
+func TestPGAppearanceRepositoryMain(t *testing.T) {
 	result, err := testContainer.AppearancesByYearsRepository().Main("emma-frost-2")
 
 	assert.Nil(t, err)
@@ -390,7 +390,7 @@ func TestPGAppearanceRepository_Main(t *testing.T) {
 }
 
 // Test that the query returns the correct values for Alternate appearances.
-func TestPGAppearanceRepository_Alternate(t *testing.T) {
+func TestPGAppearanceRepositoryAlternate(t *testing.T) {
 	result, err := testContainer.AppearancesByYearsRepository().Alternate("emma-frost-2")
 
 	assert.Nil(t, err)
@@ -423,7 +423,7 @@ func TestPGAppearanceRepository_Alternate(t *testing.T) {
 }
 
 // Test that the query returns both main and alternate appearances as slices.
-func TestPGAppearanceRepository_List(t *testing.T) {
+func TestPGAppearanceRepositoryList(t *testing.T) {
 	list, err := testContainer.AppearancesByYearsRepository().List("emma-frost-2")
 
 	assert.Nil(t, err)
@@ -434,7 +434,7 @@ func TestPGAppearanceRepository_List(t *testing.T) {
 	// Test for blanks.
 	bogus, err := testContainer.AppearancesByYearsRepository().List("bogus")
 	assert.Nil(t, err)
-	assert.Len(t, bogus, 0)
+	assert.Len(t, bogus, 2)
 }
 
 func TestPGStatsRepository_Stats(t *testing.T) {
@@ -448,7 +448,7 @@ func TestPGStatsRepository_Stats(t *testing.T) {
 	assert.Equal(t, time.Now().Year(), stats.MaxYear)
 }
 
-func TestPGCharacterSyncLogRepository_Create_and_Find(t *testing.T) {
+func TestPGCharacterSyncLogRepositoryCreateAndFind(t *testing.T) {
 	characters, err := testContainer.CharacterRepository().FindAll(comic.CharacterCriteria{})
 	assert.Nil(t, err)
 	assert.True(t, len(characters) > 0)
@@ -465,7 +465,7 @@ func TestPGCharacterSyncLogRepository_Create_and_Find(t *testing.T) {
 	assert.Equal(t, id, syncLog.ID)
 }
 
-func TestPGCharacterRepository_Total(t *testing.T) {
+func TestPGCharacterRepositoryTotal(t *testing.T) {
 	total, err := testContainer.CharacterRepository().Total(comic.CharacterCriteria{
 		IDs:           []comic.CharacterID{1},
 		FilterSources: true,

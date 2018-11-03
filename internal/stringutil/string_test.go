@@ -2,8 +2,8 @@ package stringutil
 
 import (
 	"github.com/stretchr/testify/assert"
-	"testing"
 	"strings"
+	"testing"
 )
 
 func TestHasAnyPrefix(t *testing.T) {

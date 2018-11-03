@@ -18,14 +18,3 @@ func StringInSlice(strs []string, s string) bool {
 	}
 	return false
 }
-
-// StringInSliceWithFunc checks if the string `s` is in the slice `strs` and
-// applies the `f` func to each string, including the given string.
-func StringInSliceWithFunc(strs []string, s string, f func(s string) string) bool {
-	for _, st := range strs {
-		if f(st) == f(s) {
-			return true
-		}
-	}
-	return false
-}
