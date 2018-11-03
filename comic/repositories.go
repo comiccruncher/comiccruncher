@@ -87,15 +87,15 @@ type StatsRepository interface {
 	Stats() (Stats, error)
 }
 
-// PopularCharactersRepository is the repository interface for popular character rankings.
-type PopularCharactersRepository interface {
+// PopularRepository is the repository interface for popular character rankings.
+type PopularRepository interface {
 	All(cr PopularCriteria) ([]*RankedCharacter, error)
 	DC(cr PopularCriteria) ([]*RankedCharacter, error)
 	Marvel(cr PopularCriteria) ([]*RankedCharacter, error)
 }
 
-// PGPopularCharactersRepository is the postgres implementation for the popular character repository.
-type PGPopularCharactersRepository struct {
+// PGPopularRepository is the postgres implementation for the popular character repository.
+type PGPopularRepository struct {
 	db  *pg.DB
 	apy AppearancesByYearsMapRepository
 }
@@ -791,8 +791,62 @@ func (r *RedisAppearancesByYearsRepository) Set(character AppearancesByYears) er
 	return r.redisClient.Set(redisKey(character.CharacterSlug, character.Category), val, 0).Err()
 }
 
+// All returns all the popular characters for DC and Marvel.
+func (r *PGPopularRepository) All(cr PopularCriteria) ([]*RankedCharacter, error) {
+	if cr.AppearanceType == Main {
+		return r.query("mv_ranked_characters_main", cr)
+	}
+	if cr.AppearanceType == Alternate {
+		return r.query("mv_ranked_characters_alternate", cr)
+	}
+	return r.query("mv_ranked_characters", cr)
+}
+
+// DC gets the popular characters for DC characters only. The rank will be adjusted for DC.
+func (r *PGPopularRepository) DC(cr PopularCriteria) ([]*RankedCharacter, error) {
+	if cr.AppearanceType == Main {
+		return r.query("mv_ranked_characters_dc_main", cr)
+	}
+	if cr.AppearanceType == Alternate {
+		return r.query("mv_ranked_characters_dc_alternate", cr)
+	}
+	return r.query("mv_ranked_characters_dc", cr)
+}
+
+// Marvel gets the popular characters for Marvel characters only. The rank will be adjusted for Marvel.
+func (r *PGPopularRepository) Marvel(cr PopularCriteria) ([]*RankedCharacter, error) {
+	if cr.AppearanceType == Main {
+		return r.query("mv_ranked_characters_marvel_main", cr)
+	}
+	if cr.AppearanceType == Alternate {
+		return r.query("mv_ranked_characters_marvel_alternate", cr)
+	}
+	return r.query("mv_ranked_characters_marvel", cr)
+}
+
+// Generates the SQL for the materialized view table.
+func (r *PGPopularRepository) sql(table string, sort PopularSortCriteria) string {
+	return fmt.Sprintf(`SELECT average_rank as avg_rank, average_rank_id as avg_rank_id, issue_count, issue_count_rank as issue_count_rank_id, id, publisher_id, name, other_name, description,
+			image, slug, vendor_image, vendor_url, vendor_description, publisher__id, publisher__slug, publisher__name
+		FROM %s
+		ORDER BY %s DESC
+		LIMIT ?0 OFFSET ?1`, table, string(sort))
+}
+
+// queries the database for the table and criteria.
+func (r *PGPopularRepository) query(table string, cr PopularCriteria) ([]*RankedCharacter, error) {
+	var characters []*RankedCharacter
+	query := r.sql(table, cr.SortBy)
+	_, err := r.db.Query(&characters, query, cr.Limit, cr.Offset)
+	if err != nil {
+		return nil, err
+	}
+	r.setAppearances(characters)
+	return characters, err
+}
+
 // Attaches appearances to the characters.
-func (r *PGPopularCharactersRepository) setAppearances(chrs []*RankedCharacter) error {
+func (r *PGPopularRepository) setAppearances(chrs []*RankedCharacter) error {
 	slugs := make([]CharacterSlug, len(chrs))
 	for i, c := range chrs {
 		slugs[i] = c.Slug
@@ -807,60 +861,6 @@ func (r *PGPopularCharactersRepository) setAppearances(chrs []*RankedCharacter) 
 		}
 	}
 	return nil
-}
-
-// All returns all the popular characters for DC and Marvel.
-func (r *PGPopularCharactersRepository) All(cr PopularCriteria) ([]*RankedCharacter, error) {
-	if cr.AppearanceType == Main {
-		return r.query("mv_ranked_characters_main", cr)
-	}
-	if cr.AppearanceType == Alternate {
-		return r.query("mv_ranked_characters_alternate", cr)
-	}
-	return r.query("mv_ranked_characters", cr)
-}
-
-// DC gets the popular characters for DC characters only. The rank will be adjusted for DC.
-func (r *PGPopularCharactersRepository) DC(cr PopularCriteria) ([]*RankedCharacter, error) {
-	if cr.AppearanceType == Main {
-		return r.query("mv_ranked_characters_dc_main", cr)
-	}
-	if cr.AppearanceType == Alternate {
-		return r.query("mv_ranked_characters_dc_alternate", cr)
-	}
-	return r.query("mv_ranked_characters_dc", cr)
-}
-
-// Marvel gets the popular characters for Marvel characters only. The rank will be adjusted for Marvel.
-func (r *PGPopularCharactersRepository) Marvel(cr PopularCriteria) ([]*RankedCharacter, error) {
-	if cr.AppearanceType == Main {
-		return r.query("mv_ranked_characters_marvel_main", cr)
-	}
-	if cr.AppearanceType == Alternate {
-		return r.query("mv_ranked_characters_marvel_alternate", cr)
-	}
-	return r.query("mv_ranked_characters_marvel", cr)
-}
-
-// Generates the SQL for the materialized view table.
-func (r *PGPopularCharactersRepository) sql(table string, sort PopularSortCriteria) string {
-	return fmt.Sprintf(`SELECT average_rank as avg_rank, average_rank_id as avg_rank_id, issue_count, issue_count_rank as issue_count_rank_id, id, publisher_id, name, other_name, description,
-			image, slug, vendor_image, vendor_url, vendor_description, publisher__id, publisher__slug, publisher__name
-		FROM %s
-		ORDER BY %s DESC
-		LIMIT ?0 OFFSET ?1`, table, string(sort))
-}
-
-// queries the database for the table and criteria.
-func (r *PGPopularCharactersRepository) query(table string, cr PopularCriteria) ([]*RankedCharacter, error) {
-	var characters []*RankedCharacter
-	query := r.sql(table, cr.SortBy)
-	_, err := r.db.Query(&characters, query, cr.Limit, cr.Offset)
-	if err != nil {
-		return nil, err
-	}
-	r.setAppearances(characters)
-	return characters, err
 }
 
 // parseYearlyAggregates parses the string value of the redis value into a yearly aggregate.
@@ -931,10 +931,10 @@ func NewPGCharacterSyncLogRepository(db *pg.DB) CharacterSyncLogRepository {
 	return &PGCharacterSyncLogRepository{db: db}
 }
 
-// NewPGPopularCharactersRepositoryWithCache creates the new popular characters repository for postgres
+// NewPGPopularRepositoryWithCache creates the new popular characters repository for postgres
 // and the redis cache for appearances.
-func NewPGPopularCharactersRepositoryWithCache(db *pg.DB, r *redis.Client) PopularCharactersRepository {
-	return &PGPopularCharactersRepository{
+func NewPGPopularRepositoryWithCache(db *pg.DB, r *redis.Client) PopularRepository {
+	return &PGPopularRepository{
 		db:  db,
 		apy: NewRedisAppearancesMapRepository(r),
 	}

@@ -665,31 +665,31 @@ func (mr *MockStatsRepositoryMockRecorder) Stats() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Stats", reflect.TypeOf((*MockStatsRepository)(nil).Stats))
 }
 
-// MockPopularCharactersRepository is a mock of PopularCharactersRepository interface
-type MockPopularCharactersRepository struct {
+// MockPopularRepository is a mock of PopularRepository interface
+type MockPopularRepository struct {
 	ctrl     *gomock.Controller
-	recorder *MockPopularCharactersRepositoryMockRecorder
+	recorder *MockPopularRepositoryMockRecorder
 }
 
-// MockPopularCharactersRepositoryMockRecorder is the mock recorder for MockPopularCharactersRepository
-type MockPopularCharactersRepositoryMockRecorder struct {
-	mock *MockPopularCharactersRepository
+// MockPopularRepositoryMockRecorder is the mock recorder for MockPopularRepository
+type MockPopularRepositoryMockRecorder struct {
+	mock *MockPopularRepository
 }
 
-// NewMockPopularCharactersRepository creates a new mock instance
-func NewMockPopularCharactersRepository(ctrl *gomock.Controller) *MockPopularCharactersRepository {
-	mock := &MockPopularCharactersRepository{ctrl: ctrl}
-	mock.recorder = &MockPopularCharactersRepositoryMockRecorder{mock}
+// NewMockPopularRepository creates a new mock instance
+func NewMockPopularRepository(ctrl *gomock.Controller) *MockPopularRepository {
+	mock := &MockPopularRepository{ctrl: ctrl}
+	mock.recorder = &MockPopularRepositoryMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockPopularCharactersRepository) EXPECT() *MockPopularCharactersRepositoryMockRecorder {
+func (m *MockPopularRepository) EXPECT() *MockPopularRepositoryMockRecorder {
 	return m.recorder
 }
 
 // All mocks base method
-func (m *MockPopularCharactersRepository) All(cr comic.PopularCriteria) ([]*comic.RankedCharacter, error) {
+func (m *MockPopularRepository) All(cr comic.PopularCriteria) ([]*comic.RankedCharacter, error) {
 	ret := m.ctrl.Call(m, "All", cr)
 	ret0, _ := ret[0].([]*comic.RankedCharacter)
 	ret1, _ := ret[1].(error)
@@ -697,12 +697,12 @@ func (m *MockPopularCharactersRepository) All(cr comic.PopularCriteria) ([]*comi
 }
 
 // All indicates an expected call of All
-func (mr *MockPopularCharactersRepositoryMockRecorder) All(cr interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "All", reflect.TypeOf((*MockPopularCharactersRepository)(nil).All), cr)
+func (mr *MockPopularRepositoryMockRecorder) All(cr interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "All", reflect.TypeOf((*MockPopularRepository)(nil).All), cr)
 }
 
 // DC mocks base method
-func (m *MockPopularCharactersRepository) DC(cr comic.PopularCriteria) ([]*comic.RankedCharacter, error) {
+func (m *MockPopularRepository) DC(cr comic.PopularCriteria) ([]*comic.RankedCharacter, error) {
 	ret := m.ctrl.Call(m, "DC", cr)
 	ret0, _ := ret[0].([]*comic.RankedCharacter)
 	ret1, _ := ret[1].(error)
@@ -710,12 +710,12 @@ func (m *MockPopularCharactersRepository) DC(cr comic.PopularCriteria) ([]*comic
 }
 
 // DC indicates an expected call of DC
-func (mr *MockPopularCharactersRepositoryMockRecorder) DC(cr interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DC", reflect.TypeOf((*MockPopularCharactersRepository)(nil).DC), cr)
+func (mr *MockPopularRepositoryMockRecorder) DC(cr interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DC", reflect.TypeOf((*MockPopularRepository)(nil).DC), cr)
 }
 
 // Marvel mocks base method
-func (m *MockPopularCharactersRepository) Marvel(cr comic.PopularCriteria) ([]*comic.RankedCharacter, error) {
+func (m *MockPopularRepository) Marvel(cr comic.PopularCriteria) ([]*comic.RankedCharacter, error) {
 	ret := m.ctrl.Call(m, "Marvel", cr)
 	ret0, _ := ret[0].([]*comic.RankedCharacter)
 	ret1, _ := ret[1].(error)
@@ -723,6 +723,6 @@ func (m *MockPopularCharactersRepository) Marvel(cr comic.PopularCriteria) ([]*c
 }
 
 // Marvel indicates an expected call of Marvel
-func (mr *MockPopularCharactersRepositoryMockRecorder) Marvel(cr interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Marvel", reflect.TypeOf((*MockPopularCharactersRepository)(nil).Marvel), cr)
+func (mr *MockPopularRepositoryMockRecorder) Marvel(cr interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Marvel", reflect.TypeOf((*MockPopularRepository)(nil).Marvel), cr)
 }

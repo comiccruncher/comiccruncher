@@ -123,7 +123,7 @@ type RankedServicer interface {
 
 // RankedService is the service for getting ranked and popular characters.
 type RankedService struct {
-	popRepo PopularCharactersRepository
+	popRepo PopularRepository
 }
 
 // AllPopular gets the most popular characters per year ordered by either issue count or
@@ -453,7 +453,7 @@ func NewIssueService(container *PGRepositoryContainer) IssueServicer {
 }
 
 // NewRankedService creates a new service for ranked characters.
-func NewRankedService(repository PopularCharactersRepository) RankedServicer {
+func NewRankedService(repository PopularRepository) RankedServicer {
 	return &RankedService{
 		popRepo: repository,
 	}
