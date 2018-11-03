@@ -275,6 +275,27 @@ type RankedCharacter struct {
 	Appearances       []AppearancesByYears `json:"appearances"`
 }
 
+// MarshalJSON overrides the image and vendor image for the CDN url.
+func (c *RankedCharacter) MarshalJSON() ([]byte, error) {
+	strctImage := ""
+	if c.Image != "" {
+		strctImage = fmt.Sprintf("%s/%s", cdnURL, c.Image)
+	}
+	strctVendorImage := ""
+	if c.VendorImage != "" {
+		strctVendorImage = fmt.Sprintf("%s/%s", cdnURL, c.VendorImage)
+	}
+	type Alias RankedCharacter
+	return json.Marshal(&struct {
+		*Alias
+		Image       string `json:"image"`
+		VendorImage string `json:"vendor_image"`
+	}{
+		Alias:       (*Alias)(c),
+		Image:       strctImage,
+		VendorImage: strctVendorImage,
+	})
+}
 // HasAny checks that the category has any of the given flags.
 func (u AppearanceType) HasAny(flags AppearanceType) bool {
 	return u&flags > 0

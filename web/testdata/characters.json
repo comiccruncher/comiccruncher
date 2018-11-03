@@ -25,9 +25,7 @@
       "name": "Test",
       "other_name": "",
       "description": "",
-      "image": "",
       "slug": "test",
-      "vendor_image": "",
       "vendor_url": "",
       "vendor_description": "",
       "appearances": [
@@ -45,7 +43,9 @@
             }
           ]
         }
-      ]
+      ],
+      "image": "https://comiccruncher.com/test.jpg",
+      "vendor_image": "https://comiccruncher.com/test2.jpg"
     },
     {
       "publisher": {
@@ -59,12 +59,12 @@
       "name": "Test2",
       "other_name": "",
       "description": "",
-      "image": "",
       "slug": "test2",
-      "vendor_image": "",
       "vendor_url": "",
       "vendor_description": "",
-      "appearances": null
+      "appearances": null,
+      "image": "",
+      "vendor_image": ""
     }
   ]
 }

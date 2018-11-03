@@ -160,7 +160,7 @@ func TestCharacterControllerCharacters(t *testing.T) {
 	}
 	p := comic.Publisher{ID: 1, Slug: "marvel", Name: "Marvel"}
 	rankedChrs := []*comic.RankedCharacter{
-		{ID: 1, PublisherID: 1, Publisher: p, AvgRank: 2, AvgRankID: 1, IssueCount: 10, IssueCountRankID: 1, Name: "Test", Slug: "test", Appearances: apps},
+		{ID: 1, PublisherID: 1, Publisher: p, AvgRank: 2, AvgRankID: 1, IssueCount: 10, IssueCountRankID: 1, Name: "Test", Slug: "test", Appearances: apps, Image: "test.jpg", VendorImage: "test2.jpg"},
 		{ID: 2, PublisherID: 1, Publisher: p, AvgRank: 2, AvgRankID: 2, IssueCount: 5, IssueCountRankID: 2, Name: "Test2", Slug: "test2"},
 	}
 	characterSvc := mock_comic.NewMockCharacterServicer(ctrl)
@@ -179,6 +179,7 @@ func TestCharacterControllerCharacters(t *testing.T) {
 	assert.Nil(t, err)
 
 	read, err := ioutil.ReadAll(rec.Body)
+
 	assert.Nil(t, err)
 	assert.Equal(t, http.StatusOK, c.Response().Status)
 	assert.True(t, c.Response().Committed)
