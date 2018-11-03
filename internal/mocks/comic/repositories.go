@@ -538,16 +538,60 @@ func (mr *MockAppearancesByYearsRepositoryMockRecorder) Alternate(slug interface
 }
 
 // List mocks base method
-func (m *MockAppearancesByYearsRepository) List(slug comic.CharacterSlug) ([]comic.AppearancesByYears, error) {
-	ret := m.ctrl.Call(m, "List", slug)
+func (m *MockAppearancesByYearsRepository) List(slugs ...comic.CharacterSlug) ([]comic.AppearancesByYears, error) {
+	varargs := []interface{}{}
+	for _, a := range slugs {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "List", varargs...)
 	ret0, _ := ret[0].([]comic.AppearancesByYears)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // List indicates an expected call of List
-func (mr *MockAppearancesByYearsRepositoryMockRecorder) List(slug interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockAppearancesByYearsRepository)(nil).List), slug)
+func (mr *MockAppearancesByYearsRepositoryMockRecorder) List(slugs ...interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockAppearancesByYearsRepository)(nil).List), slugs...)
+}
+
+// MockAppearancesByYearsMapRepository is a mock of AppearancesByYearsMapRepository interface
+type MockAppearancesByYearsMapRepository struct {
+	ctrl     *gomock.Controller
+	recorder *MockAppearancesByYearsMapRepositoryMockRecorder
+}
+
+// MockAppearancesByYearsMapRepositoryMockRecorder is the mock recorder for MockAppearancesByYearsMapRepository
+type MockAppearancesByYearsMapRepositoryMockRecorder struct {
+	mock *MockAppearancesByYearsMapRepository
+}
+
+// NewMockAppearancesByYearsMapRepository creates a new mock instance
+func NewMockAppearancesByYearsMapRepository(ctrl *gomock.Controller) *MockAppearancesByYearsMapRepository {
+	mock := &MockAppearancesByYearsMapRepository{ctrl: ctrl}
+	mock.recorder = &MockAppearancesByYearsMapRepositoryMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockAppearancesByYearsMapRepository) EXPECT() *MockAppearancesByYearsMapRepositoryMockRecorder {
+	return m.recorder
+}
+
+// ListMap mocks base method
+func (m *MockAppearancesByYearsMapRepository) ListMap(slugs ...comic.CharacterSlug) (map[comic.CharacterSlug][]comic.AppearancesByYears, error) {
+	varargs := []interface{}{}
+	for _, a := range slugs {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "ListMap", varargs...)
+	ret0, _ := ret[0].(map[comic.CharacterSlug][]comic.AppearancesByYears)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListMap indicates an expected call of ListMap
+func (mr *MockAppearancesByYearsMapRepositoryMockRecorder) ListMap(slugs ...interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListMap", reflect.TypeOf((*MockAppearancesByYearsMapRepository)(nil).ListMap), slugs...)
 }
 
 // MockStatsRepository is a mock of StatsRepository interface
@@ -584,4 +628,66 @@ func (m *MockStatsRepository) Stats() (comic.Stats, error) {
 // Stats indicates an expected call of Stats
 func (mr *MockStatsRepositoryMockRecorder) Stats() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Stats", reflect.TypeOf((*MockStatsRepository)(nil).Stats))
+}
+
+// MockPopularCharactersRepository is a mock of PopularCharactersRepository interface
+type MockPopularCharactersRepository struct {
+	ctrl     *gomock.Controller
+	recorder *MockPopularCharactersRepositoryMockRecorder
+}
+
+// MockPopularCharactersRepositoryMockRecorder is the mock recorder for MockPopularCharactersRepository
+type MockPopularCharactersRepositoryMockRecorder struct {
+	mock *MockPopularCharactersRepository
+}
+
+// NewMockPopularCharactersRepository creates a new mock instance
+func NewMockPopularCharactersRepository(ctrl *gomock.Controller) *MockPopularCharactersRepository {
+	mock := &MockPopularCharactersRepository{ctrl: ctrl}
+	mock.recorder = &MockPopularCharactersRepositoryMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockPopularCharactersRepository) EXPECT() *MockPopularCharactersRepositoryMockRecorder {
+	return m.recorder
+}
+
+// All mocks base method
+func (m *MockPopularCharactersRepository) All(cr comic.PopularCriteria) ([]*comic.RankedCharacter, error) {
+	ret := m.ctrl.Call(m, "All", cr)
+	ret0, _ := ret[0].([]*comic.RankedCharacter)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// All indicates an expected call of All
+func (mr *MockPopularCharactersRepositoryMockRecorder) All(cr interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "All", reflect.TypeOf((*MockPopularCharactersRepository)(nil).All), cr)
+}
+
+// DC mocks base method
+func (m *MockPopularCharactersRepository) DC(cr comic.PopularCriteria) ([]*comic.RankedCharacter, error) {
+	ret := m.ctrl.Call(m, "DC", cr)
+	ret0, _ := ret[0].([]*comic.RankedCharacter)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DC indicates an expected call of DC
+func (mr *MockPopularCharactersRepositoryMockRecorder) DC(cr interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DC", reflect.TypeOf((*MockPopularCharactersRepository)(nil).DC), cr)
+}
+
+// Marvel mocks base method
+func (m *MockPopularCharactersRepository) Marvel(cr comic.PopularCriteria) ([]*comic.RankedCharacter, error) {
+	ret := m.ctrl.Call(m, "Marvel", cr)
+	ret0, _ := ret[0].([]*comic.RankedCharacter)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Marvel indicates an expected call of Marvel
+func (mr *MockPopularCharactersRepositoryMockRecorder) Marvel(cr interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Marvel", reflect.TypeOf((*MockPopularCharactersRepository)(nil).Marvel), cr)
 }

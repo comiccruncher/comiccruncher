@@ -404,32 +404,6 @@ func (mr *MockCharacterServicerMockRecorder) UpdateSyncLog(syncLog interface{}) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateSyncLog", reflect.TypeOf((*MockCharacterServicer)(nil).UpdateSyncLog), syncLog)
 }
 
-// MainAppearances mocks base method
-func (m *MockCharacterServicer) MainAppearances(slug comic.CharacterSlug) (comic.AppearancesByYears, error) {
-	ret := m.ctrl.Call(m, "MainAppearances", slug)
-	ret0, _ := ret[0].(comic.AppearancesByYears)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// MainAppearances indicates an expected call of MainAppearances
-func (mr *MockCharacterServicerMockRecorder) MainAppearances(slug interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MainAppearances", reflect.TypeOf((*MockCharacterServicer)(nil).MainAppearances), slug)
-}
-
-// AlternateAppearances mocks base method
-func (m *MockCharacterServicer) AlternateAppearances(slug comic.CharacterSlug) (comic.AppearancesByYears, error) {
-	ret := m.ctrl.Call(m, "AlternateAppearances", slug)
-	ret0, _ := ret[0].(comic.AppearancesByYears)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// AlternateAppearances indicates an expected call of AlternateAppearances
-func (mr *MockCharacterServicerMockRecorder) AlternateAppearances(slug interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AlternateAppearances", reflect.TypeOf((*MockCharacterServicer)(nil).AlternateAppearances), slug)
-}
-
 // BothAppearances mocks base method
 func (m *MockCharacterServicer) BothAppearances(slug comic.CharacterSlug) (comic.AppearancesByYears, error) {
 	ret := m.ctrl.Call(m, "BothAppearances", slug)
@@ -454,4 +428,66 @@ func (m *MockCharacterServicer) ListAppearances(slug comic.CharacterSlug) ([]com
 // ListAppearances indicates an expected call of ListAppearances
 func (mr *MockCharacterServicerMockRecorder) ListAppearances(slug interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAppearances", reflect.TypeOf((*MockCharacterServicer)(nil).ListAppearances), slug)
+}
+
+// MockRankedServicer is a mock of RankedServicer interface
+type MockRankedServicer struct {
+	ctrl     *gomock.Controller
+	recorder *MockRankedServicerMockRecorder
+}
+
+// MockRankedServicerMockRecorder is the mock recorder for MockRankedServicer
+type MockRankedServicerMockRecorder struct {
+	mock *MockRankedServicer
+}
+
+// NewMockRankedServicer creates a new mock instance
+func NewMockRankedServicer(ctrl *gomock.Controller) *MockRankedServicer {
+	mock := &MockRankedServicer{ctrl: ctrl}
+	mock.recorder = &MockRankedServicerMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockRankedServicer) EXPECT() *MockRankedServicerMockRecorder {
+	return m.recorder
+}
+
+// AllPopular mocks base method
+func (m *MockRankedServicer) AllPopular(cr comic.PopularCriteria) ([]*comic.RankedCharacter, error) {
+	ret := m.ctrl.Call(m, "AllPopular", cr)
+	ret0, _ := ret[0].([]*comic.RankedCharacter)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// AllPopular indicates an expected call of AllPopular
+func (mr *MockRankedServicerMockRecorder) AllPopular(cr interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AllPopular", reflect.TypeOf((*MockRankedServicer)(nil).AllPopular), cr)
+}
+
+// DCPopular mocks base method
+func (m *MockRankedServicer) DCPopular(cr comic.PopularCriteria) ([]*comic.RankedCharacter, error) {
+	ret := m.ctrl.Call(m, "DCPopular", cr)
+	ret0, _ := ret[0].([]*comic.RankedCharacter)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DCPopular indicates an expected call of DCPopular
+func (mr *MockRankedServicerMockRecorder) DCPopular(cr interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DCPopular", reflect.TypeOf((*MockRankedServicer)(nil).DCPopular), cr)
+}
+
+// MarvelPopular mocks base method
+func (m *MockRankedServicer) MarvelPopular(cr comic.PopularCriteria) ([]*comic.RankedCharacter, error) {
+	ret := m.ctrl.Call(m, "MarvelPopular", cr)
+	ret0, _ := ret[0].([]*comic.RankedCharacter)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// MarvelPopular indicates an expected call of MarvelPopular
+func (mr *MockRankedServicerMockRecorder) MarvelPopular(cr interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MarvelPopular", reflect.TypeOf((*MockRankedServicer)(nil).MarvelPopular), cr)
 }

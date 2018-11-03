@@ -113,7 +113,8 @@ func TestCharacterControllerCharacter(t *testing.T) {
 	c := e.NewContext(req, rec)
 	header := c.Response().Header()
 
-	characterCtrl := web.NewCharacterController(characterSvc)
+	rankedSvc := mock_comic.NewMockRankedServicer(ctrl)
+	characterCtrl := web.NewCharacterController(characterSvc, rankedSvc)
 	err = characterCtrl.Character(c)
 	read, err := ioutil.ReadAll(rec.Body)
 
@@ -137,7 +138,8 @@ func TestCharacterControllerCharacterNotFound(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
-	characterCtrl := web.NewCharacterController(characterSvc)
+	rankedSvc := mock_comic.NewMockRankedServicer(ctrl)
+	characterCtrl := web.NewCharacterController(characterSvc, rankedSvc)
 	err := characterCtrl.Character(c)
 
 	assert.Equal(t, web.ErrNotFound.Error(), err.Error())
@@ -149,14 +151,19 @@ func TestCharacterControllerCharacters(t *testing.T) {
 
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-
-	characters := []*comic.Character{
-		mockCharacter(),
-		mockCharacter(),
+	aggs := []comic.YearlyAggregate{
+		{Year: 2016, Count: 5},
+		{Year: 2017, Count: 10},
+	}
+	apps := []comic.AppearancesByYears{
+		comic.NewAppearancesByYears("test", comic.Main, aggs),
+	}
+	p := comic.Publisher{ID: 1, Slug: "marvel", Name: "Marvel"}
+	rankedChrs := []*comic.RankedCharacter{
+		{ID: 1, PublisherID: 1, Publisher: p, AvgRank: 2, AvgRankID: 1, IssueCount: 10, IssueCountRankID: 1, Name: "Test", Slug: "test", Appearances: apps},
+		{ID: 2, PublisherID: 1, Publisher: p, AvgRank: 2, AvgRankID: 2, IssueCount: 5, IssueCountRankID: 2, Name: "Test2", Slug: "test2"},
 	}
 	characterSvc := mock_comic.NewMockCharacterServicer(ctrl)
-	characterSvc.EXPECT().CharactersByPublisher(gomock.Any(), true, gomock.Any(), gomock.Any()).Return(characters, nil)
-	characterSvc.EXPECT().ListAppearances(gomock.Any()).Return([]comic.AppearancesByYears{}, nil).Times(2)
 
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodGet, "/characters?page=1", nil)
@@ -164,18 +171,84 @@ func TestCharacterControllerCharacters(t *testing.T) {
 	c := e.NewContext(req, rec)
 	header := c.Response().Header()
 
-	characterCtrl := web.NewCharacterController(characterSvc)
+	rankedSvc := mock_comic.NewMockRankedServicer(ctrl)
+	rankedSvc.EXPECT().AllPopular(gomock.Any()).Return(rankedChrs, nil)
+	characterCtrl := web.NewCharacterController(characterSvc, rankedSvc)
 	// make the call
 	err = characterCtrl.Characters(c)
+	assert.Nil(t, err)
 
 	read, err := ioutil.ReadAll(rec.Body)
-
 	assert.Nil(t, err)
 	assert.Equal(t, http.StatusOK, c.Response().Status)
 	assert.True(t, c.Response().Committed)
 	assert.Equal(t, "application/json; charset=UTF-8", header.Get("Content-Type"))
 	assert.Nil(t, err)
 	assert.Equal(t, file, read)
+}
+
+func TestPublisherControllerDC(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/characters?page=1", nil)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	header := c.Response().Header()
+
+	aggs := []comic.YearlyAggregate{
+		{Year: 2016, Count: 5},
+		{Year: 2017, Count: 10},
+	}
+	apps := []comic.AppearancesByYears{
+		comic.NewAppearancesByYears("test", comic.Main, aggs),
+	}
+	rankedChrs := []*comic.RankedCharacter{
+		{ID: 1, PublisherID: 1, AvgRank: 2, AvgRankID: 1, IssueCount: 10, IssueCountRankID: 1, Name: "Test", Slug: "test", Appearances: apps},
+		{ID: 2, PublisherID: 1, AvgRank: 2, AvgRankID: 2, IssueCount: 5, IssueCountRankID: 2, Name: "Test2", Slug: "test2"},
+	}
+	rankedSvc := mock_comic.NewMockRankedServicer(ctrl)
+	rankedSvc.EXPECT().DCPopular(gomock.Any()).Return(rankedChrs, nil)
+
+	publisherCtrlr := web.NewPublisherController(rankedSvc)
+	err := publisherCtrlr.DC(c)
+
+	assert.Nil(t, err)
+	assert.Equal(t, http.StatusOK, rec.Code)
+	assert.Equal(t, "application/json; charset=UTF-8", header.Get("Content-Type"))
+}
+
+func TestPublisherControllerMarvel(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/characters?page=1", nil)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	header := c.Response().Header()
+
+	aggs := []comic.YearlyAggregate{
+		{Year: 2016, Count: 5},
+		{Year: 2017, Count: 10},
+	}
+	apps := []comic.AppearancesByYears{
+		comic.NewAppearancesByYears("test", comic.Main, aggs),
+	}
+	rankedChrs := []*comic.RankedCharacter{
+		{ID: 1, PublisherID: 1, AvgRank: 2, AvgRankID: 1, IssueCount: 10, IssueCountRankID: 1, Name: "Test", Slug: "test", Appearances: apps},
+		{ID: 2, PublisherID: 1, AvgRank: 2, AvgRankID: 2, IssueCount: 5, IssueCountRankID: 2, Name: "Test2", Slug: "test2"},
+	}
+	rankedSvc := mock_comic.NewMockRankedServicer(ctrl)
+	rankedSvc.EXPECT().MarvelPopular(gomock.Any()).Return(rankedChrs, nil)
+
+	publisherCtrlr := web.NewPublisherController(rankedSvc)
+	err := publisherCtrlr.Marvel(c)
+
+	assert.Nil(t, err)
+	assert.Equal(t, http.StatusOK, rec.Code)
+	assert.Equal(t, "application/json; charset=UTF-8", header.Get("Content-Type"))
 }
 
 func mockCharacter() *comic.Character {

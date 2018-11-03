@@ -117,8 +117,14 @@ type CharacterSyncLogStatus int
 // Format is the format for the issue.
 type Format string
 
-// VendorType is type of vendor from an external source for an issue or ____ TODO.
+// VendorType is type of vendor from an external source for an issue.
 type VendorType int
+
+// IssueCountRankID is the ranking for the number of issues for a character.
+type IssueCountRank uint
+
+// AvgIssuesPerYearRank is the rank for average issues per year.
+type AvgIssuesPerYearRank uint
 
 // AppearanceType is a type of appearance, such as an alternate universe or main character appearance.
 // A bitwise enum representing the types of appearances.
@@ -246,6 +252,27 @@ type Stats struct {
 	MinYear          int `json:"min_year"`
 	MaxYear          int `json:"max_year"`
 	TotalIssues      int `json:"total_issues"`
+}
+
+// RankedCharacter represents a character who has its rank and issue count accounted for
+// with its appearances attached..
+type RankedCharacter struct {
+	ID                CharacterID          `json:"-"`
+	Publisher         Publisher      	   `json:"publisher"`
+	PublisherID       PublisherID          `json:"-"`
+	AvgRankID         AvgIssuesPerYearRank `json:"average_issues_per_year_rank"`
+	AvgRank		      float64			   `json:"average_issues_per_year"`
+	IssueCountRankID  IssueCountRank       `json:"issue_count_rank"`
+	IssueCount        uint                 `json:"issue_count"`
+	Name              string               `json:"name"`
+	OtherName         string               `json:"other_name"`
+	Description       string               `json:"description"`
+	Image             string               `json:"image"`
+	Slug              CharacterSlug        `json:"slug"`
+	VendorImage       string               `json:"vendor_image"`
+	VendorURL         string               `json:"vendor_url"`
+	VendorDescription string               `json:"vendor_description"`
+	Appearances       []AppearancesByYears `json:"appearances"`
 }
 
 // HasAny checks that the category has any of the given flags.
@@ -436,5 +463,14 @@ func NewCharacterIssue(characterID CharacterID, id IssueID, appearanceType Appea
 		CharacterID:    characterID,
 		IssueID:        id,
 		AppearanceType: appearanceType,
+	}
+}
+
+// NewAppearancesByYears creates a new struct with the parameters.
+func NewAppearancesByYears(slug CharacterSlug, cat AppearanceType, aggs []YearlyAggregate) AppearancesByYears {
+	return AppearancesByYears{
+		CharacterSlug: slug,
+		Category: cat,
+		Aggregates: aggs,
 	}
 }

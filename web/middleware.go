@@ -28,13 +28,15 @@ func ErrorHandler(err error, ctx echo.Context) {
 	if err == nil {
 		return
 	}
-	errInvalidPageStr, errNotFoundStr := ErrInvalidPageParameter.Error(), ErrNotFound.Error()
+	errInvalidPageStr, errNotFoundStr, echo404 := ErrInvalidPageParameter.Error(),
+	         									  ErrNotFound.Error(),
+												  echo.ErrNotFound.Error()
 	var response error
 	switch err.Error() {
 	case errInvalidPageStr:
 		response = NewJSONErrorView(ctx, errInvalidPageStr, http.StatusBadRequest)
 		break
-	case errNotFoundStr:
+	case errNotFoundStr, echo404:
 		response = NewJSONErrorView(ctx, errNotFoundStr, http.StatusNotFound)
 		break
 	default: // for ErrInternalServerError or anything else...

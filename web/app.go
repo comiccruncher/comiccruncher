@@ -11,30 +11,37 @@ import (
 
 // App is the struct for the web app with echo and the controllers.
 type App struct {
-	echo                *echo.Echo
-	searchController    SearchController
-	characterController CharacterController
-	statsController     StatsController
+	echo           *echo.Echo
+	searchCtrlr    SearchController
+	characterCtrlr CharacterController
+	statsCtrlr     StatsController
+	publisherCtrlr PublisherController
 }
 
 // MustRun runs the web application from the specified port. Logs and exits if there is an error.
 func (a App) MustRun(port string) {
-	// TODO: This is temporary until the site is ready.
 	a.echo.Use(middleware.Recover())
 	a.echo.Use(middleware.CSRF())
 	a.echo.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		// TODO: allow appropriate access-control-allow-origin
 		AllowHeaders: []string{"application/json"},
 	}))
+	// TODO: This is temporary until the site is ready.
 	a.echo.Use(RequireAuthentication)
+
+	// Set error handler.
 	a.echo.HTTPErrorHandler = ErrorHandler
+
 	// Stats
-	a.echo.GET("/stats", a.statsController.Stats)
+	a.echo.GET("/stats", a.statsCtrlr.Stats)
 	// Search
-	a.echo.GET("/search/characters", a.searchController.SearchCharacters)
+	a.echo.GET("/search/characters", a.searchCtrlr.SearchCharacters)
 	// Characters
-	a.echo.GET("/characters", a.characterController.Characters)
-	a.echo.GET("/characters/:slug", a.characterController.Character)
+	a.echo.GET("/characters", a.characterCtrlr.Characters)
+	a.echo.GET("/characters/:slug", a.characterCtrlr.Character)
+	// Publishers
+	a.echo.GET("/publishers/dc", a.publisherCtrlr.DC)
+	a.echo.GET("/publishers/marvel", a.publisherCtrlr.Marvel)
 
 	// Start the server.
 	// Important to listen on localhost only so it binds to only localhost interface.
@@ -47,11 +54,13 @@ func (a App) MustRun(port string) {
 func NewApp(
 	characterSvc comic.CharacterServicer,
 	searcher search.Searcher,
-	statsRepository comic.StatsRepository) App {
+	statsRepository comic.StatsRepository,
+	rankedSvc comic.RankedServicer) App {
 	return App{
-		echo:                echo.New(),
-		statsController:     NewStatsController(statsRepository),
-		searchController:    NewSearchController(searcher),
-		characterController: NewCharacterController(characterSvc),
+		echo:           echo.New(),
+		statsCtrlr:     NewStatsController(statsRepository),
+		searchCtrlr:    NewSearchController(searcher),
+		characterCtrlr: NewCharacterController(characterSvc, rankedSvc),
+		publisherCtrlr: NewPublisherController(rankedSvc),
 	}
 }

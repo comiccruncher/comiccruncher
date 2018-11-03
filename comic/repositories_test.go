@@ -434,7 +434,7 @@ func TestPGAppearanceRepository_List(t *testing.T) {
 	// Test for blanks.
 	bogus, err := testContainer.AppearancesByYearsRepository().List("bogus")
 	assert.Nil(t, err)
-	assert.Len(t, bogus, 0)
+	assert.Len(t, bogus, 2)
 }
 
 func TestPGStatsRepository_Stats(t *testing.T) {

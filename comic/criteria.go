@@ -37,3 +37,28 @@ type CharacterCriteria struct {
 	Limit             int
 	Offset            int
 }
+
+// PopularSortCriteria is criteria for sorting popular characters.
+type PopularSortCriteria string
+
+const (
+	// MostIssues sorts by the most issues for a character.
+	MostIssues 			  PopularSortCriteria = "issue_count"
+	// AverageIssuesPerYear sorts by the highest average issues per year for each character.
+	AverageIssuesPerYear = "average_rank"
+)
+
+// PopularCriteria is for querying ranked and popular characters.
+type PopularCriteria struct {
+	AppearanceType AppearanceType
+	SortBy PopularSortCriteria
+	Limit int
+	Offset int
+}
+
+// TrendingCriteria is for querying characters who are trending.
+type TrendingCriteria struct {
+	PublisherID PublisherID
+	Limit int
+	Offset int
+}

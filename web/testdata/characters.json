@@ -3,7 +3,7 @@
     "status_code": 200,
     "error": null,
     "pagination": {
-      "per_page": 25,
+      "per_page": 24,
       "previous_page": null,
       "current_page": {
         "number": 1,
@@ -18,30 +18,53 @@
         "name": "Marvel",
         "slug": "marvel"
       },
-      "name": "Emma-Frost",
+      "average_issues_per_year_rank": 1,
+      "average_issues_per_year": 2,
+      "issue_count_rank": 1,
+      "issue_count": 10,
+      "name": "Test",
       "other_name": "",
-      "description": "Blah",
+      "description": "",
       "image": "",
-      "slug": "emma-frost",
+      "slug": "test",
       "vendor_image": "",
       "vendor_url": "",
       "vendor_description": "",
-      "appearances": []
+      "appearances": [
+        {
+          "slug": "test",
+          "category": "main",
+          "aggregates": [
+            {
+              "year": 2016,
+              "count": 5
+            },
+            {
+              "year": 2017,
+              "count": 10
+            }
+          ]
+        }
+      ]
     },
     {
       "publisher": {
         "name": "Marvel",
         "slug": "marvel"
       },
-      "name": "Emma-Frost",
+      "average_issues_per_year_rank": 2,
+      "average_issues_per_year": 2,
+      "issue_count_rank": 2,
+      "issue_count": 5,
+      "name": "Test2",
       "other_name": "",
-      "description": "Blah",
+      "description": "",
       "image": "",
-      "slug": "emma-frost",
+      "slug": "test2",
       "vendor_image": "",
       "vendor_url": "",
       "vendor_description": "",
-      "appearances": []
+      "appearances": null
     }
   ]
 }
