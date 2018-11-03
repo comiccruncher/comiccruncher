@@ -11,6 +11,9 @@ coverage:
         target: 0
         threshold: 100% # pass all pull requests for now.
         only_pulls: true
+    patch:
+      default:
+        enabled: no
 parsers:
   gcov:
     branch_detection:
