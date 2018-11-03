@@ -114,7 +114,7 @@ func main() {
 			}
 		}
 		// views
-		if err := logResultIfError(tx.Exec(rankedCharactersSQL("mv_ranked_characters", comic.Main | comic.Alternate, 0))); err != nil {
+		if err := logResultIfError(tx.Exec(rankedCharactersSQL("mv_ranked_characters", comic.Main|comic.Alternate, 0))); err != nil {
 			return err
 		}
 		if err := logResultIfError(tx.Exec(rankedCharactersSQL("mv_ranked_characters_main", comic.Main, 0))); err != nil {
@@ -124,7 +124,7 @@ func main() {
 			return err
 		}
 		// views
-		if err := logResultIfError(tx.Exec(rankedCharactersSQL("mv_ranked_characters_marvel", comic.Main | comic.Alternate, 1))); err != nil {
+		if err := logResultIfError(tx.Exec(rankedCharactersSQL("mv_ranked_characters_marvel", comic.Main|comic.Alternate, 1))); err != nil {
 			return err
 		}
 		if err := logResultIfError(tx.Exec(rankedCharactersSQL("mv_ranked_characters_marvel_main", comic.Main, 1))); err != nil {
@@ -133,7 +133,7 @@ func main() {
 		if err := logResultIfError(tx.Exec(rankedCharactersSQL("mv_ranked_characters_marvel_alternate", comic.Alternate, 1))); err != nil {
 			return err
 		}
-		if err := logResultIfError(tx.Exec(rankedCharactersSQL("mv_ranked_characters_dc", comic.Main | comic.Alternate, 2))); err != nil {
+		if err := logResultIfError(tx.Exec(rankedCharactersSQL("mv_ranked_characters_dc", comic.Main|comic.Alternate, 2))); err != nil {
 			return err
 		}
 		if err := logResultIfError(tx.Exec(rankedCharactersSQL("mv_ranked_characters_dc_main", comic.Main, 2))); err != nil {

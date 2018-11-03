@@ -29,8 +29,8 @@ func ErrorHandler(err error, ctx echo.Context) {
 		return
 	}
 	errInvalidPageStr, errNotFoundStr, echo404 := ErrInvalidPageParameter.Error(),
-	         									  ErrNotFound.Error(),
-												  echo.ErrNotFound.Error()
+		ErrNotFound.Error(),
+		echo.ErrNotFound.Error()
 	var response error
 	switch err.Error() {
 	case errInvalidPageStr:

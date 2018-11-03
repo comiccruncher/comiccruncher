@@ -258,10 +258,10 @@ type Stats struct {
 // with its appearances attached..
 type RankedCharacter struct {
 	ID                CharacterID          `json:"-"`
-	Publisher         Publisher      	   `json:"publisher"`
+	Publisher         Publisher            `json:"publisher"`
 	PublisherID       PublisherID          `json:"-"`
 	AvgRankID         AvgIssuesPerYearRank `json:"average_issues_per_year_rank"`
-	AvgRank		      float64			   `json:"average_issues_per_year"`
+	AvgRank           float64              `json:"average_issues_per_year"`
 	IssueCountRankID  IssueCountRank       `json:"issue_count_rank"`
 	IssueCount        uint                 `json:"issue_count"`
 	Name              string               `json:"name"`
@@ -470,7 +470,7 @@ func NewCharacterIssue(characterID CharacterID, id IssueID, appearanceType Appea
 func NewAppearancesByYears(slug CharacterSlug, cat AppearanceType, aggs []YearlyAggregate) AppearancesByYears {
 	return AppearancesByYears{
 		CharacterSlug: slug,
-		Category: cat,
-		Aggregates: aggs,
+		Category:      cat,
+		Aggregates:    aggs,
 	}
 }

@@ -91,7 +91,7 @@ type PopularCharactersRepository interface {
 
 // PGPopularCharactersRepository is the postgres implementation for the popular character repository.
 type PGPopularCharactersRepository struct {
-	db 	  *pg.DB
+	db  *pg.DB
 	apy AppearancesByYearsMapRepository
 }
 
@@ -701,10 +701,10 @@ func (r *RedisAppearancesByYearsRepository) Alternate(slug CharacterSlug) (Appea
 
 // List returns a slice of appearances per year for the given characters' slugs main and alternate appearances.
 func (r *RedisAppearancesByYearsRepository) List(slugs ...CharacterSlug) ([]AppearancesByYears, error) {
-	slcLen := len(slugs)*2
+	slcLen := len(slugs) * 2
 	allKeys := make([]string, slcLen)
 	for i, s := range slugs {
-		allKeys[(i*2)] = redisKey(s, Main)
+		allKeys[(i * 2)] = redisKey(s, Main)
 		allKeys[(i*2)+1] = redisKey(s, Alternate)
 	}
 	all, err := r.redisClient.MGet(allKeys...).Result()
@@ -713,14 +713,14 @@ func (r *RedisAppearancesByYearsRepository) List(slugs ...CharacterSlug) ([]Appe
 	}
 	allApps := make([]AppearancesByYears, slcLen)
 	for i, s := range slugs {
-		mainIdx := i*2
+		mainIdx := i * 2
 		main := all[mainIdx]
 		if main != nil {
 			allApps[mainIdx] = NewAppearancesByYears(s, Main, parseRedisYearlyAggregates(main.(string)))
 		} else {
 			allApps[mainIdx] = NewAppearancesByYears(s, Main, nil)
 		}
-		altIdx := (i*2)+1
+		altIdx := (i * 2) + 1
 		alt := all[altIdx]
 		if alt != nil {
 			allApps[altIdx] = NewAppearancesByYears(s, Alternate, parseRedisYearlyAggregates(alt.(string)))
@@ -733,10 +733,10 @@ func (r *RedisAppearancesByYearsRepository) List(slugs ...CharacterSlug) ([]Appe
 
 // ListMap returns a map of appearances per year for the given characters' slugs main and alternate appearances.
 func (r *RedisAppearancesByYearsRepository) ListMap(slugs ...CharacterSlug) (map[CharacterSlug][]AppearancesByYears, error) {
-	slcLen := len(slugs)*2
+	slcLen := len(slugs) * 2
 	allKeys := make([]string, slcLen)
 	for i, s := range slugs {
-		allKeys[(i*2)] = redisKey(s, Main)
+		allKeys[(i * 2)] = redisKey(s, Main)
 		allKeys[(i*2)+1] = redisKey(s, Alternate)
 	}
 	all, err := r.redisClient.MGet(allKeys...).Result()
@@ -745,7 +745,7 @@ func (r *RedisAppearancesByYearsRepository) ListMap(slugs ...CharacterSlug) (map
 	}
 	allApps := make(map[CharacterSlug][]AppearancesByYears, slcLen)
 	for i, s := range slugs {
-		mainIdx := i*2
+		mainIdx := i * 2
 		main := all[mainIdx]
 		apps := make([]AppearancesByYears, 2)
 		if main != nil {
@@ -753,7 +753,7 @@ func (r *RedisAppearancesByYearsRepository) ListMap(slugs ...CharacterSlug) (map
 		} else {
 			apps[0] = NewAppearancesByYears(s, Main, nil)
 		}
-		altIdx := (i*2)+1
+		altIdx := (i * 2) + 1
 		alt := all[altIdx]
 		if alt != nil {
 			apps[1] = NewAppearancesByYears(s, Alternate, parseRedisYearlyAggregates(alt.(string)))
@@ -789,7 +789,7 @@ func (r *RedisAppearancesByYearsRepository) Set(character AppearancesByYears) er
 // Attaches appearances to the characters.
 func (r *PGPopularCharactersRepository) setAppearances(chrs []*RankedCharacter) error {
 	slugs := make([]CharacterSlug, len(chrs))
-	for i, c :=  range chrs {
+	for i, c := range chrs {
 		slugs[i] = c.Slug
 	}
 	apps, err := r.apy.ListMap(slugs...)
@@ -847,7 +847,7 @@ func (r *PGPopularCharactersRepository) sql(table string, sort PopularSortCriter
 }
 
 // queries the database for the table and criteria.
-func(r *PGPopularCharactersRepository) query(table string, cr PopularCriteria) ([]*RankedCharacter, error) {
+func (r *PGPopularCharactersRepository) query(table string, cr PopularCriteria) ([]*RankedCharacter, error) {
 	var characters []*RankedCharacter
 	query := r.sql(table, cr.SortBy)
 	_, err := r.db.Query(&characters, query, cr.Limit, cr.Offset)
@@ -863,7 +863,7 @@ func parseRedisYearlyAggregates(value string) []YearlyAggregate {
 	var yearlyAggregates []YearlyAggregate
 	// since we sore the appearances values in the form of `1948:1;1949:2;1950:3`, we need to parse out the values.
 	values := strings.Split(value, ";")
-	for _,  val := range values {
+	for _, val := range values {
 		idx := strings.Index(val, ":")
 		year := stringutil.MustAtoi(val[:idx])
 		count := stringutil.MustAtoi(val[idx+1:])
@@ -930,7 +930,7 @@ func NewPGCharacterSyncLogRepository(db *pg.DB) CharacterSyncLogRepository {
 // and the redis cache for appearances.
 func NewPGPopularCharactersRepositoryWithCache(db *pg.DB, r *redis.Client) PopularCharactersRepository {
 	return &PGPopularCharactersRepository{
-		db: db,
+		db:  db,
 		apy: NewRedisAppearancesMapRepository(r),
 	}
 }

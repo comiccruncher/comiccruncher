@@ -88,7 +88,7 @@ func (c PublisherController) Marvel(ctx echo.Context) error {
 // CharacterController is the character controller.
 type CharacterController struct {
 	characterSvc comic.CharacterServicer
-	rankedSvc comic.RankedServicer
+	rankedSvc    comic.RankedServicer
 }
 
 // Character gets a character by its slug.
@@ -161,10 +161,10 @@ func popularCriteria(ctx echo.Context) (comic.PopularCriteria, error) {
 		break
 	}
 	return comic.PopularCriteria{
-		SortBy: sortBy,
+		SortBy:         sortBy,
 		AppearanceType: appearanceType,
-		Limit: pageLimit+1,
-		Offset: (page-1)*pageLimit,
+		Limit:          pageLimit + 1,
+		Offset:         (page - 1) * pageLimit,
 	}, nil
 }
 
@@ -181,7 +181,7 @@ func listRanked(results []*comic.RankedCharacter) []interface{} {
 func NewCharacterController(service comic.CharacterServicer, rankedSvc comic.RankedServicer) CharacterController {
 	return CharacterController{
 		characterSvc: service,
-		rankedSvc: rankedSvc,
+		rankedSvc:    rankedSvc,
 	}
 }
 
