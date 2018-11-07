@@ -91,4 +91,4 @@ jobs:
               - "d3:5c:3f:5e:15:21:8f:1d:6c:e5:61:41:45:2a:82:16"
       - run:
             name: Deploy webapp.
-            command: make remote-deploy-webapp
+            command: make remote-deploy-webapps

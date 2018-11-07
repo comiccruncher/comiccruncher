@@ -44,8 +44,7 @@ func (a App) MustRun(port string) {
 	a.echo.GET("/publishers/marvel", a.publisherCtrlr.Marvel)
 
 	// Start the server.
-	// Important to listen on localhost only so it binds to only localhost interface.
-	if err := a.echo.Start("127.0.0.1:" + port); err != nil {
+	if err := a.echo.Start(":" + port); err != nil {
 		log.WEB().Fatal("error starting server", zap.Error(err))
 	}
 }
