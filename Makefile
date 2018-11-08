@@ -36,7 +36,7 @@ WEB_CMD = ./cmd/web/web.go
 # The username and location to the api server (that's also the tasks server for now).
 LB_SERVER = root@142.93.52.234
 API_SERVER1 = aimee@68.183.132.127
-API_SERVER2 = aimee@142.93.121.60
+API_SERVER2 = aimee@198.199.91.173
 
 # Creates a .netrc file for access to private Github repository for cerebro.
 .PHONY: netrc
