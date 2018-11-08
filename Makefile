@@ -315,7 +315,7 @@ remote-deploy-api2:
 	ssh ${API_SERVER2} "bash -s" < ./build/webapp.sh
 
 remote-deploy-lb: remote-upload-nginx
-	ssh ${LB_SERVER} "systemctl restart nginx"
+	ssh ${LB_SERVER} "nginx -s reload"
 
 remote-deploy-webapps:
 	make -j remote-deploy-api1 remote-deploy-api2; make remote-deploy-lb
