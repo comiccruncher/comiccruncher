@@ -318,4 +318,5 @@ remote-deploy-lb: remote-upload-nginx
 	ssh ${LB_SERVER} "nginx -s reload"
 
 remote-deploy-webapps:
-	make -j remote-deploy-api1 remote-deploy-api2; make remote-deploy-lb
+	make remote-deploy-api1 & make remote-deploy-api2 &
+	sleep 5 && make remote-deploy-lb

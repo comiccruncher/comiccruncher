@@ -3,32 +3,43 @@ workflows:
   version: 2
   vet-test-build-deploy:
     jobs:
-      - vet_test_and_build:
+      - test_and_build:
           context: comiccruncher
           filters:
             tags:
               only: /.*/
+      - vet_and_codecov:
+          requires:
+            - test_and_build
+          filters:
+            branches:
+              only: /.*/
+            tags:
+              ignore: /.*/
       - deploy_tasks:
           requires:
-            - vet_test_and_build
+            - test_and_build
           filters:
             tags:
               only: /^v.*/
             branches:
               ignore: /.*/
-      - deploy_webapp:
+      - deploy_webapps:
           requires:
-            - vet_test_and_build
+            - test_and_build
           filters:
             tags:
               only: /^v.*/
             branches:
               ignore: /.*/
 jobs:
-  vet_test_and_build:
+  test_and_build:
     machine: true
     steps:
       - checkout
+      - restore_cache:
+          keys:
+            - vendor-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
       - run:
           name: Build the test container.
           command: make docker-up-test
@@ -38,9 +49,10 @@ jobs:
       - run:
           name: Install the dependencies.
           command: make docker-dep-ensure
-      - run:
-          name: Vet the files and report any errors.
-          command: make docker-vet
+      - save_cache:
+          key: vendor-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
+          paths:
+            - "vendor"
       - run:
           name: Run database migrations for the test db.
           command: make docker-migrations-test
@@ -51,9 +63,6 @@ jobs:
           name: Cleanup netrc
           command: rm .netrc
       - run:
-          name: Code coverage
-          command: bash <(curl -s https://codecov.io/bash) -t ${CODECOV_TOKEN} -f coverage.txt -X fix
-      - run:
           name: Build the build container.
           command: make docker-up
       - run:
@@ -63,6 +72,19 @@ jobs:
           key: bin-{{ .Branch }}-{{ .Revision }}
           paths:
             - "./bin"
+  vet_and_codecov:
+    machine: true
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - vendor-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
+      - run:
+          name: Vet the files and report any errors.
+          command: make docker-vet
+      - run:
+          name: Code coverage
+          command: bash <(curl -s https://codecov.io/bash) -t ${CODECOV_TOKEN} -f coverage.txt -X fix
   deploy_tasks:
     machine: true
     steps:
@@ -79,7 +101,7 @@ jobs:
       - run:
           name: Deploy cerebro.
           command: make remote-deploy-cerebro
-  deploy_webapp:
+  deploy_webapps:
       machine: true
       steps:
       - checkout
@@ -89,6 +111,8 @@ jobs:
       - add_ssh_keys:
             fingerprints:
               - "d3:5c:3f:5e:15:21:8f:1d:6c:e5:61:41:45:2a:82:16"
+              - "0f:a6:60:56:43:bc:cd:d3:38:99:77:51:63:7f:1a:17"
+              - "7b:87:bb:7b:c5:ad:6e:29:1b:b0:a2:37:05:b0:21:d7"
       - run:
             name: Deploy webapp.
             command: make remote-deploy-webapps
