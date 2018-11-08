@@ -103,9 +103,18 @@ func TestCharacterControllerCharacter(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
+	aggs := []comic.YearlyAggregate{
+		{Year: 2016, Count: 5},
+		{Year: 2017, Count: 10},
+	}
+	apps := []comic.AppearancesByYears{
+		comic.NewAppearancesByYears("test", comic.Main, aggs),
+		comic.NewAppearancesByYears("test", comic.Alternate, aggs),
+	}
+
 	characterSvc := mock_comic.NewMockCharacterServicer(ctrl)
 	characterSvc.EXPECT().Character(gomock.Any()).Return(mockCharacter(), nil)
-	characterSvc.EXPECT().ListAppearances(gomock.Any()).Return([]comic.AppearancesByYears{}, nil)
+	characterSvc.EXPECT().ListAppearances(gomock.Any()).Return(apps, nil)
 
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodGet, "/characters/emma-frost", nil)
@@ -116,8 +125,11 @@ func TestCharacterControllerCharacter(t *testing.T) {
 	rankedSvc := mock_comic.NewMockRankedServicer(ctrl)
 	characterCtrl := web.NewCharacterController(characterSvc, rankedSvc)
 	err = characterCtrl.Character(c)
+
 	assert.Nil(t, err)
+
 	read, err := ioutil.ReadAll(rec.Body)
+
 	assert.Nil(t, err)
 	assert.Equal(t, http.StatusOK, c.Response().Status)
 	assert.True(t, c.Response().Committed)
@@ -151,16 +163,9 @@ func TestCharacterControllerCharacters(t *testing.T) {
 
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	aggs := []comic.YearlyAggregate{
-		{Year: 2016, Count: 5},
-		{Year: 2017, Count: 10},
-	}
-	apps := []comic.AppearancesByYears{
-		comic.NewAppearancesByYears("test", comic.Main, aggs),
-	}
 	p := comic.Publisher{ID: 1, Slug: "marvel", Name: "Marvel"}
 	rankedChrs := []*comic.RankedCharacter{
-		{ID: 1, PublisherID: 1, Publisher: p, AvgRank: 2, AvgRankID: 1, IssueCount: 10, IssueCountRankID: 1, Name: "Test", Slug: "test", Appearances: apps, Image: "test.jpg", VendorImage: "test2.jpg"},
+		{ID: 1, PublisherID: 1, Publisher: p, AvgRank: 2, AvgRankID: 1, IssueCount: 10, IssueCountRankID: 1, Name: "Test", Slug: "test", Image: "test.jpg", VendorImage: "test2.jpg"},
 		{ID: 2, PublisherID: 1, Publisher: p, AvgRank: 2, AvgRankID: 2, IssueCount: 5, IssueCountRankID: 2, Name: "Test2", Slug: "test2"},
 	}
 	characterSvc := mock_comic.NewMockCharacterServicer(ctrl)
@@ -197,16 +202,8 @@ func TestPublisherControllerDC(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 	header := c.Response().Header()
-
-	aggs := []comic.YearlyAggregate{
-		{Year: 2016, Count: 5},
-		{Year: 2017, Count: 10},
-	}
-	apps := []comic.AppearancesByYears{
-		comic.NewAppearancesByYears("test", comic.Main, aggs),
-	}
 	rankedChrs := []*comic.RankedCharacter{
-		{ID: 1, PublisherID: 1, AvgRank: 2, AvgRankID: 1, IssueCount: 10, IssueCountRankID: 1, Name: "Test", Slug: "test", Appearances: apps},
+		{ID: 1, PublisherID: 1, AvgRank: 2, AvgRankID: 1, IssueCount: 10, IssueCountRankID: 1, Name: "Test", Slug: "test"},
 		{ID: 2, PublisherID: 1, AvgRank: 2, AvgRankID: 2, IssueCount: 5, IssueCountRankID: 2, Name: "Test2", Slug: "test2"},
 	}
 	rankedSvc := mock_comic.NewMockRankedServicer(ctrl)
@@ -229,16 +226,8 @@ func TestPublisherControllerMarvel(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 	header := c.Response().Header()
-
-	aggs := []comic.YearlyAggregate{
-		{Year: 2016, Count: 5},
-		{Year: 2017, Count: 10},
-	}
-	apps := []comic.AppearancesByYears{
-		comic.NewAppearancesByYears("test", comic.Main, aggs),
-	}
 	rankedChrs := []*comic.RankedCharacter{
-		{ID: 1, PublisherID: 1, AvgRank: 2, AvgRankID: 1, IssueCount: 10, IssueCountRankID: 1, Name: "Test", Slug: "test", Appearances: apps},
+		{ID: 1, PublisherID: 1, AvgRank: 2, AvgRankID: 1, IssueCount: 10, IssueCountRankID: 1, Name: "Test", Slug: "test"},
 		{ID: 2, PublisherID: 1, AvgRank: 2, AvgRankID: 2, IssueCount: 5, IssueCountRankID: 2, Name: "Test2", Slug: "test2"},
 	}
 	rankedSvc := mock_comic.NewMockRankedServicer(ctrl)

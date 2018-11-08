@@ -272,7 +272,6 @@ type RankedCharacter struct {
 	VendorImage       string               `json:"vendor_image"`
 	VendorURL         string               `json:"vendor_url"`
 	VendorDescription string               `json:"vendor_description"`
-	Appearances       []AppearancesByYears `json:"appearances"`
 }
 
 // MarshalJSON overrides the image and vendor image for the CDN url.
