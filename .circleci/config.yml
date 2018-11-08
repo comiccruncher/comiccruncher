@@ -111,8 +111,8 @@ jobs:
       - add_ssh_keys:
             fingerprints:
               - "d3:5c:3f:5e:15:21:8f:1d:6c:e5:61:41:45:2a:82:16"
-              - "87:28:6d:80:be:93:da:78:7f:3c:18:36:f8:4c:57:4d"
-              - "d2:0f:21:f7:02:18:2e:8d:08:39:17:70:e9:ec:e0:74"
+              - "9c:94:74:f4:97:38:59:98:62:9e:39:d3:ea:1c:3c:8b"
+              - "bd:79:f7:c3:38:85:82:f7:a0:dc:26:8b:9d:a4:4a:41"
       - run:
             name: Deploy webapp.
             command: make remote-deploy-webapps
