@@ -17,6 +17,35 @@
     "vendor_image": "",
     "vendor_url": "",
     "vendor_description": "",
-    "appearances": []
+    "appearances": [
+      {
+        "slug": "test",
+        "category": "main",
+        "aggregates": [
+          {
+            "year": 2016,
+            "count": 5
+          },
+          {
+            "year": 2017,
+            "count": 10
+          }
+        ]
+      },
+      {
+        "slug": "test",
+        "category": "alternate",
+        "aggregates": [
+          {
+            "year": 2016,
+            "count": 5
+          },
+          {
+            "year": 2017,
+            "count": 10
+          }
+        ]
+      }
+    ]
   }
 }

@@ -841,26 +841,7 @@ func (r *PGPopularRepository) query(table string, cr PopularCriteria) ([]*Ranked
 	if err != nil {
 		return nil, err
 	}
-	r.setAppearances(characters)
 	return characters, err
-}
-
-// Attaches appearances to the characters.
-func (r *PGPopularRepository) setAppearances(chrs []*RankedCharacter) error {
-	slugs := make([]CharacterSlug, len(chrs))
-	for i, c := range chrs {
-		slugs[i] = c.Slug
-	}
-	apps, err := r.apy.ListMap(slugs...)
-	if err != nil {
-		return err
-	}
-	for _, c := range chrs {
-		if len(apps[c.Slug]) > 0 {
-			c.Appearances = apps[c.Slug]
-		}
-	}
-	return nil
 }
 
 // parseYearlyAggregates parses the string value of the redis value into a yearly aggregate.

@@ -28,24 +28,8 @@
       "slug": "test",
       "vendor_url": "",
       "vendor_description": "",
-      "appearances": [
-        {
-          "slug": "test",
-          "category": "main",
-          "aggregates": [
-            {
-              "year": 2016,
-              "count": 5
-            },
-            {
-              "year": 2017,
-              "count": 10
-            }
-          ]
-        }
-      ],
-      "image": "https://comiccruncher.com/test.jpg",
-      "vendor_image": "https://comiccruncher.com/test2.jpg"
+      "image": "https://d2jsu6fyd1g4ln.cloudfront.net/test.jpg",
+      "vendor_image": "https://d2jsu6fyd1g4ln.cloudfront.net/test2.jpg"
     },
     {
       "publisher": {
@@ -62,7 +46,6 @@
       "slug": "test2",
       "vendor_url": "",
       "vendor_description": "",
-      "appearances": null,
       "image": "",
       "vendor_image": ""
     }

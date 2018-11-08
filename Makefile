@@ -34,7 +34,9 @@ CEREBRO_CMD = ./cmd/cerebro/cerebro.go
 WEB_CMD = ./cmd/web/web.go
 
 # The username and location to the api server (that's also the tasks server for now).
-API_SERVER = root@142.93.52.234
+LB_SERVER = root@142.93.52.234
+API_SERVER1 = aimee@68.183.132.127
+API_SERVER2 = aimee@142.93.121.60
 
 # Creates a .netrc file for access to private Github repository for cerebro.
 .PHONY: netrc
@@ -274,7 +276,7 @@ docker-build-xcompile: docker-build-migrations-xcompile docker-build-cerebro-xco
 # Uploads the cerebro binary to the remote server. Used for CircleCI.
 .PHONY: remote-upload-cerebro
 remote-upload-cerebro:
-	scp ./${CEREBRO_BIN} ${API_SERVER}:/usr/local/bin
+	scp ./${CEREBRO_BIN} ${LB_SERVER}:/usr/local/bin
 
 # Uploads the cerebro binary to the remote server. Used for CircleCI.
 .PHONY: remote-deploy-cerebro
@@ -283,39 +285,38 @@ remote-deploy-cerebro: remote-upload-cerebro
 # Uploads the migrations binary to the remote server. Used for CircleCI.
 .PHONY: remote-upload-migrations
 remote-upload-migrations:
-	scp ./${MIGRATIONS_BIN} ${API_SERVER}:/usr/local/bin
+	scp ./${MIGRATIONS_BIN} ${LB_SERVER}:/usr/local/bin
 
 # Runs migrations over the remote server. Used for CircleCI.
 .PHONY: remote-run-migrations
 remote-run-migrations:
-	ssh ${API_SERVER} "bash -s" < ./build/migrations.sh
+	ssh ${LB_SERVER} "bash -s" < ./build/migrations.sh
 
 # Uploads and runs migrations over the server. Used for CircleCI.
 .PHONY: remote-deploy-migrations
 remote-deploy-migrations: remote-upload-migrations remote-run-migrations
 
-# Uploads the webapp to the remote server. Used for CircleCI.
-.PHONY: remote-upload-webapp
-remote-upload-webapp:
-	scp ./${WEBAPP_BIN} ${API_SERVER}:/usr/local/${WEBAPP_TMP_BIN}
-
-# Runs the command over the server to deploy the webapp.
-# Janky-ass way to do it, but 10's are for work! Used for CircleCI.
-.PHONY: remote-restart-webapp
-remote-restart-webapp:
-	ssh ${API_SERVER} "sudo /bin/systemctl stop webapp.service; mv /usr/local/${WEBAPP_TMP_BIN} /usr/local/${WEBAPP_BIN}; sudo /bin/systemctl start webapp"
-
-# Uploads and restarts the new webapp binary. Used for CircleCI.
-.PHONY: remote-deploy-webapp
-remote-deploy-webapp: remote-upload-webapp remote-restart-webapp
-
 # Uploads nginx config.
 .PHONY: remote-upload-nginx
 remote-upload-nginx:
-	scp ./build/deploy/nginx/nginx.conf ${API_SERVER}:/etc/nginx/nginx.conf
-	scp ./build/deploy/nginx/default_server.conf ${API_SERVER}:/etc/nginx/sites-enabled/default_server.conf
+	scp ./build/deploy/nginx/nginx.conf ${LB_SERVER}:/etc/nginx/nginx.conf
 
 # Restarts nginx on server.
 .PHONY: remote-deploy-nginx
 remote-deploy-nginx: remote-upload-nginx
-	ssh ${API_SERVER} "systemctl restart nginx"
+	ssh ${LB_SERVER} "systemctl restart nginx"
+
+remote-deploy-api1:
+	scp ./${WEBAPP_BIN} ${API_SERVER1}:~/${WEBAPP_TMP_BIN}
+	ssh ${API_SERVER1} "bash -s" < ./build/webapp.sh
+
+remote-deploy-api2:
+	scp ./${WEBAPP_BIN} ${API_SERVER2}:~/${WEBAPP_TMP_BIN}
+	ssh ${API_SERVER2} "bash -s" < ./build/webapp.sh
+
+remote-deploy-lb: remote-upload-nginx
+	ssh ${LB_SERVER} "nginx -s reload"
+
+remote-deploy-webapps:
+	make remote-deploy-api1 & make remote-deploy-api2 &
+	sleep 5 && make remote-deploy-lb

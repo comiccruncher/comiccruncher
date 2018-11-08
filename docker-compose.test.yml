@@ -21,4 +21,4 @@ services:
       - "CC_POSTGRES_TEST_DB=comiccruncher_db_test"
       - "CC_POSTGRES_TEST_USER=root"
       - "CC_POSTGRES_TEST_PASSWORD=root"
-      - "CC_CDN_URL=https://comiccruncher.com"
+      - "CC_CDN_URL=https://d2jsu6fyd1g4ln.cloudfront.net"

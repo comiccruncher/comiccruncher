@@ -21,16 +21,14 @@ type App struct {
 // MustRun runs the web application from the specified port. Logs and exits if there is an error.
 func (a App) MustRun(port string) {
 	a.echo.Use(middleware.Recover())
+	a.echo.HTTPErrorHandler = ErrorHandler
 	a.echo.Use(middleware.CSRF())
+	// TODO: This is temporary until the site is ready.
+	a.echo.Use(RequireAuthentication)
 	a.echo.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		// TODO: allow appropriate access-control-allow-origin
 		AllowHeaders: []string{"application/json"},
 	}))
-	// TODO: This is temporary until the site is ready.
-	a.echo.Use(RequireAuthentication)
-
-	// Set error handler.
-	a.echo.HTTPErrorHandler = ErrorHandler
 
 	// Stats
 	a.echo.GET("/stats", a.statsCtrlr.Stats)
@@ -44,8 +42,7 @@ func (a App) MustRun(port string) {
 	a.echo.GET("/publishers/marvel", a.publisherCtrlr.Marvel)
 
 	// Start the server.
-	// Important to listen on localhost only so it binds to only localhost interface.
-	if err := a.echo.Start("127.0.0.1:" + port); err != nil {
+	if err := a.echo.Start(":" + port); err != nil {
 		log.WEB().Fatal("error starting server", zap.Error(err))
 	}
 }
