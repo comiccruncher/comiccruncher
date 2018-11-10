@@ -295,6 +295,7 @@ func (c *RankedCharacter) MarshalJSON() ([]byte, error) {
 		VendorImage: strctVendorImage,
 	})
 }
+
 // HasAny checks that the category has any of the given flags.
 func (u AppearanceType) HasAny(flags AppearanceType) bool {
 	return u&flags > 0

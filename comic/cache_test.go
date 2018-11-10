@@ -28,7 +28,7 @@ func TestAppearancesSyncerSync(t *testing.T) {
 	w.EXPECT().Set(mains).Return(nil)
 	w.EXPECT().Set(alts).Return(nil)
 
-	s := comic.NewAppearancesSyncerRW(r , w)
+	s := comic.NewAppearancesSyncerRW(r, w)
 	total, err := s.Sync(comic.CharacterSlug("test"))
 	assert.Nil(t, err)
 	assert.Equal(t, 21, total)
@@ -46,7 +46,7 @@ func TestAppearancesSyncerSyncReaderError(t *testing.T) {
 	r.EXPECT().Main(gomock.Any()).Return(mains, errors.New("bad error"))
 
 	w := mock_comic.NewMockAppearancesByYearsWriter(ctrl)
-	s := comic.NewAppearancesSyncerRW(r , w)
+	s := comic.NewAppearancesSyncerRW(r, w)
 	_, err := s.Sync(comic.CharacterSlug("test"))
 	assert.Error(t, err)
 }
@@ -65,7 +65,7 @@ func TestAppearancesSyncerSyncWriterError(t *testing.T) {
 	w := mock_comic.NewMockAppearancesByYearsWriter(ctrl)
 	w.EXPECT().Set(mains).Return(errors.New("some error"))
 
-	s := comic.NewAppearancesSyncerRW(r , w)
+	s := comic.NewAppearancesSyncerRW(r, w)
 	_, err := s.Sync(comic.CharacterSlug("test"))
 	assert.Error(t, err)
 }

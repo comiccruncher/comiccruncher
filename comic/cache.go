@@ -62,7 +62,7 @@ func NewAppearancesSyncer(r *PGRepositoryContainer, w *RedisAppearancesByYearsRe
 	}
 }
 
-
+// NewAppearancesSyncerRW returns a new appearances syncer with the reader and writer for the cache.
 func NewAppearancesSyncerRW(r AppearancesByYearsRepository, w AppearancesByYearsWriter) Syncer {
 	return &AppearancesSyncer{
 		reader: r,
