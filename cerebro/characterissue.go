@@ -138,7 +138,7 @@ func (p *CharacterCBExtractor) requestCharacterPage(source string) (externalissu
 	return externalissuesource.CharacterPage{}, errors.New("couldn't get the page")
 }
 
-// Parse parses the vendor information from a character's many character sources.
+// Extract parses the vendor information from a character's many character sources.
 func (p *CharacterCBExtractor) Extract(sources []*comic.CharacterSource) (CharacterVendorInfo, error) {
 	ei := CharacterVendorInfo{}
 	if len(sources) == 0 {
