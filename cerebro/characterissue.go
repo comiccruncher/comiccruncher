@@ -77,10 +77,10 @@ func (u ExternalVendorURL) String() string {
 	return string(u)
 }
 
-// CharacterVendorParser parses information about a vendor for a character.
-type CharacterVendorParser interface {
-	// Parse parses character source information into CharacterVendorInfo.
-	Parse(sources []*comic.CharacterSource) (CharacterVendorInfo, error)
+// CharacterVendorExtractor parses information about a vendor for a character.
+type CharacterVendorExtractor interface {
+	// Extract extracts character source information into CharacterVendorInfo.
+	Extract(sources []*comic.CharacterSource) (CharacterVendorInfo, error)
 }
 
 // CharacterIssueImporter is the importer for getting a character's issues from a character source.
@@ -89,7 +89,7 @@ type CharacterIssueImporter struct {
 	characterSvc     comic.CharacterServicer
 	issueSvc         comic.IssueServicer
 	externalSource   externalissuesource.ExternalSource
-	vendorParser     CharacterVendorParser
+	vendorParser     CharacterVendorExtractor
 	logger           *zap.Logger
 }
 
@@ -104,14 +104,14 @@ type CharacterVendorInfo struct {
 	AltSources map[ExternalVendorID]bool
 }
 
-// CharacterCBParser parses a character's sources and into CharacterVendorInfo.
-type CharacterCBParser struct {
+// CharacterCBExtractor parses a character's sources and into CharacterVendorInfo.
+type CharacterCBExtractor struct {
 	src    externalissuesource.ExternalSource
 	logger *zap.Logger
 }
 
 // requestCharacterPage requests a character source page and retries if there's a connection failure.
-func (p *CharacterCBParser) requestCharacterPage(source string) (externalissuesource.CharacterPage, error) {
+func (p *CharacterCBExtractor) requestCharacterPage(source string) (externalissuesource.CharacterPage, error) {
 	pageChan := make(chan *externalissuesource.CharacterPage, 1)
 	retry.Do(func() error {
 		p.logger.Info("getting character page", zap.String("source", source))
@@ -139,7 +139,7 @@ func (p *CharacterCBParser) requestCharacterPage(source string) (externalissueso
 }
 
 // Parse parses the vendor information from a character's many character sources.
-func (p *CharacterCBParser) Parse(sources []*comic.CharacterSource) (CharacterVendorInfo, error) {
+func (p *CharacterCBExtractor) Extract(sources []*comic.CharacterSource) (CharacterVendorInfo, error) {
 	ei := CharacterVendorInfo{}
 	if len(sources) == 0 {
 		return ei, fmt.Errorf("0 sources returned. no sources to import")
@@ -274,7 +274,7 @@ func (i *CharacterIssueImporter) importIssues(character comic.Character) (int, e
 	if err != nil {
 		return 0, err
 	}
-	vi, err := i.vendorParser.Parse(sources)
+	vi, err := i.vendorParser.Extract(sources)
 	if err != nil {
 		return 0, err
 	}
@@ -466,13 +466,13 @@ func NewCharacterIssueImporter(
 		externalSource:   externalSource,
 		appearanceSyncer: appearancesSyncer,
 		logger:           log.CEREBRO(),
-		vendorParser:     NewCharacterCBParser(externalSource),
+		vendorParser:     NewCharacterCBExtractor(externalSource),
 	}
 }
 
-// NewCharacterCBParser creates a new character CB vendor parser from the params.
-func NewCharacterCBParser(externalSource externalissuesource.ExternalSource) CharacterVendorParser {
-	return &CharacterCBParser{
+// NewCharacterCBExtractor creates a new character CB vendor extractor from the params.
+func NewCharacterCBExtractor(externalSource externalissuesource.ExternalSource) CharacterVendorExtractor {
+	return &CharacterCBExtractor{
 		src:    externalSource,
 		logger: log.CEREBRO(),
 	}
