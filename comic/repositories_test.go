@@ -473,3 +473,8 @@ func TestPGCharacterRepositoryTotal(t *testing.T) {
 	assert.Nil(t, err)
 	assert.True(t, total >= 0)
 }
+
+func TestPGPopularRepositoryRefreshAll(t *testing.T) {
+	r := comic.NewPopularRefresher(testInstance)
+	assert.Nil(t, r.RefreshAll())
+}

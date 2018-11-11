@@ -18,8 +18,8 @@
         "name": "Marvel",
         "slug": "marvel"
       },
-      "average_issues_per_year_rank": 1,
-      "average_issues_per_year": 2,
+      "average_per_year_rank": 1,
+      "average_per_year": 2,
       "issue_count_rank": 1,
       "issue_count": 10,
       "name": "Test",
@@ -36,8 +36,8 @@
         "name": "Marvel",
         "slug": "marvel"
       },
-      "average_issues_per_year_rank": 2,
-      "average_issues_per_year": 2,
+      "average_per_year_rank": 2,
+      "average_per_year": 2,
       "issue_count_rank": 2,
       "issue_count": 5,
       "name": "Test2",

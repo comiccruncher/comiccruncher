@@ -123,8 +123,8 @@ type VendorType int
 // IssueCountRankID is the ranking for the number of issues for a character.
 type IssueCountRank uint
 
-// AvgIssuesPerYearRank is the rank for average issues per year.
-type AvgIssuesPerYearRank uint
+// AvgPerYearRank is the rank for average issues per year.
+type AvgPerYearRank uint
 
 // AppearanceType is a type of appearance, such as an alternate universe or main character appearance.
 // A bitwise enum representing the types of appearances.
@@ -260,9 +260,9 @@ type RankedCharacter struct {
 	ID                CharacterID          `json:"-"`
 	Publisher         Publisher            `json:"publisher"`
 	PublisherID       PublisherID          `json:"-"`
-	AvgRankID         AvgIssuesPerYearRank `json:"average_issues_per_year_rank"`
-	AvgRank           float64              `json:"average_issues_per_year"`
-	IssueCountRankID  IssueCountRank       `json:"issue_count_rank"`
+	AvgPerYearRank    AvgPerYearRank       `json:"average_per_year_rank"`
+	AvgPerYear        float64              `json:"average_per_year"`
+	IssueCountRank    IssueCountRank       `json:"issue_count_rank"`
 	IssueCount        uint                 `json:"issue_count"`
 	Name              string               `json:"name"`
 	OtherName         string               `json:"other_name"`

@@ -25,7 +25,7 @@ var startCmd = &cobra.Command{
 		characterSvc := comic.NewCharacterServiceWithCache(container, redis)
 		searchSvc := search.NewSearchService(instance)
 		statsRepository := comic.NewPGStatsRepository(instance)
-		rankedSvc := comic.NewRankedService(comic.NewPGPopularRepositoryWithCache(instance, redis))
+		rankedSvc := comic.NewRankedService(comic.NewPGPopularRepository(instance))
 		app := web.NewApp(characterSvc, searchSvc, statsRepository, rankedSvc)
 		port := cmd.Flag("port")
 		app.MustRun(port.Value.String())

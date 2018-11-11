@@ -11,6 +11,38 @@ import (
 	"os"
 )
 
+var (
+	materializedViews = map[string]map[comic.AppearanceType]uint{
+		"mv_ranked_characters": {
+			comic.Main | comic.Alternate: 0,
+		},
+		"mv_ranked_characters_main": {
+			comic.Main: 0,
+		},
+		"mv_ranked_characters_alternate": {
+			comic.Alternate: 0,
+		},
+		"mv_ranked_characters_marvel": {
+			comic.Main | comic.Alternate: 1,
+		},
+		"mv_ranked_characters_marvel_main": {
+			comic.Main: 1,
+		},
+		"mv_ranked_characters_marvel_alternate": {
+			comic.Alternate: 1,
+		},
+		"mv_ranked_characters_dc": {
+			comic.Main | comic.Alternate: 2,
+		},
+		"mv_ranked_characters_dc_main": {
+			comic.Main: 2,
+		},
+		"mv_ranked_characters_dc_alternate": {
+			comic.Alternate: 2,
+		},
+	}
+)
+
 // Logs the error as fatal and exits.
 func logIfError(err error) error {
 	if err != nil {
@@ -113,35 +145,6 @@ func main() {
 				return err
 			}
 		}
-		// views
-		if err := logResultIfError(tx.Exec(rankedCharactersSQL("mv_ranked_characters", comic.Main|comic.Alternate, 0))); err != nil {
-			return err
-		}
-		if err := logResultIfError(tx.Exec(rankedCharactersSQL("mv_ranked_characters_main", comic.Main, 0))); err != nil {
-			return err
-		}
-		if err := logResultIfError(tx.Exec(rankedCharactersSQL("mv_ranked_characters_alternate", comic.Alternate, 0))); err != nil {
-			return err
-		}
-		// views
-		if err := logResultIfError(tx.Exec(rankedCharactersSQL("mv_ranked_characters_marvel", comic.Main|comic.Alternate, 1))); err != nil {
-			return err
-		}
-		if err := logResultIfError(tx.Exec(rankedCharactersSQL("mv_ranked_characters_marvel_main", comic.Main, 1))); err != nil {
-			return err
-		}
-		if err := logResultIfError(tx.Exec(rankedCharactersSQL("mv_ranked_characters_marvel_alternate", comic.Alternate, 1))); err != nil {
-			return err
-		}
-		if err := logResultIfError(tx.Exec(rankedCharactersSQL("mv_ranked_characters_dc", comic.Main|comic.Alternate, 2))); err != nil {
-			return err
-		}
-		if err := logResultIfError(tx.Exec(rankedCharactersSQL("mv_ranked_characters_dc_main", comic.Main, 2))); err != nil {
-			return err
-		}
-		if err := logResultIfError(tx.Exec(rankedCharactersSQL("mv_ranked_characters_dc_alternate", comic.Alternate, 2))); err != nil {
-			return err
-		}
 		// indexes
 		if err := logResultIfError(tx.Exec(`
 			CREATE INDEX IF NOT EXISTS characters_publisher_id_idx ON characters(publisher_id) WHERE is_disabled = false;
@@ -176,6 +179,17 @@ func main() {
 				return err
 			}
 		}
+		// views
+		for view, t := range materializedViews {
+			for ty, pubID := range t {
+				if err := logResultIfError(tx.Exec(rankedCharactersSQL(view, ty, pubID))); err != nil {
+					return err
+				}
+				if err := logResultIfError(tx.Exec(fmt.Sprintf(`CREATE UNIQUE INDEX IF NOT EXISTS %[1]s_id_idx ON %[1]s(id);`, view))); err != nil {
+					return err
+				}
+			}
+		}
 		return nil
 	}))
 
@@ -205,7 +219,7 @@ func rankedCharactersSQL(name string, t comic.AppearanceType, publisherID uint) 
 					ELSE (date_part('year', current_date)) -  min(date_part('year', i.sale_date))
 				  END
 				)
-			 ) DESC) AS average_rank_id,
+			 ) DESC) AS average_per_year_rank,
 		  round(count(ci.id)
 		  /
 		  (
@@ -215,7 +229,7 @@ func rankedCharactersSQL(name string, t comic.AppearanceType, publisherID uint) 
 					   THEN 1 -- avoid division by 0
 			   ELSE (date_part('year', current_date)) -  min(date_part('year', i.sale_date))
 				 END
-			 )::DECIMAL, 2) as average_rank,
+			 )::DECIMAL, 2) as average_per_year,
 		  c.id,
 		  c.publisher_id,
 		  c.name,

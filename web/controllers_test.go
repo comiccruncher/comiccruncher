@@ -2,6 +2,7 @@ package web_test
 
 import (
 	"errors"
+	"fmt"
 	"github.com/aimeelaplant/comiccruncher/comic"
 	"github.com/aimeelaplant/comiccruncher/internal/mocks/comic"
 	"github.com/aimeelaplant/comiccruncher/internal/mocks/search"
@@ -165,8 +166,8 @@ func TestCharacterControllerCharacters(t *testing.T) {
 	defer ctrl.Finish()
 	p := comic.Publisher{ID: 1, Slug: "marvel", Name: "Marvel"}
 	rankedChrs := []*comic.RankedCharacter{
-		{ID: 1, PublisherID: 1, Publisher: p, AvgRank: 2, AvgRankID: 1, IssueCount: 10, IssueCountRankID: 1, Name: "Test", Slug: "test", Image: "test.jpg", VendorImage: "test2.jpg"},
-		{ID: 2, PublisherID: 1, Publisher: p, AvgRank: 2, AvgRankID: 2, IssueCount: 5, IssueCountRankID: 2, Name: "Test2", Slug: "test2"},
+		{ID: 1, PublisherID: 1, Publisher: p, AvgPerYear: 2, AvgPerYearRank: 1, IssueCount: 10, IssueCountRank: 1, Name: "Test", Slug: "test", Image: "test.jpg", VendorImage: "test2.jpg"},
+		{ID: 2, PublisherID: 1, Publisher: p, AvgPerYearRank: 2, AvgPerYear: 2, IssueCount: 5, IssueCountRank: 2, Name: "Test2", Slug: "test2"},
 	}
 	characterSvc := mock_comic.NewMockCharacterServicer(ctrl)
 
@@ -184,7 +185,7 @@ func TestCharacterControllerCharacters(t *testing.T) {
 	assert.Nil(t, err)
 
 	read, err := ioutil.ReadAll(rec.Body)
-
+	fmt.Println(string(read))
 	assert.Nil(t, err)
 	assert.Equal(t, http.StatusOK, c.Response().Status)
 	assert.True(t, c.Response().Committed)
@@ -203,8 +204,8 @@ func TestPublisherControllerDC(t *testing.T) {
 	c := e.NewContext(req, rec)
 	header := c.Response().Header()
 	rankedChrs := []*comic.RankedCharacter{
-		{ID: 1, PublisherID: 1, AvgRank: 2, AvgRankID: 1, IssueCount: 10, IssueCountRankID: 1, Name: "Test", Slug: "test"},
-		{ID: 2, PublisherID: 1, AvgRank: 2, AvgRankID: 2, IssueCount: 5, IssueCountRankID: 2, Name: "Test2", Slug: "test2"},
+		{ID: 1, PublisherID: 1, AvgPerYear: 2, AvgPerYearRank: 1, IssueCount: 10, IssueCountRank: 1, Name: "Test", Slug: "test"},
+		{ID: 2, PublisherID: 1, AvgPerYear: 2, AvgPerYearRank: 2, IssueCount: 5, IssueCountRank: 2, Name: "Test2", Slug: "test2"},
 	}
 	rankedSvc := mock_comic.NewMockRankedServicer(ctrl)
 	rankedSvc.EXPECT().DCPopular(gomock.Any()).Return(rankedChrs, nil)
@@ -227,8 +228,8 @@ func TestPublisherControllerMarvel(t *testing.T) {
 	c := e.NewContext(req, rec)
 	header := c.Response().Header()
 	rankedChrs := []*comic.RankedCharacter{
-		{ID: 1, PublisherID: 1, AvgRank: 2, AvgRankID: 1, IssueCount: 10, IssueCountRankID: 1, Name: "Test", Slug: "test"},
-		{ID: 2, PublisherID: 1, AvgRank: 2, AvgRankID: 2, IssueCount: 5, IssueCountRankID: 2, Name: "Test2", Slug: "test2"},
+		{ID: 1, PublisherID: 1, AvgPerYearRank: 2, AvgPerYear: 1, IssueCount: 10, IssueCountRank: 1, Name: "Test", Slug: "test"},
+		{ID: 2, PublisherID: 1, AvgPerYearRank: 2, AvgPerYear: 2, IssueCount: 5, IssueCountRank: 2, Name: "Test2", Slug: "test2"},
 	}
 	rankedSvc := mock_comic.NewMockRankedServicer(ctrl)
 	rankedSvc.EXPECT().MarvelPopular(gomock.Any()).Return(rankedChrs, nil)
