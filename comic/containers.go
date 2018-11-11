@@ -12,6 +12,7 @@ type PGRepositoryContainer struct {
 	characterSyncLogRepository   CharacterSyncLogRepository
 	appearancesByYearsRepository *PGAppearancesByYearsRepository
 	statsRepository              StatsRepository
+	refresher                    PopularRefresher
 }
 
 // PublisherRepository gets the publisher repository.
@@ -54,6 +55,11 @@ func (c *PGRepositoryContainer) StatsRepository() StatsRepository {
 	return c.statsRepository
 }
 
+// Refresher gets the refresher for materialized views.
+func (c *PGRepositoryContainer) Refresher() PopularRefresher {
+	return c.refresher
+}
+
 // NewPGRepositoryContainer creates the new postgres repository container.
 func NewPGRepositoryContainer(db *pg.DB) *PGRepositoryContainer {
 	return &PGRepositoryContainer{
@@ -65,5 +71,6 @@ func NewPGRepositoryContainer(db *pg.DB) *PGRepositoryContainer {
 		characterIssueRepository:     NewPGCharacterIssueRepository(db),
 		appearancesByYearsRepository: NewPGAppearancesPerYearRepository(db),
 		statsRepository:              NewPGStatsRepository(db),
+		refresher:                    NewPopularRefresher(db),
 	}
 }

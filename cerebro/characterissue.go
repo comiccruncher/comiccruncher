@@ -19,9 +19,6 @@ import (
 // Concurrency limit for fetching issues from an external source.
 const jobLimit = 10
 
-// An error returned from the http client. Unfortunately it has no variable associated with it.
-const errClientTimeoutString = "Client.Timeout exceeded"
-
 var (
 	// Maps formats from the external source to our own formats.
 	externalToLocalFormatMap = map[externalissuesource.Format]comic.Format{
@@ -89,7 +86,8 @@ type CharacterIssueImporter struct {
 	characterSvc     comic.CharacterServicer
 	issueSvc         comic.IssueServicer
 	externalSource   externalissuesource.ExternalSource
-	vendorParser     CharacterVendorExtractor
+	extractor        CharacterVendorExtractor
+	refresher        comic.PopularRefresher
 	logger           *zap.Logger
 }
 
@@ -274,7 +272,7 @@ func (i *CharacterIssueImporter) importIssues(character comic.Character) (int, e
 	if err != nil {
 		return 0, err
 	}
-	vi, err := i.vendorParser.Extract(sources)
+	vi, err := i.extractor.Extract(sources)
 	if err != nil {
 		return 0, err
 	}
@@ -380,7 +378,8 @@ func (i *CharacterIssueImporter) MustImportAll(slugs []comic.CharacterSlug) erro
 			}
 		}
 	}
-	return nil
+	// Now refresh all the views.
+	return i.refresher.RefreshAll()
 }
 
 // Persists the sync log with the new status and closes the signal channel if the new status is fail or success.
@@ -466,7 +465,8 @@ func NewCharacterIssueImporter(
 		externalSource:   externalSource,
 		appearanceSyncer: appearancesSyncer,
 		logger:           log.CEREBRO(),
-		vendorParser:     NewCharacterCBExtractor(externalSource),
+		extractor:        NewCharacterCBExtractor(externalSource),
+		refresher:        container.Refresher(),
 	}
 }
 
