@@ -726,3 +726,50 @@ func (m *MockPopularRepository) Marvel(cr comic.PopularCriteria) ([]*comic.Ranke
 func (mr *MockPopularRepositoryMockRecorder) Marvel(cr interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Marvel", reflect.TypeOf((*MockPopularRepository)(nil).Marvel), cr)
 }
+
+// MockPopularRefresher is a mock of PopularRefresher interface
+type MockPopularRefresher struct {
+	ctrl     *gomock.Controller
+	recorder *MockPopularRefresherMockRecorder
+}
+
+// MockPopularRefresherMockRecorder is the mock recorder for MockPopularRefresher
+type MockPopularRefresherMockRecorder struct {
+	mock *MockPopularRefresher
+}
+
+// NewMockPopularRefresher creates a new mock instance
+func NewMockPopularRefresher(ctrl *gomock.Controller) *MockPopularRefresher {
+	mock := &MockPopularRefresher{ctrl: ctrl}
+	mock.recorder = &MockPopularRefresherMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockPopularRefresher) EXPECT() *MockPopularRefresherMockRecorder {
+	return m.recorder
+}
+
+// Refresh mocks base method
+func (m *MockPopularRefresher) Refresh(view comic.MaterializedView) error {
+	ret := m.ctrl.Call(m, "Refresh", view)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Refresh indicates an expected call of Refresh
+func (mr *MockPopularRefresherMockRecorder) Refresh(view interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Refresh", reflect.TypeOf((*MockPopularRefresher)(nil).Refresh), view)
+}
+
+// RefreshAll mocks base method
+func (m *MockPopularRefresher) RefreshAll() error {
+	ret := m.ctrl.Call(m, "RefreshAll")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RefreshAll indicates an expected call of RefreshAll
+func (mr *MockPopularRefresherMockRecorder) RefreshAll() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RefreshAll", reflect.TypeOf((*MockPopularRefresher)(nil).RefreshAll))
+}
