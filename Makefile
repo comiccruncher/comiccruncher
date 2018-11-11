@@ -8,14 +8,14 @@ DOCKER_PG_CONTAINER_NAME = comiccruncher_postgres
 DOCKER_RUN = docker-compose run ${DOCKER_APP_CONTAINER_NAME}
 DOCKER_EXEC = docker-compose exec ${DOCKER_APP_CONTAINER_NAME}
 # Command to run docker with the exposed port.
-DOCKER_RUN_WITH_PORTS = docker-compose run --service-ports ${DOCKER_APP_CONTAINER_NAME}
+DOCKER_RUN_WITH_PORTS = docker-compose run --service-ports --rm  ${DOCKER_APP_CONTAINER_NAME}
 # Settings to cross-compile go binary so that it works on Linux amd64 systems.
-DOCKER_RUN_XCOMPILE = docker-compose run -e GOOS=linux -e GOARCH=amd64 -e CGO_ENABLED=0 ${DOCKER_APP_CONTAINER_NAME}
+DOCKER_RUN_XCOMPILE = docker-compose run -e GOOS=linux -e GOARCH=amd64 -e CGO_ENABLED=0 --rm ${DOCKER_APP_CONTAINER_NAME}
 # The container for tests.
-DOCKER_RUN_TEST = docker-compose -f docker-compose.yml -f docker-compose.test.yml run ${DOCKER_APP_CONTAINER_NAME}
+DOCKER_RUN_TEST = docker-compose -f docker-compose.yml -f docker-compose.test.yml run --rm ${DOCKER_APP_CONTAINER_NAME}
 
 # Command to go run locally.
-GO_RUN_LOCAL = GORACE="log_path=./" go run -race
+GO_RUN_LOCAL = GORACE="log_path=./" go run -race --rm
 
 # The path to the migrations bin.
 MIGRATIONS_BIN = bin/migrations
