@@ -64,7 +64,7 @@ type PublisherController struct {
 
 // DC gets the publisher's characters with their appearances.
 func (c PublisherController) DC(ctx echo.Context) error {
-	cr, err := popularCriteria(ctx)
+	cr, err := decodeCriteria(ctx)
 	if err != nil {
 		return err
 	}
@@ -77,7 +77,7 @@ func (c PublisherController) DC(ctx echo.Context) error {
 
 // Marvel gets the publisher's characters with their appearances.
 func (c PublisherController) Marvel(ctx echo.Context) error {
-	cr, err := popularCriteria(ctx)
+	cr, err := decodeCriteria(ctx)
 	if err != nil {
 		return err
 	}
@@ -118,7 +118,7 @@ func (c CharacterController) Character(ctx echo.Context) error {
 
 // Characters lists the characters.
 func (c CharacterController) Characters(ctx echo.Context) error {
-	cr, err := popularCriteria(ctx)
+	cr, err := decodeCriteria(ctx)
 	if err != nil {
 		return err
 	}
@@ -130,7 +130,7 @@ func (c CharacterController) Characters(ctx echo.Context) error {
 }
 
 // Gets the page number from the query parameter `page` with default value if empty.
-func pageNumber(ctx echo.Context) (int, error) {
+func decodePageNumber(ctx echo.Context) (int, error) {
 	query := ctx.QueryParam("page")
 	if query != "" {
 		page, err := strconv.Atoi(query)
@@ -143,8 +143,8 @@ func pageNumber(ctx echo.Context) (int, error) {
 }
 
 // Gets a popular criteria struct based on the context.
-func popularCriteria(ctx echo.Context) (comic.PopularCriteria, error) {
-	page, err := pageNumber(ctx)
+func decodeCriteria(ctx echo.Context) (comic.PopularCriteria, error) {
+	page, err := decodePageNumber(ctx)
 	if err != nil {
 		return comic.PopularCriteria{}, err
 	}
