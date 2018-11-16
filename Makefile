@@ -5,7 +5,7 @@ DOCKER_REDIS_CONTAINER_NAME = comiccruncher_redis
 # Docker container name for Postgres.
 DOCKER_PG_CONTAINER_NAME = comiccruncher_postgres
 # Command to run Docker.
-DOCKER_RUN = docker-compose run ${DOCKER_APP_CONTAINER_NAME}
+DOCKER_RUN = docker-compose run --rm ${DOCKER_APP_CONTAINER_NAME}
 DOCKER_EXEC = docker-compose exec ${DOCKER_APP_CONTAINER_NAME}
 # Command to run docker with the exposed port.
 DOCKER_RUN_WITH_PORTS = docker-compose run --service-ports --rm  ${DOCKER_APP_CONTAINER_NAME}
@@ -15,7 +15,7 @@ DOCKER_RUN_XCOMPILE = docker-compose run -e GOOS=linux -e GOARCH=amd64 -e CGO_EN
 DOCKER_RUN_TEST = docker-compose -f docker-compose.yml -f docker-compose.test.yml run --rm ${DOCKER_APP_CONTAINER_NAME}
 
 # Command to go run locally.
-GO_RUN_LOCAL = GORACE="log_path=./" go run -race --rm
+GO_RUN_LOCAL = GORACE="log_path=./" go run -race
 
 # The path to the migrations bin.
 MIGRATIONS_BIN = bin/migrations
