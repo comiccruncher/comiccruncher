@@ -2,7 +2,6 @@ package comic
 
 import (
 	"fmt"
-	"github.com/go-redis/redis"
 	"strconv"
 	"time"
 )
@@ -131,7 +130,7 @@ type ExpandedServicer interface {
 type ExpandedService struct {
 	cr CharacterRepository
 	ar AppearancesByYearsRepository
-	r *redis.Client
+	r RedisClient
 }
 
 // RankedService is the service for getting ranked and popular characters.
@@ -513,7 +512,7 @@ func NewCharacterService(container *PGRepositoryContainer) CharacterServicer {
 }
 
 // NewCharacterServiceWithCache creates a new character service but with the appearances by years coming from the Redis cache.
-func NewCharacterServiceWithCache(container *PGRepositoryContainer, redis *redis.Client) CharacterServicer {
+func NewCharacterServiceWithCache(container *PGRepositoryContainer, redis RedisClient) CharacterServicer {
 	return &CharacterService{
 		repository:            container.CharacterRepository(),
 		issueRepository:       container.CharacterIssueRepository(),
@@ -538,11 +537,11 @@ func NewRankedService(repository PopularRepository) RankedServicer {
 }
 
 // NewExpandedService creates a new service for getting expanded details for a character
-func NewExpandedService(cr CharacterRepository, ar AppearancesByYearsRepository, client *redis.Client) ExpandedServicer {
+func NewExpandedService(cr CharacterRepository, ar AppearancesByYearsRepository, rc RedisClient) ExpandedServicer {
 	return &ExpandedService{
 		cr: cr,
 		ar: ar,
-		r: client,
+		r: rc,
 	}
 }
 

@@ -175,7 +175,7 @@ type PGStatsRepository struct {
 
 // RedisAppearancesByYearsRepository is the Redis implementation for appearances per year repository.
 type RedisAppearancesByYearsRepository struct {
-	redisClient *redis.Client
+	redisClient RedisClient
 }
 
 // FindBySlug gets a publisher by its slug.
@@ -963,7 +963,7 @@ func NewPGAppearancesPerYearRepository(db *pg.DB) *PGAppearancesByYearsRepositor
 }
 
 // NewRedisAppearancesPerYearRepository creates the redis yearly appearances repository.
-func NewRedisAppearancesPerYearRepository(client *redis.Client) *RedisAppearancesByYearsRepository {
+func NewRedisAppearancesPerYearRepository(client RedisClient) *RedisAppearancesByYearsRepository {
 	return &RedisAppearancesByYearsRepository{redisClient: client}
 }
 
@@ -1013,14 +1013,14 @@ func NewPGPopularRepository(db *pg.DB) PopularRepository {
 }
 
 // NewRedisAppearancesMapRepository creates a new redis appearances map repository.
-func NewRedisAppearancesMapRepository(r *redis.Client) AppearancesByYearsMapRepository {
+func NewRedisAppearancesMapRepository(r RedisClient) AppearancesByYearsMapRepository {
 	return &RedisAppearancesByYearsRepository{
 		redisClient: r,
 	}
 }
 
 // NewAppearancesByYearsWriter creates a new writer for writing to the appearances by years cache.
-func NewAppearancesByYearsWriter(c *redis.Client) AppearancesByYearsWriter {
+func NewAppearancesByYearsWriter(c RedisClient) AppearancesByYearsWriter {
 	return &RedisAppearancesByYearsRepository{redisClient: c}
 }
 

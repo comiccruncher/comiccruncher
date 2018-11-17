@@ -75,7 +75,7 @@ func TestRedisCharacterStatsSyncerSyncMarvel(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	rds := mock_comic.NewMockRedisHmSetter(ctrl)
+	rds := mock_comic.NewMockRedisClient(ctrl)
 	rds.EXPECT().HMSet(gomock.Any(), gomock.Any()).Return(&redis.StatusCmd{})
 	cr := mock_comic.NewMockCharacterRepository(ctrl)
 	cr.EXPECT().FindBySlug(gomock.Any(), false).Return(&comic.Character{
@@ -104,7 +104,7 @@ func TestRedisCharacterStatsSyncerSyncDC(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	rds := mock_comic.NewMockRedisHmSetter(ctrl)
+	rds := mock_comic.NewMockRedisClient(ctrl)
 	rds.EXPECT().HMSet(gomock.Any(), gomock.Any()).Return(&redis.StatusCmd{})
 	cr := mock_comic.NewMockCharacterRepository(ctrl)
 	cr.EXPECT().FindBySlug(gomock.Any(), false).Return(&comic.Character{
@@ -133,7 +133,7 @@ func TestRedisCharacterStatsSyncerNoSyncNotFound(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	rds := mock_comic.NewMockRedisHmSetter(ctrl)
+	rds := mock_comic.NewMockRedisClient(ctrl)
 	rds.EXPECT().HMSet(nil, nil).Times(0)
 	pr := mock_comic.NewMockPopularRepository(ctrl)
 	cr := mock_comic.NewMockCharacterRepository(ctrl)

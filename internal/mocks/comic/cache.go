@@ -5,114 +5,95 @@
 package mock_comic
 
 import (
-	comic "github.com/aimeelaplant/comiccruncher/comic"
 	redis "github.com/go-redis/redis"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
+	time "time"
 )
 
-// MockSyncer is a mock of Syncer interface
-type MockSyncer struct {
+// MockRedisClient is a mock of RedisClient interface
+type MockRedisClient struct {
 	ctrl     *gomock.Controller
-	recorder *MockSyncerMockRecorder
+	recorder *MockRedisClientMockRecorder
 }
 
-// MockSyncerMockRecorder is the mock recorder for MockSyncer
-type MockSyncerMockRecorder struct {
-	mock *MockSyncer
+// MockRedisClientMockRecorder is the mock recorder for MockRedisClient
+type MockRedisClientMockRecorder struct {
+	mock *MockRedisClient
 }
 
-// NewMockSyncer creates a new mock instance
-func NewMockSyncer(ctrl *gomock.Controller) *MockSyncer {
-	mock := &MockSyncer{ctrl: ctrl}
-	mock.recorder = &MockSyncerMockRecorder{mock}
+// NewMockRedisClient creates a new mock instance
+func NewMockRedisClient(ctrl *gomock.Controller) *MockRedisClient {
+	mock := &MockRedisClient{ctrl: ctrl}
+	mock.recorder = &MockRedisClientMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockSyncer) EXPECT() *MockSyncerMockRecorder {
+func (m *MockRedisClient) EXPECT() *MockRedisClientMockRecorder {
 	return m.recorder
 }
 
-// Sync mocks base method
-func (m *MockSyncer) Sync(slug comic.CharacterSlug) (int, error) {
-	ret := m.ctrl.Call(m, "Sync", slug)
-	ret0, _ := ret[0].(int)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Sync indicates an expected call of Sync
-func (mr *MockSyncerMockRecorder) Sync(slug interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Sync", reflect.TypeOf((*MockSyncer)(nil).Sync), slug)
-}
-
-// MockCharacterStatsSyncer is a mock of CharacterStatsSyncer interface
-type MockCharacterStatsSyncer struct {
-	ctrl     *gomock.Controller
-	recorder *MockCharacterStatsSyncerMockRecorder
-}
-
-// MockCharacterStatsSyncerMockRecorder is the mock recorder for MockCharacterStatsSyncer
-type MockCharacterStatsSyncerMockRecorder struct {
-	mock *MockCharacterStatsSyncer
-}
-
-// NewMockCharacterStatsSyncer creates a new mock instance
-func NewMockCharacterStatsSyncer(ctrl *gomock.Controller) *MockCharacterStatsSyncer {
-	mock := &MockCharacterStatsSyncer{ctrl: ctrl}
-	mock.recorder = &MockCharacterStatsSyncerMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockCharacterStatsSyncer) EXPECT() *MockCharacterStatsSyncerMockRecorder {
-	return m.recorder
-}
-
-// Sync mocks base method
-func (m *MockCharacterStatsSyncer) Sync(slug comic.CharacterSlug) error {
-	ret := m.ctrl.Call(m, "Sync", slug)
-	ret0, _ := ret[0].(error)
+// Get mocks base method
+func (m *MockRedisClient) Get(key string) *redis.StringCmd {
+	ret := m.ctrl.Call(m, "Get", key)
+	ret0, _ := ret[0].(*redis.StringCmd)
 	return ret0
 }
 
-// Sync indicates an expected call of Sync
-func (mr *MockCharacterStatsSyncerMockRecorder) Sync(slug interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Sync", reflect.TypeOf((*MockCharacterStatsSyncer)(nil).Sync), slug)
+// Get indicates an expected call of Get
+func (mr *MockRedisClientMockRecorder) Get(key interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockRedisClient)(nil).Get), key)
 }
 
-// MockRedisHmSetter is a mock of RedisHmSetter interface
-type MockRedisHmSetter struct {
-	ctrl     *gomock.Controller
-	recorder *MockRedisHmSetterMockRecorder
+// MGet mocks base method
+func (m *MockRedisClient) MGet(keys ...string) *redis.SliceCmd {
+	varargs := []interface{}{}
+	for _, a := range keys {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "MGet", varargs...)
+	ret0, _ := ret[0].(*redis.SliceCmd)
+	return ret0
 }
 
-// MockRedisHmSetterMockRecorder is the mock recorder for MockRedisHmSetter
-type MockRedisHmSetterMockRecorder struct {
-	mock *MockRedisHmSetter
+// MGet indicates an expected call of MGet
+func (mr *MockRedisClientMockRecorder) MGet(keys ...interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MGet", reflect.TypeOf((*MockRedisClient)(nil).MGet), keys...)
 }
 
-// NewMockRedisHmSetter creates a new mock instance
-func NewMockRedisHmSetter(ctrl *gomock.Controller) *MockRedisHmSetter {
-	mock := &MockRedisHmSetter{ctrl: ctrl}
-	mock.recorder = &MockRedisHmSetterMockRecorder{mock}
-	return mock
+// Set mocks base method
+func (m *MockRedisClient) Set(key string, value interface{}, expiration time.Duration) *redis.StatusCmd {
+	ret := m.ctrl.Call(m, "Set", key, value, expiration)
+	ret0, _ := ret[0].(*redis.StatusCmd)
+	return ret0
 }
 
-// EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockRedisHmSetter) EXPECT() *MockRedisHmSetterMockRecorder {
-	return m.recorder
+// Set indicates an expected call of Set
+func (mr *MockRedisClientMockRecorder) Set(key, value, expiration interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Set", reflect.TypeOf((*MockRedisClient)(nil).Set), key, value, expiration)
 }
 
 // HMSet mocks base method
-func (m *MockRedisHmSetter) HMSet(key string, fields map[string]interface{}) *redis.StatusCmd {
+func (m *MockRedisClient) HMSet(key string, fields map[string]interface{}) *redis.StatusCmd {
 	ret := m.ctrl.Call(m, "HMSet", key, fields)
 	ret0, _ := ret[0].(*redis.StatusCmd)
 	return ret0
 }
 
 // HMSet indicates an expected call of HMSet
-func (mr *MockRedisHmSetterMockRecorder) HMSet(key, fields interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HMSet", reflect.TypeOf((*MockRedisHmSetter)(nil).HMSet), key, fields)
+func (mr *MockRedisClientMockRecorder) HMSet(key, fields interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HMSet", reflect.TypeOf((*MockRedisClient)(nil).HMSet), key, fields)
+}
+
+// HGetAll mocks base method
+func (m *MockRedisClient) HGetAll(key string) *redis.StringStringMapCmd {
+	ret := m.ctrl.Call(m, "HGetAll", key)
+	ret0, _ := ret[0].(*redis.StringStringMapCmd)
+	return ret0
+}
+
+// HGetAll indicates an expected call of HGetAll
+func (mr *MockRedisClientMockRecorder) HGetAll(key interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HGetAll", reflect.TypeOf((*MockRedisClient)(nil).HGetAll), key)
 }
