@@ -23,16 +23,8 @@ var (
 	MainView MaterializedView = "mv_ranked_characters_alternate"
 	// AltView is the materialized view for all characters with alternate appearances.
 	AltView MaterializedView = "mv_ranked_characters_alternate"
-	// DCView is the materialized for DC characters with main and alt appearances.
-	DCView MaterializedView = "mv_ranked_characters_dc"
-	// DcAltView is the materialized view for DC characters with alternate appearances.
-	DcAltView MaterializedView = "mv_ranked_characters_dc_alternate"
 	// DcMainView is the materialized view for DC characters with main appearances.
 	DcMainView MaterializedView = "mv_ranked_characters_dc_main"
-	// MarvelView is the materialized view for Marvel characters with both main and alternate appearances.
-	MarvelView MaterializedView = "mv_ranked_characters_marvel"
-	// MarvelAltView is the materialized view for Marvel character with alternate appearances.
-	MarvelAltView MaterializedView = "mv_ranked_characters_marvel_alternate"
 	// MarvelMainView is the materialized view for Marvel characters with main appearances.
 	MarvelMainView MaterializedView = "mv_ranked_characters_marvel_main"
 	// Sooo many. In hindsight I should have used something like MongoDB. ¯\_(ツ)_/¯
@@ -125,6 +117,9 @@ type PopularRepository interface {
 	All(cr PopularCriteria) ([]*RankedCharacter, error)
 	DC(cr PopularCriteria) ([]*RankedCharacter, error)
 	Marvel(cr PopularCriteria) ([]*RankedCharacter, error)
+	FindOneByDC(id CharacterID) (*RankedCharacter, error)
+	FindOneByMarvel(id CharacterID) (*RankedCharacter, error)
+	FindOneByAll(id CharacterID) (*RankedCharacter, error)
 }
 
 // PopularRefresher concurrently refreshes the materialized views.
@@ -842,24 +837,38 @@ func (r *PGPopularRepository) All(cr PopularCriteria) ([]*RankedCharacter, error
 
 // DC gets the popular characters for DC characters only. The rank will be adjusted for DC.
 func (r *PGPopularRepository) DC(cr PopularCriteria) ([]*RankedCharacter, error) {
-	if cr.AppearanceType == Main {
-		return r.query(DcMainView, cr)
-	}
-	if cr.AppearanceType == Alternate {
-		return r.query(DcAltView, cr)
-	}
-	return r.query(DCView, cr)
+	return r.query(DcMainView, cr)
 }
 
 // Marvel gets the popular characters for Marvel characters only. The rank will be adjusted for Marvel.
 func (r *PGPopularRepository) Marvel(cr PopularCriteria) ([]*RankedCharacter, error) {
-	if cr.AppearanceType == Main {
-		return r.query(MarvelMainView, cr)
-	}
-	if cr.AppearanceType == Alternate {
-		return r.query(MarvelAltView, cr)
-	}
-	return r.query(MarvelView, cr)
+	return r.query(MarvelMainView, cr)
+}
+
+func (r *PGPopularRepository) findOneBy(id CharacterID, view MaterializedView) (*RankedCharacter, error) {
+	sql := fmt.Sprintf(`SELECT average_per_year_rank as avg_per_year_rank, average_per_year as avg_per_year, issue_count, issue_count_rank as issue_count_rank, id, publisher_id, name, other_name, description,
+			image, slug, vendor_image, vendor_url, vendor_description, publisher__id, publisher__slug, publisher__name
+		FROM %s
+		WHERE id = ?
+		`, view)
+	c := &RankedCharacter{}
+	_, err := r.db.QueryOne(c, sql, id)
+	return c, err
+}
+
+// FindOneByDC finds a ranked character for DC main appearances.
+func (r *PGPopularRepository) FindOneByDC(id CharacterID) (*RankedCharacter, error) {
+	return r.findOneBy(id, DcMainView)
+}
+
+// FindOneByMarvel finds a ranked character for Marvel main appearances.
+func (r *PGPopularRepository) FindOneByMarvel(id CharacterID) (*RankedCharacter, error) {
+	return r.findOneBy(id, MarvelMainView)
+}
+
+// FindOneByAll finds a ranked character for all-time types of appearances.
+func (r *PGPopularRepository) FindOneByAll(id CharacterID) (*RankedCharacter, error) {
+	return r.findOneBy(id, AllView)
 }
 
 // Refresh refreshes the specified the materialized view. Note this can take several seconds!
@@ -875,11 +884,7 @@ func (r *PGPopularRepository) RefreshAll() error {
 		AllView,
 		MainView,
 		AltView,
-		DCView,
-		DcAltView,
 		DcMainView,
-		MarvelView,
-		MarvelAltView,
 		MarvelMainView,
 	}
 	var wg sync.WaitGroup
@@ -913,7 +918,7 @@ func (r *PGPopularRepository) RefreshAll() error {
 
 // Generates the SQL for the materialized view table.
 func (r *PGPopularRepository) sql(table MaterializedView, sort PopularSortCriteria) string {
-	return fmt.Sprintf(`SELECT average_rank as avg_rank, average_rank_id as avg_rank_id, issue_count, issue_count_rank as issue_count_rank_id, id, publisher_id, name, other_name, description,
+	return fmt.Sprintf(`SELECT average_per_year_rank as avg_per_year_rank, average_per_year as avg_per_year, issue_count, issue_count_rank as issue_count_rank, id, publisher_id, name, other_name, description,
 			image, slug, vendor_image, vendor_url, vendor_description, publisher__id, publisher__slug, publisher__name
 		FROM %s
 		ORDER BY %s DESC

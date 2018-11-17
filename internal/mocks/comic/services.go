@@ -491,3 +491,39 @@ func (m *MockRankedServicer) MarvelPopular(cr comic.PopularCriteria) ([]*comic.R
 func (mr *MockRankedServicerMockRecorder) MarvelPopular(cr interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MarvelPopular", reflect.TypeOf((*MockRankedServicer)(nil).MarvelPopular), cr)
 }
+
+// MockExpandedServicer is a mock of ExpandedServicer interface
+type MockExpandedServicer struct {
+	ctrl     *gomock.Controller
+	recorder *MockExpandedServicerMockRecorder
+}
+
+// MockExpandedServicerMockRecorder is the mock recorder for MockExpandedServicer
+type MockExpandedServicerMockRecorder struct {
+	mock *MockExpandedServicer
+}
+
+// NewMockExpandedServicer creates a new mock instance
+func NewMockExpandedServicer(ctrl *gomock.Controller) *MockExpandedServicer {
+	mock := &MockExpandedServicer{ctrl: ctrl}
+	mock.recorder = &MockExpandedServicerMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockExpandedServicer) EXPECT() *MockExpandedServicerMockRecorder {
+	return m.recorder
+}
+
+// Character mocks base method
+func (m *MockExpandedServicer) Character(slug comic.CharacterSlug) (*comic.ExpandedCharacter, error) {
+	ret := m.ctrl.Call(m, "Character", slug)
+	ret0, _ := ret[0].(*comic.ExpandedCharacter)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Character indicates an expected call of Character
+func (mr *MockExpandedServicerMockRecorder) Character(slug interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Character", reflect.TypeOf((*MockExpandedServicer)(nil).Character), slug)
+}

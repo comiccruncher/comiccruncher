@@ -49,7 +49,7 @@ func (a App) MustRun(port string) {
 
 // NewApp creates a new app from the parameters.
 func NewApp(
-	characterSvc comic.CharacterServicer,
+	expandedSvc comic.ExpandedServicer,
 	searcher search.Searcher,
 	statsRepository comic.StatsRepository,
 	rankedSvc comic.RankedServicer) App {
@@ -57,7 +57,7 @@ func NewApp(
 		echo:           echo.New(),
 		statsCtrlr:     NewStatsController(statsRepository),
 		searchCtrlr:    NewSearchController(searcher),
-		characterCtrlr: NewCharacterController(characterSvc, rankedSvc),
+		characterCtrlr: NewCharacterController(expandedSvc, rankedSvc),
 		publisherCtrlr: NewPublisherController(rankedSvc),
 	}
 }

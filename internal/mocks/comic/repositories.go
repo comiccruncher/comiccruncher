@@ -727,6 +727,45 @@ func (mr *MockPopularRepositoryMockRecorder) Marvel(cr interface{}) *gomock.Call
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Marvel", reflect.TypeOf((*MockPopularRepository)(nil).Marvel), cr)
 }
 
+// FindOneByDC mocks base method
+func (m *MockPopularRepository) FindOneByDC(id comic.CharacterID) (*comic.RankedCharacter, error) {
+	ret := m.ctrl.Call(m, "FindOneByDC", id)
+	ret0, _ := ret[0].(*comic.RankedCharacter)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindOneByDC indicates an expected call of FindOneByDC
+func (mr *MockPopularRepositoryMockRecorder) FindOneByDC(id interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindOneByDC", reflect.TypeOf((*MockPopularRepository)(nil).FindOneByDC), id)
+}
+
+// FindOneByMarvel mocks base method
+func (m *MockPopularRepository) FindOneByMarvel(id comic.CharacterID) (*comic.RankedCharacter, error) {
+	ret := m.ctrl.Call(m, "FindOneByMarvel", id)
+	ret0, _ := ret[0].(*comic.RankedCharacter)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindOneByMarvel indicates an expected call of FindOneByMarvel
+func (mr *MockPopularRepositoryMockRecorder) FindOneByMarvel(id interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindOneByMarvel", reflect.TypeOf((*MockPopularRepository)(nil).FindOneByMarvel), id)
+}
+
+// FindOneByAll mocks base method
+func (m *MockPopularRepository) FindOneByAll(id comic.CharacterID) (*comic.RankedCharacter, error) {
+	ret := m.ctrl.Call(m, "FindOneByAll", id)
+	ret0, _ := ret[0].(*comic.RankedCharacter)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindOneByAll indicates an expected call of FindOneByAll
+func (mr *MockPopularRepositoryMockRecorder) FindOneByAll(id interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindOneByAll", reflect.TypeOf((*MockPopularRepository)(nil).FindOneByAll), id)
+}
+
 // MockPopularRefresher is a mock of PopularRefresher interface
 type MockPopularRefresher struct {
 	ctrl     *gomock.Controller

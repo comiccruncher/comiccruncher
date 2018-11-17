@@ -90,30 +90,21 @@ func (c PublisherController) Marvel(ctx echo.Context) error {
 
 // CharacterController is the character controller.
 type CharacterController struct {
-	characterSvc comic.CharacterServicer
 	rankedSvc    comic.RankedServicer
+	expandedSvc comic.ExpandedServicer
 }
 
 // Character gets a character by its slug.
 func (c CharacterController) Character(ctx echo.Context) error {
 	slug := comic.CharacterSlug(ctx.Param("slug"))
-	character, err := c.characterSvc.Character(slug)
+	character, err := c.expandedSvc.Character(slug)
 	if err != nil {
 		return err
 	}
 	if character == nil {
 		return ErrNotFound
 	}
-	// TODO: Query for ranked character instead.
-	apps, err := c.characterSvc.ListAppearances(character.Slug)
-	if err != nil {
-		return err
-	}
-	ch := NewCharacter(*character, apps)
-	if err != nil {
-		return err
-	}
-	return JSONDetailViewOK(ctx, ch)
+	return JSONDetailViewOK(ctx, character)
 }
 
 // Characters lists the characters.
@@ -181,10 +172,10 @@ func listRanked(results []*comic.RankedCharacter) []interface{} {
 }
 
 // NewCharacterController creates a new character controller.
-func NewCharacterController(service comic.CharacterServicer, rankedSvc comic.RankedServicer) CharacterController {
+func NewCharacterController(eSvc comic.ExpandedServicer, rSvc comic.RankedServicer) CharacterController {
 	return CharacterController{
-		characterSvc: service,
-		rankedSvc:    rankedSvc,
+		expandedSvc: eSvc,
+		rankedSvc:    rSvc,
 	}
 }
 

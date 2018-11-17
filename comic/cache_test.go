@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/aimeelaplant/comiccruncher/comic"
 	"github.com/aimeelaplant/comiccruncher/internal/mocks/comic"
+	"github.com/go-redis/redis"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -67,5 +68,77 @@ func TestAppearancesSyncerSyncWriterError(t *testing.T) {
 
 	s := comic.NewAppearancesSyncerRW(r, w)
 	_, err := s.Sync(comic.CharacterSlug("test"))
+	assert.Error(t, err)
+}
+
+func TestRedisCharacterStatsSyncerSyncMarvel(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	rds := mock_comic.NewMockRedisHmSetter(ctrl)
+	rds.EXPECT().HMSet(gomock.Any(), gomock.Any()).Return(&redis.StatusCmd{})
+	cr := mock_comic.NewMockCharacterRepository(ctrl)
+	cr.EXPECT().FindBySlug(gomock.Any(), false).Return(&comic.Character{
+		Slug: "emma-frost",
+		Publisher: comic.Publisher{
+			Slug: "marvel",
+		},
+	}, nil)
+	pr := mock_comic.NewMockPopularRepository(ctrl)
+	pr.EXPECT().FindOneByDC(gomock.Any()).Times(0)
+	pr.EXPECT().FindOneByMarvel(gomock.Any()).Return(&comic.RankedCharacter{
+		IssueCountRank: 1,
+		IssueCount: 100,
+	}, nil)
+	pr.EXPECT().FindOneByAll(gomock.Any()).Return(&comic.RankedCharacter{
+		IssueCountRank: 2,
+		IssueCount: 200,
+	}, nil)
+
+	syncer := comic.NewCharacterStatsSyncer(rds, cr, pr)
+	err := syncer.Sync(comic.CharacterSlug("emma-frost"))
+	assert.Nil(t, err)
+}
+
+func TestRedisCharacterStatsSyncerSyncDC(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	rds := mock_comic.NewMockRedisHmSetter(ctrl)
+	rds.EXPECT().HMSet(gomock.Any(), gomock.Any()).Return(&redis.StatusCmd{})
+	cr := mock_comic.NewMockCharacterRepository(ctrl)
+	cr.EXPECT().FindBySlug(gomock.Any(), false).Return(&comic.Character{
+		Slug: "emma-frost",
+		Publisher: comic.Publisher{
+			Slug: "dc",
+		},
+	}, nil)
+	pr := mock_comic.NewMockPopularRepository(ctrl)
+	pr.EXPECT().FindOneByMarvel(gomock.Any()).Times(0)
+	pr.EXPECT().FindOneByDC(gomock.Any()).Return(&comic.RankedCharacter{
+		IssueCountRank: 1,
+		IssueCount: 100,
+	}, nil)
+	pr.EXPECT().FindOneByAll(gomock.Any()).Return(&comic.RankedCharacter{
+		IssueCountRank: 2,
+		IssueCount: 200,
+	}, nil)
+
+	syncer := comic.NewCharacterStatsSyncer(rds, cr, pr)
+	err := syncer.Sync(comic.CharacterSlug("emma-frost"))
+	assert.Nil(t, err)
+}
+
+func TestRedisCharacterStatsSyncerNoSyncNotFound(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	rds := mock_comic.NewMockRedisHmSetter(ctrl)
+	rds.EXPECT().HMSet(nil, nil).Times(0)
+	pr := mock_comic.NewMockPopularRepository(ctrl)
+	cr := mock_comic.NewMockCharacterRepository(ctrl)
+	cr.EXPECT().FindBySlug(gomock.Any(), false).Return(nil, nil)
+	syncer := comic.NewCharacterStatsSyncer(rds, cr, pr)
+	err := syncer.Sync(comic.CharacterSlug("emma-frost"))
 	assert.Error(t, err)
 }

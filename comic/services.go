@@ -3,6 +3,7 @@ package comic
 import (
 	"fmt"
 	"github.com/go-redis/redis"
+	"strconv"
 	"time"
 )
 
@@ -121,9 +122,86 @@ type RankedServicer interface {
 	MarvelPopular(cr PopularCriteria) ([]*RankedCharacter, error)
 }
 
+// ExpandedServicer is the interface for getting a character with expanded details.
+type ExpandedServicer interface {
+	Character(slug CharacterSlug) (*ExpandedCharacter, error)
+}
+
+// ExpandedService gets an expanded character.
+type ExpandedService struct {
+	cr CharacterRepository
+	ar AppearancesByYearsRepository
+	r *redis.Client
+}
+
 // RankedService is the service for getting ranked and popular characters.
 type RankedService struct {
 	popRepo PopularRepository
+}
+
+// Character gets an expanded character.
+func (s *ExpandedService) Character(slug CharacterSlug) (*ExpandedCharacter, error) {
+	c, err := s.cr.FindBySlug(slug, false)
+	if c == nil || err != nil {
+		return nil, err
+	}
+	res, err := s.r.HGetAll(fmt.Sprintf("%s:stats", slug.Value())).Result()
+	if err != nil {
+		return nil, err
+	}
+	ec := &ExpandedCharacter{}
+	if len(res) > 0 {
+		atCount, err := parseUint(res["all_time_issue_count"])
+		if err != nil {
+			return nil, err
+		}
+		atRank, err := parseUint(res["all_time_issue_count_rank"])
+		if err != nil {
+			return nil, err
+		}
+		atAvg, err := strconv.ParseFloat(res["all_time_average_per_year"], 64)
+		if err != nil {
+			return nil, err
+		}
+		atAvgRank, err := parseUint(res["all_time_average_per_year_rank"])
+		if err != nil {
+			return nil, err
+		}
+		miCount, err := parseUint(res["main_issue_count"])
+		if err != nil {
+			return nil, err
+		}
+		miRank, err := parseUint(res["main_issue_count_rank"])
+		if err != nil {
+			return nil, err
+		}
+		miAvgRank, err := parseUint(res["main_average_per_year_rank"])
+		if err != nil {
+			return nil, err
+		}
+		miAvg, err := strconv.ParseFloat(res["main_average_per_year"], 64)
+		if err != nil {
+			return nil, err
+		}
+		stats := CharacterStats{
+			AllTimeRank:         atRank,
+			AllTimeIssueCount:   atCount,
+			AllTimeIssueAvg:     atAvg,
+			AllTimeIssueAvgRank: atAvgRank,
+			MainIssueCount:      miCount,
+			MainRank:            miRank,
+			MainIssueAvgRank:    miAvgRank,
+			MainIssueAvg:  miAvg,
+		}
+		ec.Stats = stats
+	}
+	apps, err := s.ar.List(slug)
+	if err != nil {
+		return nil, err
+	}
+	ec.Appearances = apps
+	ec.Character = c
+	return ec, nil
 }
 
 // AllPopular gets the most popular characters per year ordered by either issue count or
@@ -457,4 +535,18 @@ func NewRankedService(repository PopularRepository) RankedServicer {
 	return &RankedService{
 		popRepo: repository,
 	}
+}
+
+// NewExpandedService creates a new service for getting expanded details for a character
+func NewExpandedService(cr CharacterRepository, ar AppearancesByYearsRepository, client *redis.Client) ExpandedServicer {
+	return &ExpandedService{
+		cr: cr,
+		ar: ar,
+		r: client,
+	}
+}
+
+func parseUint(s string) (uint, error) {
+	u, err := strconv.ParseUint(s, 10, 64)
+	return uint(u), err
 }

@@ -12,11 +12,21 @@
     "name": "Emma-Frost",
     "other_name": "",
     "description": "Blah",
-    "image": "",
     "slug": "emma-frost",
-    "vendor_image": "",
     "vendor_url": "",
     "vendor_description": "",
+    "image": "https://d2jsu6fyd1g4ln.cloudfront.net/",
+    "vendor_image": "https://d2jsu6fyd1g4ln.cloudfront.net/",
+    "stats": {
+      "all_time_issue_count_rank": 1,
+      "all_time_issue_count": 0,
+      "all_time_average_per_year": 0,
+      "all_time_average_per_year_rank": 1,
+      "main_issue_count_rank": 0,
+      "main_issue_count": 0,
+      "main_average_per_year": 0,
+      "main_average_per_year_rank": 0
+    },
     "appearances": [
       {
         "slug": "test",

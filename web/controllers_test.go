@@ -2,7 +2,6 @@ package web_test
 
 import (
 	"errors"
-	"fmt"
 	"github.com/aimeelaplant/comiccruncher/comic"
 	"github.com/aimeelaplant/comiccruncher/internal/mocks/comic"
 	"github.com/aimeelaplant/comiccruncher/internal/mocks/search"
@@ -113,10 +112,17 @@ func TestCharacterControllerCharacter(t *testing.T) {
 		comic.NewAppearancesByYears("test", comic.Alternate, aggs),
 	}
 
-	characterSvc := mock_comic.NewMockCharacterServicer(ctrl)
-	characterSvc.EXPECT().Character(gomock.Any()).Return(mockCharacter(), nil)
-	characterSvc.EXPECT().ListAppearances(gomock.Any()).Return(apps, nil)
-
+	expandedSvc := mock_comic.NewMockExpandedServicer(ctrl)
+	stats := comic.CharacterStats{
+		AllTimeRank: 1,
+		AllTimeIssueAvgRank: 1,
+	}
+	ec := &comic.ExpandedCharacter{
+		Character: mockCharacter(),
+		Appearances: apps,
+		Stats: stats,
+	}
+	expandedSvc.EXPECT().Character(gomock.Any()).Return(ec, nil)
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodGet, "/characters/emma-frost", nil)
 	rec := httptest.NewRecorder()
@@ -124,7 +130,7 @@ func TestCharacterControllerCharacter(t *testing.T) {
 	header := c.Response().Header()
 
 	rankedSvc := mock_comic.NewMockRankedServicer(ctrl)
-	characterCtrl := web.NewCharacterController(characterSvc, rankedSvc)
+	characterCtrl := web.NewCharacterController(expandedSvc, rankedSvc)
 	err = characterCtrl.Character(c)
 
 	assert.Nil(t, err)
@@ -143,8 +149,8 @@ func TestCharacterControllerCharacterNotFound(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	characterSvc := mock_comic.NewMockCharacterServicer(ctrl)
-	characterSvc.EXPECT().Character(gomock.Any()).Return(nil, nil)
+	expandedSvc := mock_comic.NewMockExpandedServicer(ctrl)
+	expandedSvc.EXPECT().Character(gomock.Any()).Return(nil, nil)
 
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodGet, "/characters/emma-frost", nil)
@@ -152,7 +158,7 @@ func TestCharacterControllerCharacterNotFound(t *testing.T) {
 	c := e.NewContext(req, rec)
 
 	rankedSvc := mock_comic.NewMockRankedServicer(ctrl)
-	characterCtrl := web.NewCharacterController(characterSvc, rankedSvc)
+	characterCtrl := web.NewCharacterController(expandedSvc, rankedSvc)
 	err := characterCtrl.Character(c)
 
 	assert.Equal(t, web.ErrNotFound.Error(), err.Error())
@@ -169,7 +175,7 @@ func TestCharacterControllerCharacters(t *testing.T) {
 		{ID: 1, PublisherID: 1, Publisher: p, AvgPerYear: 2, AvgPerYearRank: 1, IssueCount: 10, IssueCountRank: 1, Name: "Test", Slug: "test", Image: "test.jpg", VendorImage: "test2.jpg"},
 		{ID: 2, PublisherID: 1, Publisher: p, AvgPerYearRank: 2, AvgPerYear: 2, IssueCount: 5, IssueCountRank: 2, Name: "Test2", Slug: "test2"},
 	}
-	characterSvc := mock_comic.NewMockCharacterServicer(ctrl)
+	expandedSvc := mock_comic.NewMockExpandedServicer(ctrl)
 
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodGet, "/characters?page=1", nil)
@@ -179,13 +185,13 @@ func TestCharacterControllerCharacters(t *testing.T) {
 
 	rankedSvc := mock_comic.NewMockRankedServicer(ctrl)
 	rankedSvc.EXPECT().AllPopular(gomock.Any()).Return(rankedChrs, nil)
-	characterCtrl := web.NewCharacterController(characterSvc, rankedSvc)
+	characterCtrl := web.NewCharacterController(expandedSvc, rankedSvc)
 	// make the call
 	err = characterCtrl.Characters(c)
 	assert.Nil(t, err)
 
 	read, err := ioutil.ReadAll(rec.Body)
-	fmt.Println(string(read))
+
 	assert.Nil(t, err)
 	assert.Equal(t, http.StatusOK, c.Response().Status)
 	assert.True(t, c.Response().Committed)

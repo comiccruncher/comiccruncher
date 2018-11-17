@@ -6,6 +6,7 @@ package mock_comic
 
 import (
 	comic "github.com/aimeelaplant/comiccruncher/comic"
+	redis "github.com/go-redis/redis"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
@@ -44,4 +45,74 @@ func (m *MockSyncer) Sync(slug comic.CharacterSlug) (int, error) {
 // Sync indicates an expected call of Sync
 func (mr *MockSyncerMockRecorder) Sync(slug interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Sync", reflect.TypeOf((*MockSyncer)(nil).Sync), slug)
+}
+
+// MockCharacterStatsSyncer is a mock of CharacterStatsSyncer interface
+type MockCharacterStatsSyncer struct {
+	ctrl     *gomock.Controller
+	recorder *MockCharacterStatsSyncerMockRecorder
+}
+
+// MockCharacterStatsSyncerMockRecorder is the mock recorder for MockCharacterStatsSyncer
+type MockCharacterStatsSyncerMockRecorder struct {
+	mock *MockCharacterStatsSyncer
+}
+
+// NewMockCharacterStatsSyncer creates a new mock instance
+func NewMockCharacterStatsSyncer(ctrl *gomock.Controller) *MockCharacterStatsSyncer {
+	mock := &MockCharacterStatsSyncer{ctrl: ctrl}
+	mock.recorder = &MockCharacterStatsSyncerMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockCharacterStatsSyncer) EXPECT() *MockCharacterStatsSyncerMockRecorder {
+	return m.recorder
+}
+
+// Sync mocks base method
+func (m *MockCharacterStatsSyncer) Sync(slug comic.CharacterSlug) error {
+	ret := m.ctrl.Call(m, "Sync", slug)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Sync indicates an expected call of Sync
+func (mr *MockCharacterStatsSyncerMockRecorder) Sync(slug interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Sync", reflect.TypeOf((*MockCharacterStatsSyncer)(nil).Sync), slug)
+}
+
+// MockRedisHmSetter is a mock of RedisHmSetter interface
+type MockRedisHmSetter struct {
+	ctrl     *gomock.Controller
+	recorder *MockRedisHmSetterMockRecorder
+}
+
+// MockRedisHmSetterMockRecorder is the mock recorder for MockRedisHmSetter
+type MockRedisHmSetterMockRecorder struct {
+	mock *MockRedisHmSetter
+}
+
+// NewMockRedisHmSetter creates a new mock instance
+func NewMockRedisHmSetter(ctrl *gomock.Controller) *MockRedisHmSetter {
+	mock := &MockRedisHmSetter{ctrl: ctrl}
+	mock.recorder = &MockRedisHmSetterMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockRedisHmSetter) EXPECT() *MockRedisHmSetterMockRecorder {
+	return m.recorder
+}
+
+// HMSet mocks base method
+func (m *MockRedisHmSetter) HMSet(key string, fields map[string]interface{}) *redis.StatusCmd {
+	ret := m.ctrl.Call(m, "HMSet", key, fields)
+	ret0, _ := ret[0].(*redis.StatusCmd)
+	return ret0
+}
+
+// HMSet indicates an expected call of HMSet
+func (mr *MockRedisHmSetterMockRecorder) HMSet(key, fields interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HMSet", reflect.TypeOf((*MockRedisHmSetter)(nil).HMSet), key, fields)
 }

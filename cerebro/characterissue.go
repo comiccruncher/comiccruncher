@@ -88,6 +88,7 @@ type CharacterIssueImporter struct {
 	externalSource   externalissuesource.ExternalSource
 	extractor        CharacterVendorExtractor
 	refresher        comic.PopularRefresher
+	statsSyncer      comic.CharacterStatsSyncer
 	logger           *zap.Logger
 }
 
@@ -379,7 +380,16 @@ func (i *CharacterIssueImporter) MustImportAll(slugs []comic.CharacterSlug) erro
 		}
 	}
 	// Now refresh all the views.
-	return i.refresher.RefreshAll()
+	if err := i.refresher.RefreshAll(); err != nil {
+		return err
+	}
+	// Now sync each character to Redis.
+	for idx := 0; idx < len(characters); idx++ {
+		if err := i.statsSyncer.Sync(characters[idx].Slug); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // Persists the sync log with the new status and closes the signal channel if the new status is fail or success.
@@ -458,7 +468,8 @@ func isAppearance(issue *comic.Issue) bool {
 func NewCharacterIssueImporter(
 	container *comic.PGRepositoryContainer,
 	appearancesSyncer comic.Syncer,
-	externalSource externalissuesource.ExternalSource) *CharacterIssueImporter {
+	externalSource externalissuesource.ExternalSource,
+	statsSyncer comic.CharacterStatsSyncer) *CharacterIssueImporter {
 	return &CharacterIssueImporter{
 		characterSvc:     comic.NewCharacterService(container),
 		issueSvc:         comic.NewIssueService(container),
@@ -467,6 +478,7 @@ func NewCharacterIssueImporter(
 		logger:           log.CEREBRO(),
 		extractor:        NewCharacterCBExtractor(externalSource),
 		refresher:        container.Refresher(),
+		statsSyncer:      statsSyncer,
 	}
 }
 

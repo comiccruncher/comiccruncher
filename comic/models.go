@@ -274,6 +274,44 @@ type RankedCharacter struct {
 	VendorDescription string               `json:"vendor_description"`
 }
 
+// ExpandedCharacter represents a character with their all-time rank as well as their rank for
+// their main appearances per publisher.
+type ExpandedCharacter struct {
+	*Character
+	Stats             CharacterStats       `json:"stats"`
+	Appearances       []AppearancesByYears `json:"appearances"`
+}
+
+// CharacterStats represents stats for an individual character.
+type CharacterStats struct {
+	AllTimeRank		  uint 		`json:"all_time_issue_count_rank"`
+	AllTimeIssueCount uint	 	`json:"all_time_issue_count"`
+	AllTimeIssueAvg   float64   `json:"all_time_average_per_year"`
+	AllTimeIssueAvgRank uint    `json:"all_time_average_per_year_rank"`
+	MainRank		  uint 		`json:"main_issue_count_rank"`
+	MainIssueCount    uint	    `json:"main_issue_count"`
+	MainIssueAvg      float64   `json:"main_average_per_year"`
+	MainIssueAvgRank  uint      `json:"main_average_per_year_rank"`
+}
+
+// MarshalJSON overrides the marshaling of JSON with presentation for CDN urls.
+func (c *ExpandedCharacter) MarshalJSON() ([]byte, error) {
+	type Alias Character
+	return json.Marshal(&struct {
+		*Alias
+		Image       string `json:"image"`
+		VendorImage string `json:"vendor_image"`
+		Stats CharacterStats        `json:"stats"`
+		Appearances []AppearancesByYears `json:"appearances"`
+	}{
+		Alias: (*Alias)(c.Character),
+		Image:       fmt.Sprintf("%s/%s", cdnURL, c.Image),
+		VendorImage: fmt.Sprintf("%s/%s", cdnURL, c.VendorImage),
+		Stats: c.Stats,
+		Appearances: c.Appearances,
+	})
+}
+
 // MarshalJSON overrides the image and vendor image for the CDN url.
 func (c *RankedCharacter) MarshalJSON() ([]byte, error) {
 	strctImage := ""
@@ -372,6 +410,15 @@ func (slug PublisherSlug) Value() string {
 	return string(slug)
 }
 
+// Value returns the raw value.
+func (r IssueCountRank) Value() uint {
+	return uint(r)
+}
+
+// Value returns the raw value.
+func (r AvgPerYearRank) Value() uint {
+	return uint(r)
+}
 // MarshalJSON overrides JSON marshaling for CDN url.
 func (c *Character) MarshalJSON() ([]byte, error) {
 	strctImage := ""
