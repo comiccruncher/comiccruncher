@@ -22,23 +22,11 @@ var (
 		"mv_ranked_characters_alternate": {
 			comic.Alternate: 0,
 		},
-		"mv_ranked_characters_marvel": {
-			comic.Main | comic.Alternate: 1,
-		},
 		"mv_ranked_characters_marvel_main": {
 			comic.Main: 1,
 		},
-		"mv_ranked_characters_marvel_alternate": {
-			comic.Alternate: 1,
-		},
-		"mv_ranked_characters_dc": {
-			comic.Main | comic.Alternate: 2,
-		},
 		"mv_ranked_characters_dc_main": {
 			comic.Main: 2,
-		},
-		"mv_ranked_characters_dc_alternate": {
-			comic.Alternate: 2,
 		},
 	}
 )
