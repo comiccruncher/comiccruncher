@@ -8,6 +8,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"testing"
+	"time"
 )
 
 // db test to test query.
@@ -62,7 +63,18 @@ func TestExpandedServiceCharacter(t *testing.T) {
 	cmd := redis.NewStringStringMapResult(val, nil)
 	rc.EXPECT().HGetAll(fmt.Sprintf("%s:stats", ch.Slug)).Times(1).Return(cmd)
 
-	svc := comic.NewExpandedService(cr, ar, rc)
+	tm := time.Now()
+	sl := []*comic.LastSync{
+		{
+			CharacterID: 1,
+			SyncedAt:    tm,
+			NumIssues:   10,
+		},
+	}
+	slr := mock_comic.NewMockCharacterSyncLogRepository(ctrl)
+	slr.EXPECT().LastSyncs(gomock.Any()).Times(1).Return(sl, nil)
+
+	svc := comic.NewExpandedService(cr, ar, rc, slr)
 	ec, err := svc.Character(comic.CharacterSlug("emma-frost"))
 	at := ec.Stats[0]
 	m := ec.Stats[1]
@@ -79,9 +91,35 @@ func TestExpandedServiceCharacter(t *testing.T) {
 	assert.Equal(t, m.IssueCountRank, uint(4))
 	assert.Equal(t, m.Average, float64(60.23))
 	assert.Equal(t, m.AverageRank, uint(5))
+	assert.NotNil(t, ec.LastSyncs)
+	assert.Len(t, ec.LastSyncs, 1)
+	assert.Equal(t, ec.LastSyncs[0].NumIssues, 10)
+	assert.Equal(t, ec.LastSyncs[0].SyncedAt, tm)
+	assert.Equal(t, ec.LastSyncs[0].CharacterID, comic.CharacterID(1))
 }
 
 func TestExpandedServiceCharacterNoResult(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	cr := mock_comic.NewMockCharacterRepository(ctrl)
+	cr.EXPECT().FindBySlug(gomock.Any(), false).Times(1).Return(nil, nil)
+	ar := mock_comic.NewMockAppearancesByYearsRepository(ctrl)
+	ar.EXPECT().List(gomock.Any()).Times(0)
+	rc := mock_comic.NewMockRedisClient(ctrl)
+	val := make(map[string]string, 0)
+	cmd := redis.NewStringStringMapResult(val, nil)
+	rc.EXPECT().HGetAll(gomock.Any()).Times(0).Return(cmd)
+	slr := mock_comic.NewMockCharacterSyncLogRepository(ctrl)
+	slr.EXPECT().LastSyncs(gomock.Any()).Times(0)
+
+	svc := comic.NewExpandedService(cr, ar, rc, slr)
+	ec, err := svc.Character(comic.CharacterSlug("emma-frost"))
+	assert.Nil(t, err)
+	assert.Nil(t, ec)
+}
+
+func TestExpandedServiceCharacterNoRedisResult(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -103,7 +141,10 @@ func TestExpandedServiceCharacterNoResult(t *testing.T) {
 	val := make(map[string]string, 0)
 	cmd := redis.NewStringStringMapResult(val, nil)
 	rc.EXPECT().HGetAll(fmt.Sprintf("%s:stats", ch.Slug)).Times(1).Return(cmd)
-	svc := comic.NewExpandedService(cr, ar, rc)
+	slr := mock_comic.NewMockCharacterSyncLogRepository(ctrl)
+	slr.EXPECT().LastSyncs(gomock.Any()).Times(1).Return([]*comic.LastSync{}, nil)
+
+	svc := comic.NewExpandedService(cr, ar, rc, slr)
 	ec, err := svc.Character(comic.CharacterSlug("emma-frost"))
 	assert.Nil(t, err)
 	assert.Len(t, ec.Appearances, 0)

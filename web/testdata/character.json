@@ -15,8 +15,14 @@
     "slug": "emma-frost",
     "vendor_url": "",
     "vendor_description": "",
-    "image": "https://d2jsu6fyd1g4ln.cloudfront.net/",
-    "vendor_image": "https://d2jsu6fyd1g4ln.cloudfront.net/",
+    "image": "",
+    "vendor_image": "",
+    "last_syncs": [
+      {
+        "synced_at": "2018-01-02T00:00:00Z",
+        "num_issues": 10
+      }
+    ],
     "stats": [
       {
         "category": "all-time",

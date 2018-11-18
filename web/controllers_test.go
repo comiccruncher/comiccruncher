@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 )
 
 func TestStatsControllerStatsReturnsOK(t *testing.T) {
@@ -117,10 +118,21 @@ func TestCharacterControllerCharacter(t *testing.T) {
 		Category: "all-time",
 		AverageRank: 1,
 	}
+	tm, err := time.Parse("2006-01-02", "2018-01-02")
+	if err != nil {
+		panic(err)
+	}
 	ec := &comic.ExpandedCharacter{
 		Character: mockCharacter(),
 		Appearances: apps,
 		Stats: []comic.CharacterStats{stats},
+		LastSyncs: []*comic.LastSync{
+			{
+				CharacterID: 1,
+				SyncedAt:    tm,
+				NumIssues:   10,
+			},
+		},
 	}
 	expandedSvc.EXPECT().Character(gomock.Any()).Return(ec, nil)
 	e := echo.New()

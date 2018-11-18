@@ -131,6 +131,7 @@ type ExpandedService struct {
 	cr CharacterRepository
 	ar AppearancesByYearsRepository
 	r RedisClient
+	slr CharacterSyncLogRepository
 }
 
 // RankedService is the service for getting ranked and popular characters.
@@ -145,6 +146,10 @@ type RankedService struct {
 func (s *ExpandedService) Character(slug CharacterSlug) (*ExpandedCharacter, error) {
 	c, err := s.cr.FindBySlug(slug, false)
 	if c == nil || err != nil {
+		return nil, err
+	}
+	sl, err := s.slr.LastSyncs(c.ID)
+	if err != nil {
 		return nil, err
 	}
 	res, err := s.r.HGetAll(fmt.Sprintf("%s:stats", slug.Value())).Result()
@@ -198,6 +203,7 @@ func (s *ExpandedService) Character(slug CharacterSlug) (*ExpandedCharacter, err
 	}
 	ec.Appearances = apps
 	ec.Character = c
+	ec.LastSyncs = sl
 	return ec, nil
 }
 
@@ -536,11 +542,12 @@ func NewRankedService(repository PopularRepository) RankedServicer {
 }
 
 // NewExpandedService creates a new service for getting expanded details for a character
-func NewExpandedService(cr CharacterRepository, ar AppearancesByYearsRepository, rc RedisClient) ExpandedServicer {
+func NewExpandedService(cr CharacterRepository, ar AppearancesByYearsRepository, rc RedisClient, slr CharacterSyncLogRepository) ExpandedServicer {
 	return &ExpandedService{
 		cr: cr,
 		ar: ar,
 		r: rc,
+		slr: slr,
 	}
 }
 

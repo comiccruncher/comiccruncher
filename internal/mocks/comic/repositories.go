@@ -403,6 +403,19 @@ func (mr *MockCharacterSyncLogRepositoryMockRecorder) FindByID(id interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByID", reflect.TypeOf((*MockCharacterSyncLogRepository)(nil).FindByID), id)
 }
 
+// LastSyncs mocks base method
+func (m *MockCharacterSyncLogRepository) LastSyncs(id comic.CharacterID) ([]*comic.LastSync, error) {
+	ret := m.ctrl.Call(m, "LastSyncs", id)
+	ret0, _ := ret[0].([]*comic.LastSync)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LastSyncs indicates an expected call of LastSyncs
+func (mr *MockCharacterSyncLogRepositoryMockRecorder) LastSyncs(id interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LastSyncs", reflect.TypeOf((*MockCharacterSyncLogRepository)(nil).LastSyncs), id)
+}
+
 // MockCharacterIssueRepository is a mock of CharacterIssueRepository interface
 type MockCharacterIssueRepository struct {
 	ctrl     *gomock.Controller

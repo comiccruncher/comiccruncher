@@ -75,6 +75,6 @@ func TestExpandedCharacterMarshalJSON(t *testing.T) {
 	}
 	b, err := ec.MarshalJSON()
 	assert.Nil(t, err)
-	s := `{"publisher":{"name":"","slug":""},"name":"emma frost","other_name":"","description":"","slug":"emma-frost","vendor_url":"https://example.com","vendor_description":"","image":"https://d2jsu6fyd1g4ln.cloudfront.net/","vendor_image":"https://d2jsu6fyd1g4ln.cloudfront.net/","stats":[{"category":"all_time","issue_count_rank":1,"issue_count":1,"average_issues_per_year":1,"average_issues_per_year_rank":1}],"appearances":[{"slug":"emma-frost","category":"main","aggregates":[{"year":1900,"count":10}]}]}`
+	s := `{"publisher":{"name":"","slug":""},"name":"emma frost","other_name":"","description":"","slug":"emma-frost","vendor_url":"https://example.com","vendor_description":"","image":"","vendor_image":"","last_syncs":null,"stats":[{"category":"all_time","issue_count_rank":1,"issue_count":1,"average_issues_per_year":1,"average_issues_per_year_rank":1}],"appearances":[{"slug":"emma-frost","category":"main","aggregates":[{"year":1900,"count":10}]}]}`
 	assert.Equal(t, s, string(b))
 }

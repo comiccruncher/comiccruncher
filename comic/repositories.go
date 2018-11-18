@@ -79,6 +79,7 @@ type CharacterSyncLogRepository interface {
 	FindAllByCharacterID(characterID CharacterID) ([]*CharacterSyncLog, error)
 	Update(s *CharacterSyncLog) error
 	FindByID(id CharacterSyncLogID) (*CharacterSyncLog, error)
+	LastSyncs(id CharacterID) ([]*LastSync, error)
 }
 
 // CharacterIssueRepository is the repository interface for character issues.
@@ -509,6 +510,23 @@ func (r *PGCharacterSyncLogRepository) FindByID(id CharacterSyncLogID) (*Charact
 	return syncLog, nil
 }
 
+// LastSyncs gets the last successful sync logs for a character.
+func (r *PGCharacterSyncLogRepository) LastSyncs(id CharacterID) ([]*LastSync, error) {
+	var ls []*LastSync
+	sql := `SELECT
+		character_id,
+		synced_at,
+		(message)::int as num_issues
+		FROM character_sync_logs
+		WHERE character_id = ?
+			AND message IS NOT NULL
+			AND synced_at IS NOT NULL
+			AND sync_status = ?
+		ORDER BY synced_at DESC LIMIT 3`
+	_, err := r.db.Query(&ls, sql, id, Success)
+	return ls, err
+}
+
 // Create creates an issue.
 func (r *PGIssueRepository) Create(issue *Issue) error {
 	_, err := r.db.Model(issue).Returning("*").Insert(issue)
@@ -846,8 +864,24 @@ func (r *PGPopularRepository) Marvel(cr PopularCriteria) ([]*RankedCharacter, er
 }
 
 func (r *PGPopularRepository) findOneBy(id CharacterID, view MaterializedView) (*RankedCharacter, error) {
-	sql := fmt.Sprintf(`SELECT average_per_year_rank as avg_per_year_rank, average_per_year as avg_per_year, issue_count, issue_count_rank as issue_count_rank, id, publisher_id, name, other_name, description,
-			image, slug, vendor_image, vendor_url, vendor_description, publisher__id, publisher__slug, publisher__name
+	sql := fmt.Sprintf(`SELECT
+		average_per_year_rank as stats__average_rank,
+		average_per_year as stats__average,
+		issue_count as stats__issue_count,
+		issue_count_rank as stats__issue_count_rank,
+		id,
+		publisher_id,
+		name,
+		other_name,
+		description,
+		image,
+		slug,
+		vendor_image,
+		vendor_url,
+		vendor_description,
+		publisher__id,
+		publisher__slug,
+		publisher__name
 		FROM %s
 		WHERE id = ?
 		`, view)
