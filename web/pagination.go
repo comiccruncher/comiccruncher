@@ -12,58 +12,65 @@ type Page struct {
 	Link   string `json:"link"`
 }
 
-// Gets the previous page from the current page and context.
-func (p Page) previousPage(ctx echo.Context) *Page {
-	if ctx.QueryParam("page") != "" && p.Number > 1 {
-		prevPageNumber := p.Number - 1
-		queryParams := ctx.QueryParams()
-		queryParams.Set("page", strconv.Itoa(prevPageNumber))
-		return &Page{Number: prevPageNumber, Link: fullPath(ctx.Request().URL.EscapedPath(), queryParams.Encode())}
-	}
-	return nil
-}
-
-// Gets the next page from the current page and context.
-func (p Page) nextPage(ctx echo.Context) *Page {
-	nextPageNumber := p.Number + 1
-	queryParams := ctx.QueryParams()
-	queryParams.Set("page", strconv.Itoa(nextPageNumber))
-	return &Page{Number: nextPageNumber, Link: fullPath(ctx.Request().URL.EscapedPath(), queryParams.Encode())}
-}
-
 // Pagination is a view that displays pagination info.
 type Pagination struct {
 	PerPage      int   `json:"per_page"`
-	PreviousPage *Page `json:"previous_page"`
-	CurrentPage  Page  `json:"current_page"`
-	NextPage     *Page `json:"next_page"`
+	PreviousPage string `json:"previous_page"`
+	CurrentPage  string  `json:"current_page"`
+	NextPage     string `json:"next_page"`
 }
 
 // CreatePagination creates a new pagination. TODO: clean this crap up.
 func CreatePagination(ctx echo.Context, data []interface{}, itemsPerPage int) (*Pagination, error) {
-	requestedPageParam := ctx.QueryParam("page")
+	page, err := parsePageNumber(ctx)
+	if err != nil {
+		return nil, err
+	}
 	// Start with default
 	pagination := &Pagination{
 		PerPage:     itemsPerPage,
-		CurrentPage: Page{Link: fullPath(ctx.Request().URL.EscapedPath(), ctx.QueryString()), Number: 1},
+		CurrentPage: fullPath(ctx.Request().URL.EscapedPath(), ctx.QueryString()),
 	}
-	requestedPageNumber, err := strconv.Atoi(requestedPageParam)
-	if requestedPageParam != "" && err != nil {
-		return nil, ErrInvalidPageParameter
-	}
-	if requestedPageParam != "" {
-		if requestedPageNumber > 0 {
-			pagination.CurrentPage = Page{Link: fullPath(ctx.Request().URL.EscapedPath(), ctx.QueryString()), Number: requestedPageNumber}
-			pagination.PreviousPage = pagination.CurrentPage.previousPage(ctx)
-		} else {
+	if page > 0 {
+		pagination.CurrentPage = fullPath(ctx.Request().URL.EscapedPath(), ctx.QueryString())
+		pagination.PreviousPage, err = previousPage(ctx)
+		if err != nil {
 			return nil, ErrInvalidPageParameter
 		}
 	}
 	if len(data) > itemsPerPage {
-		pagination.NextPage = pagination.CurrentPage.nextPage(ctx)
+		pagination.NextPage, err = nextPage(ctx)
+		if err != nil {
+			return nil, ErrInvalidPageParameter
+		}
 	}
-
 	return pagination, nil
+}
+
+// Gets the previous page from the current page and context.
+func previousPage(ctx echo.Context) (string, error) {
+	pageNum, err := parsePageNumber(ctx)
+	if err != nil {
+		return "", err
+	}
+	if pageNum != 0 && pageNum > 1 {
+		prevPageNum := pageNum - 1
+		queryParams := ctx.QueryParams()
+		queryParams.Set("page", strconv.Itoa(prevPageNum))
+		return fullPath(ctx.Request().URL.EscapedPath(), queryParams.Encode()), nil
+	}
+	return "", nil
+}
+
+func nextPage(ctx echo.Context) (string, error) {
+	pageNum, err := parsePageNumber(ctx)
+	if err != nil {
+		return "", err
+	}
+	nextPageNumber := pageNum + 1
+	queryParams := ctx.QueryParams()
+	queryParams.Set("page", strconv.Itoa(nextPageNumber))
+	return fullPath(ctx.Request().URL.EscapedPath(), queryParams.Encode()), nil
 }
 
 // Returns the full path given the path and query string.
@@ -75,4 +82,16 @@ func fullPath(path, querystring string) string {
 	}
 	buffer.WriteString(querystring)
 	return buffer.String()
+}
+
+func parsePageNumber(ctx echo.Context) (int, error) {
+	page := ctx.QueryParam("page")
+	if page == "" || page == "0" {
+		page = "1"
+	}
+	pageNum, err := strconv.Atoi(page)
+	if err != nil {
+		return 0, ErrInvalidPageParameter
+	}
+	return pageNum, nil
 }

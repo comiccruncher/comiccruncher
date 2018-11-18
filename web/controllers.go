@@ -5,7 +5,6 @@ import (
 	"github.com/aimeelaplant/comiccruncher/comic"
 	"github.com/aimeelaplant/comiccruncher/search"
 	"github.com/labstack/echo"
-	"strconv"
 )
 
 // Pagination limit.
@@ -120,22 +119,9 @@ func (c CharacterController) Characters(ctx echo.Context) error {
 	return JSONListViewOK(ctx, listRanked(results), pageLimit)
 }
 
-// Gets the page number from the query parameter `page` with default value if empty.
-func decodePageNumber(ctx echo.Context) (int, error) {
-	query := ctx.QueryParam("page")
-	if query != "" {
-		page, err := strconv.Atoi(query)
-		if err != nil {
-			return 1, ErrInvalidPageParameter
-		}
-		return page, nil
-	}
-	return 1, nil
-}
-
 // Gets a popular criteria struct based on the context.
 func decodeCriteria(ctx echo.Context) (comic.PopularCriteria, error) {
-	page, err := decodePageNumber(ctx)
+	page, err := parsePageNumber(ctx)
 	if err != nil {
 		return comic.PopularCriteria{}, err
 	}

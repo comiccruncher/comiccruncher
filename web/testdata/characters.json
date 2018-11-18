@@ -4,12 +4,9 @@
     "error": null,
     "pagination": {
       "per_page": 24,
-      "previous_page": null,
-      "current_page": {
-        "number": 1,
-        "link": "/characters?page=1"
-      },
-      "next_page": null
+      "previous_page": "",
+      "current_page": "/characters?page=1",
+      "next_page": ""
     }
   },
   "data": [
