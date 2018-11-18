@@ -56,8 +56,12 @@ func previousPage(ctx echo.Context) (string, error) {
 	if pageNum != 0 && pageNum > 1 {
 		prevPageNum := pageNum - 1
 		queryParams := ctx.QueryParams()
+		// set to next page number so we can get full query string path.
 		queryParams.Set("page", strconv.Itoa(prevPageNum))
-		return fullPath(ctx.Request().URL.EscapedPath(), queryParams.Encode()), nil
+		prev := fullPath(ctx.Request().URL.EscapedPath(), queryParams.Encode())
+		// reset to current page number.
+		queryParams.Set("page", strconv.Itoa(pageNum))
+		return prev, nil
 	}
 	return "", nil
 }
@@ -67,10 +71,14 @@ func nextPage(ctx echo.Context) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	nextPageNumber := pageNum + 1
+	nextPageNum := pageNum + 1
 	queryParams := ctx.QueryParams()
-	queryParams.Set("page", strconv.Itoa(nextPageNumber))
-	return fullPath(ctx.Request().URL.EscapedPath(), queryParams.Encode()), nil
+	// set to next page number so we can get full query string path.
+	queryParams.Set("page", strconv.Itoa(nextPageNum))
+	next := fullPath(ctx.Request().URL.EscapedPath(), queryParams.Encode())
+	// reset page number to current page number.
+	queryParams.Set("page", strconv.Itoa(pageNum))
+	return next, nil
 }
 
 // Returns the full path given the path and query string.
