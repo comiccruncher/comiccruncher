@@ -113,15 +113,17 @@ func (s *RedisCharacterStatsSyncer) Sync(slug CharacterSlug) error {
 }
 
 func (s *RedisCharacterStatsSyncer) set(c *Character, allTime *RankedCharacter, main *RankedCharacter) error {
+	at := allTime.Stats
+	ma := main.Stats
 	m := make(map[string]interface{}, 8)
-	m["all_time_issue_count_rank"] = allTime.IssueCountRank.Value()
-	m["all_time_issue_count"] = allTime.IssueCount
-	m["all_time_average_per_year"] = allTime.AvgPerYear
-	m["all_time_average_per_year_rank"] =  allTime.AvgPerYearRank.Value()
-	m["main_issue_count_rank"] = main.IssueCountRank.Value()
-	m["main_issue_count"] = main.IssueCount
-	m["main_average_per_year"] = main.AvgPerYear
-	m["main_average_per_year_rank"] = main.AvgPerYearRank.Value()
+	m["all_time_issue_count_rank"] = at.IssueCountRank
+	m["all_time_issue_count"] = at.IssueCount
+	m["all_time_average_per_year"] = at.Average
+	m["all_time_average_per_year_rank"] =  at.AverageRank
+	m["main_issue_count_rank"] = ma.IssueCountRank
+	m["main_issue_count"] = ma.IssueCount
+	m["main_average_per_year"] = ma.Average
+	m["main_average_per_year_rank"] = ma.AverageRank
 	key := fmt.Sprintf("%s:stats", c.Slug)
 	return s.r.HMSet(key, m).Err()
 }

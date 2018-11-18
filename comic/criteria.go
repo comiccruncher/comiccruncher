@@ -43,7 +43,7 @@ type PopularSortCriteria string
 
 const (
 	// MostIssues sorts by the most issues for a character.
-	MostIssues PopularSortCriteria = "issue_count"
+	MostIssues PopularSortCriteria = "issue_count_rank"
 	// AverageIssuesPerYear sorts by the highest average issues per year for each character.
 	AverageIssuesPerYear = "average_rank"
 )

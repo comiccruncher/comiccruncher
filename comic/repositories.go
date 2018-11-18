@@ -20,7 +20,7 @@ var (
 	// AllView is the materialized view for all characters with both main and alternate appearances.
 	AllView MaterializedView = "mv_ranked_characters"
 	// MainView is the materialized view for all characters with main appearances.
-	MainView MaterializedView = "mv_ranked_characters_alternate"
+	MainView MaterializedView = "mv_ranked_characters_main"
 	// AltView is the materialized view for all characters with alternate appearances.
 	AltView MaterializedView = "mv_ranked_characters_alternate"
 	// DcMainView is the materialized view for DC characters with main appearances.
@@ -826,10 +826,10 @@ func (r *RedisAppearancesByYearsRepository) Set(character AppearancesByYears) er
 
 // All returns all the popular characters for DC and Marvel.
 func (r *PGPopularRepository) All(cr PopularCriteria) ([]*RankedCharacter, error) {
-	if cr.AppearanceType == Main {
+	if cr.AppearanceType.HasAll(Main) {
 		return r.query(MainView, cr)
 	}
-	if cr.AppearanceType == Alternate {
+	if cr.AppearanceType.HasAll(Alternate) {
 		return r.query(AltView, cr)
 	}
 	return r.query(AllView, cr)
@@ -918,18 +918,41 @@ func (r *PGPopularRepository) RefreshAll() error {
 
 // Generates the SQL for the materialized view table.
 func (r *PGPopularRepository) sql(table MaterializedView, sort PopularSortCriteria) string {
-	return fmt.Sprintf(`SELECT average_per_year_rank as avg_per_year_rank, average_per_year as avg_per_year, issue_count, issue_count_rank as issue_count_rank, id, publisher_id, name, other_name, description,
-			image, slug, vendor_image, vendor_url, vendor_description, publisher__id, publisher__slug, publisher__name
+	cat := "main"
+	if table == AllView {
+		cat = "all_time"
+	}
+	if table == AltView {
+		cat = "alternative"
+	}
+	return fmt.Sprintf(`SELECT 
+			average_per_year_rank as stats__average_rank, 
+			average_per_year as stats__average,
+			issue_count as stats__issue_count, 
+			issue_count_rank as stats__issue_count_rank, 
+			'%s' as stats__category,
+			id,
+			publisher_id, 
+			name, 
+			other_name,
+			description,
+			image,
+			slug,
+			vendor_image,
+			vendor_url,
+			vendor_description,
+			publisher__id,
+			publisher__slug,
+			publisher__name
 		FROM %s
-		ORDER BY %s DESC
-		LIMIT ?0 OFFSET ?1`, table.Value(), string(sort))
+		ORDER BY %s ASC
+		LIMIT ?0 OFFSET ?1`, cat, table.Value(), string(sort))
 }
 
 // queries the database for the table and criteria.
 func (r *PGPopularRepository) query(table MaterializedView, cr PopularCriteria) ([]*RankedCharacter, error) {
 	var characters []*RankedCharacter
-	query := r.sql(table, cr.SortBy)
-	_, err := r.db.Query(&characters, query, cr.Limit, cr.Offset)
+	_, err := r.db.Query(&characters, r.sql(table, cr.SortBy), cr.Limit, cr.Offset)
 	if err != nil {
 		return nil, err
 	}

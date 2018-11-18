@@ -136,6 +136,9 @@ type ExpandedService struct {
 // RankedService is the service for getting ranked and popular characters.
 type RankedService struct {
 	popRepo PopularRepository
+	cr CharacterRepository
+	ar AppearancesByYearsRepository
+	r RedisClient
 }
 
 // Character gets an expanded character.
@@ -166,6 +169,7 @@ func (s *ExpandedService) Character(slug CharacterSlug) (*ExpandedCharacter, err
 		if err != nil {
 			return nil, err
 		}
+		allTime := NewCharacterStats(AllTimeStats, atRank, atCount, atAvgRank, atAvg)
 		miCount, err := parseUint(res["main_issue_count"])
 		if err != nil {
 			return nil, err
@@ -182,16 +186,10 @@ func (s *ExpandedService) Character(slug CharacterSlug) (*ExpandedCharacter, err
 		if err != nil {
 			return nil, err
 		}
-		stats := CharacterStats{
-			AllTimeRank:         atRank,
-			AllTimeIssueCount:   atCount,
-			AllTimeIssueAvg:     atAvg,
-			AllTimeIssueAvgRank: atAvgRank,
-			MainIssueCount:      miCount,
-			MainRank:            miRank,
-			MainIssueAvgRank:    miAvgRank,
-			MainIssueAvg:  miAvg,
-		}
+		mainStats := NewCharacterStats(MainStats, miRank, miCount, miAvgRank, miAvg)
+		stats := make([]CharacterStats, 2)
+		stats[0] = allTime
+		stats[1] = mainStats
 		ec.Stats = stats
 	}
 	apps, err := s.ar.List(slug)
@@ -219,6 +217,7 @@ func (s *RankedService) DCPopular(cr PopularCriteria) ([]*RankedCharacter, error
 func (s *RankedService) MarvelPopular(cr PopularCriteria) ([]*RankedCharacter, error) {
 	return s.popRepo.Marvel(cr)
 }
+
 
 // PublisherService is the service for publishers.
 type PublisherService struct {

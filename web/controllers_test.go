@@ -114,13 +114,13 @@ func TestCharacterControllerCharacter(t *testing.T) {
 
 	expandedSvc := mock_comic.NewMockExpandedServicer(ctrl)
 	stats := comic.CharacterStats{
-		AllTimeRank: 1,
-		AllTimeIssueAvgRank: 1,
+		Category: "all-time",
+		AverageRank: 1,
 	}
 	ec := &comic.ExpandedCharacter{
 		Character: mockCharacter(),
 		Appearances: apps,
-		Stats: stats,
+		Stats: []comic.CharacterStats{stats},
 	}
 	expandedSvc.EXPECT().Character(gomock.Any()).Return(ec, nil)
 	e := echo.New()
@@ -171,9 +171,15 @@ func TestCharacterControllerCharacters(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	p := comic.Publisher{ID: 1, Slug: "marvel", Name: "Marvel"}
+	stats1 := comic.CharacterStats{
+		Average: 2, AverageRank: 1, IssueCount: 10, IssueCountRank: 1,
+	}
+	stats2 := comic.CharacterStats{
+		Average: 2, AverageRank: 2, IssueCountRank:2, IssueCount: 5,
+	}
 	rankedChrs := []*comic.RankedCharacter{
-		{ID: 1, PublisherID: 1, Publisher: p, AvgPerYear: 2, AvgPerYearRank: 1, IssueCount: 10, IssueCountRank: 1, Name: "Test", Slug: "test", Image: "test.jpg", VendorImage: "test2.jpg"},
-		{ID: 2, PublisherID: 1, Publisher: p, AvgPerYearRank: 2, AvgPerYear: 2, IssueCount: 5, IssueCountRank: 2, Name: "Test2", Slug: "test2"},
+		{ID: 1, PublisherID: 1, Publisher: p, Stats: stats1, Name: "Test", Slug: "test", Image: "test.jpg", VendorImage: "test2.jpg"},
+		{ID: 2, PublisherID: 1, Publisher: p, Stats: stats2, Name: "Test2", Slug: "test2"},
 	}
 	expandedSvc := mock_comic.NewMockExpandedServicer(ctrl)
 
@@ -209,9 +215,15 @@ func TestPublisherControllerDC(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 	header := c.Response().Header()
+	stats1 := comic.CharacterStats{
+		Average: 2, AverageRank: 1, IssueCount: 10, IssueCountRank: 1,
+	}
+	stats2 := comic.CharacterStats{
+		Average: 2, AverageRank: 2, IssueCountRank:2, IssueCount: 5,
+	}
 	rankedChrs := []*comic.RankedCharacter{
-		{ID: 1, PublisherID: 1, AvgPerYear: 2, AvgPerYearRank: 1, IssueCount: 10, IssueCountRank: 1, Name: "Test", Slug: "test"},
-		{ID: 2, PublisherID: 1, AvgPerYear: 2, AvgPerYearRank: 2, IssueCount: 5, IssueCountRank: 2, Name: "Test2", Slug: "test2"},
+		{ID: 1, PublisherID: 1, Stats: stats1, Name: "Test", Slug: "test"},
+		{ID: 2, PublisherID: 1, Stats: stats2, Name: "Test2", Slug: "test2"},
 	}
 	rankedSvc := mock_comic.NewMockRankedServicer(ctrl)
 	rankedSvc.EXPECT().DCPopular(gomock.Any()).Return(rankedChrs, nil)
@@ -233,9 +245,15 @@ func TestPublisherControllerMarvel(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 	header := c.Response().Header()
+	stats1 := comic.CharacterStats{
+		Average: 2, AverageRank: 1, IssueCount: 10, IssueCountRank: 1,
+	}
+	stats2 := comic.CharacterStats{
+		Average: 2, AverageRank: 2, IssueCountRank:2, IssueCount: 5,
+	}
 	rankedChrs := []*comic.RankedCharacter{
-		{ID: 1, PublisherID: 1, AvgPerYearRank: 2, AvgPerYear: 1, IssueCount: 10, IssueCountRank: 1, Name: "Test", Slug: "test"},
-		{ID: 2, PublisherID: 1, AvgPerYearRank: 2, AvgPerYear: 2, IssueCount: 5, IssueCountRank: 2, Name: "Test2", Slug: "test2"},
+		{ID: 1, PublisherID: 1, Stats: stats1, Name: "Test", Slug: "test"},
+		{ID: 2, PublisherID: 1, Stats: stats2, Name: "Test2", Slug: "test2"},
 	}
 	rankedSvc := mock_comic.NewMockRankedServicer(ctrl)
 	rankedSvc.EXPECT().MarvelPopular(gomock.Any()).Return(rankedChrs, nil)

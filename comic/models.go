@@ -260,10 +260,6 @@ type RankedCharacter struct {
 	ID                CharacterID          `json:"-"`
 	Publisher         Publisher            `json:"publisher"`
 	PublisherID       PublisherID          `json:"-"`
-	AvgPerYearRank    AvgPerYearRank       `json:"average_per_year_rank"`
-	AvgPerYear        float64              `json:"average_per_year"`
-	IssueCountRank    IssueCountRank       `json:"issue_count_rank"`
-	IssueCount        uint                 `json:"issue_count"`
 	Name              string               `json:"name"`
 	OtherName         string               `json:"other_name"`
 	Description       string               `json:"description"`
@@ -272,26 +268,45 @@ type RankedCharacter struct {
 	VendorImage       string               `json:"vendor_image"`
 	VendorURL         string               `json:"vendor_url"`
 	VendorDescription string               `json:"vendor_description"`
+	Stats 			  CharacterStats	    `json:"stats"`
 }
 
 // ExpandedCharacter represents a character with their all-time rank as well as their rank for
 // their main appearances per publisher.
 type ExpandedCharacter struct {
 	*Character
-	Stats             CharacterStats       `json:"stats"`
+	Stats             []CharacterStats	   `json:"stats"`
 	Appearances       []AppearancesByYears `json:"appearances"`
 }
 
-// CharacterStats represents stats for an individual character.
+// CharacterStatsCategory is the category types for character stats.
+type CharacterStatsCategory string
+
+var (
+	// AllTimeStats represents stats ALL appearances and rankings for Marvel + DC combined.
+	AllTimeStats CharacterStatsCategory = "all_time"
+	// MainStats represents stats for MAIN appearances only and rankings per publisher.
+	MainStats CharacterStatsCategory = "main"
+)
+
+// CharacterStats represents ranking and issue statistic information.
 type CharacterStats struct {
-	AllTimeRank		  uint 		`json:"all_time_issue_count_rank"`
-	AllTimeIssueCount uint	 	`json:"all_time_issue_count"`
-	AllTimeIssueAvg   float64   `json:"all_time_average_per_year"`
-	AllTimeIssueAvgRank uint    `json:"all_time_average_per_year_rank"`
-	MainRank		  uint 		`json:"main_issue_count_rank"`
-	MainIssueCount    uint	    `json:"main_issue_count"`
-	MainIssueAvg      float64   `json:"main_average_per_year"`
-	MainIssueAvgRank  uint      `json:"main_average_per_year_rank"`
+	Category CharacterStatsCategory `json:"category"`
+	IssueCountRank uint `json:"issue_count_rank"`
+	IssueCount uint `json:"issue_count"`
+	Average float64 `json:"average_issues_per_year"`
+	AverageRank uint `json:"average_issues_per_year_rank"`
+}
+
+// NewCharacterStats creates a new character stats struct.
+func NewCharacterStats(c CharacterStatsCategory, rank, issueCount, avgRank uint, avg float64) CharacterStats {
+	return CharacterStats{
+		Category: c,
+		IssueCountRank: rank,
+		IssueCount: issueCount,
+		Average: avg,
+		AverageRank: avgRank,
+	}
 }
 
 // MarshalJSON overrides the marshaling of JSON with presentation for CDN urls.
@@ -301,7 +316,7 @@ func (c *ExpandedCharacter) MarshalJSON() ([]byte, error) {
 		*Alias
 		Image       string `json:"image"`
 		VendorImage string `json:"vendor_image"`
-		Stats CharacterStats        `json:"stats"`
+		Stats []CharacterStats        `json:"stats"`
 		Appearances []AppearancesByYears `json:"appearances"`
 	}{
 		Alias: (*Alias)(c.Character),

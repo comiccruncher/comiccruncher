@@ -17,16 +17,15 @@
     "vendor_description": "",
     "image": "https://d2jsu6fyd1g4ln.cloudfront.net/",
     "vendor_image": "https://d2jsu6fyd1g4ln.cloudfront.net/",
-    "stats": {
-      "all_time_issue_count_rank": 1,
-      "all_time_issue_count": 0,
-      "all_time_average_per_year": 0,
-      "all_time_average_per_year_rank": 1,
-      "main_issue_count_rank": 0,
-      "main_issue_count": 0,
-      "main_average_per_year": 0,
-      "main_average_per_year_rank": 0
-    },
+    "stats": [
+      {
+        "category": "all-time",
+        "issue_count_rank": 0,
+        "issue_count": 0,
+        "average_issues_per_year": 0,
+        "average_issues_per_year_rank": 1
+      }
+    ],
     "appearances": [
       {
         "slug": "test",

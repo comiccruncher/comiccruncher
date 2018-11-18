@@ -18,16 +18,19 @@
         "name": "Marvel",
         "slug": "marvel"
       },
-      "average_per_year_rank": 1,
-      "average_per_year": 2,
-      "issue_count_rank": 1,
-      "issue_count": 10,
       "name": "Test",
       "other_name": "",
       "description": "",
       "slug": "test",
       "vendor_url": "",
       "vendor_description": "",
+      "stats": {
+        "category": "",
+        "issue_count_rank": 1,
+        "issue_count": 10,
+        "average_issues_per_year": 2,
+        "average_issues_per_year_rank": 1
+      },
       "image": "https://d2jsu6fyd1g4ln.cloudfront.net/test.jpg",
       "vendor_image": "https://d2jsu6fyd1g4ln.cloudfront.net/test2.jpg"
     },
@@ -36,16 +39,19 @@
         "name": "Marvel",
         "slug": "marvel"
       },
-      "average_per_year_rank": 2,
-      "average_per_year": 2,
-      "issue_count_rank": 2,
-      "issue_count": 5,
       "name": "Test2",
       "other_name": "",
       "description": "",
       "slug": "test2",
       "vendor_url": "",
       "vendor_description": "",
+      "stats": {
+        "category": "",
+        "issue_count_rank": 2,
+        "issue_count": 5,
+        "average_issues_per_year": 2,
+        "average_issues_per_year_rank": 2
+      },
       "image": "",
       "vendor_image": ""
     }
