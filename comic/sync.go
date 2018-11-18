@@ -68,7 +68,7 @@ type RedisHmSetter interface {
 
 // RedisCharacterStatsSyncer is for syncing characters to redis.
 type RedisCharacterStatsSyncer struct {
-	r RedisClient
+	r  RedisClient
 	cr CharacterRepository
 	pr PopularRepository
 }
@@ -119,7 +119,7 @@ func (s *RedisCharacterStatsSyncer) set(c *Character, allTime *RankedCharacter, 
 	m["all_time_issue_count_rank"] = at.IssueCountRank
 	m["all_time_issue_count"] = at.IssueCount
 	m["all_time_average_per_year"] = at.Average
-	m["all_time_average_per_year_rank"] =  at.AverageRank
+	m["all_time_average_per_year_rank"] = at.AverageRank
 	m["main_issue_count_rank"] = ma.IssueCountRank
 	m["main_issue_count"] = ma.IssueCount
 	m["main_average_per_year"] = ma.Average
@@ -147,7 +147,7 @@ func NewAppearancesSyncerRW(r AppearancesByYearsRepository, w AppearancesByYears
 // NewCharacterStatsSyncer returns a new character stats syncer with dependencies.
 func NewCharacterStatsSyncer(r RedisClient, cr CharacterRepository, pr PopularRepository) CharacterStatsSyncer {
 	return &RedisCharacterStatsSyncer{
-		r: r,
+		r:  r,
 		cr: cr,
 		pr: pr,
 	}

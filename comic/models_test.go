@@ -69,8 +69,8 @@ func TestExpandedCharacterMarshalJSON(t *testing.T) {
 		{CharacterSlug: c.Slug, Category: comic.Main, Aggregates: aggs},
 	}
 	ec := comic.ExpandedCharacter{
-		Character: c,
-		Stats: stats,
+		Character:   c,
+		Stats:       stats,
 		Appearances: apps,
 	}
 	b, err := ec.MarshalJSON()

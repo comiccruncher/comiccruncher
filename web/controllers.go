@@ -89,7 +89,7 @@ func (c PublisherController) Marvel(ctx echo.Context) error {
 
 // CharacterController is the character controller.
 type CharacterController struct {
-	rankedSvc    comic.RankedServicer
+	rankedSvc   comic.RankedServicer
 	expandedSvc comic.ExpandedServicer
 }
 
@@ -161,7 +161,7 @@ func listRanked(results []*comic.RankedCharacter) []interface{} {
 func NewCharacterController(eSvc comic.ExpandedServicer, rSvc comic.RankedServicer) CharacterController {
 	return CharacterController{
 		expandedSvc: eSvc,
-		rankedSvc:    rSvc,
+		rankedSvc:   rSvc,
 	}
 }
 

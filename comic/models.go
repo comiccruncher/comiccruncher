@@ -257,34 +257,34 @@ type Stats struct {
 // RankedCharacter represents a character who has its rank and issue count accounted for
 // with its appearances attached..
 type RankedCharacter struct {
-	ID                CharacterID          `json:"-"`
-	Publisher         Publisher            `json:"publisher"`
-	PublisherID       PublisherID          `json:"-"`
-	Name              string               `json:"name"`
-	OtherName         string               `json:"other_name"`
-	Description       string               `json:"description"`
-	Image             string               `json:"image"`
-	Slug              CharacterSlug        `json:"slug"`
-	VendorImage       string               `json:"vendor_image"`
-	VendorURL         string               `json:"vendor_url"`
-	VendorDescription string               `json:"vendor_description"`
-	Stats 			  CharacterStats	    `json:"stats"`
+	ID                CharacterID    `json:"-"`
+	Publisher         Publisher      `json:"publisher"`
+	PublisherID       PublisherID    `json:"-"`
+	Name              string         `json:"name"`
+	OtherName         string         `json:"other_name"`
+	Description       string         `json:"description"`
+	Image             string         `json:"image"`
+	Slug              CharacterSlug  `json:"slug"`
+	VendorImage       string         `json:"vendor_image"`
+	VendorURL         string         `json:"vendor_url"`
+	VendorDescription string         `json:"vendor_description"`
+	Stats             CharacterStats `json:"stats"`
 }
 
 // LastSync represents the last sync for a character.
 type LastSync struct {
 	CharacterID CharacterID `json:"-"`
-	SyncedAt time.Time	`json:"synced_at"`
-	NumIssues int	`json:"num_issues"`
+	SyncedAt    time.Time   `json:"synced_at"`
+	NumIssues   int         `json:"num_issues"`
 }
 
 // ExpandedCharacter represents a character with their all-time rank as well as their rank for
 // their main appearances per publisher and the last sync for the character.
 type ExpandedCharacter struct {
 	*Character
-	LastSyncs 		  []*LastSync		   `json:"last_syncs"`
-	Stats             []CharacterStats	   `json:"stats"`
-	Appearances       []AppearancesByYears `json:"appearances"`
+	LastSyncs   []*LastSync          `json:"last_syncs"`
+	Stats       []CharacterStats     `json:"stats"`
+	Appearances []AppearancesByYears `json:"appearances"`
 }
 
 // CharacterStatsCategory is the category types for character stats.
@@ -299,21 +299,21 @@ var (
 
 // CharacterStats represents ranking and issue statistic information.
 type CharacterStats struct {
-	Category CharacterStatsCategory `json:"category"`
-	IssueCountRank uint `json:"issue_count_rank"`
-	IssueCount uint `json:"issue_count"`
-	Average float64 `json:"average_issues_per_year"`
-	AverageRank uint `json:"average_issues_per_year_rank"`
+	Category       CharacterStatsCategory `json:"category"`
+	IssueCountRank uint                   `json:"issue_count_rank"`
+	IssueCount     uint                   `json:"issue_count"`
+	Average        float64                `json:"average_issues_per_year"`
+	AverageRank    uint                   `json:"average_issues_per_year_rank"`
 }
 
 // NewCharacterStats creates a new character stats struct.
 func NewCharacterStats(c CharacterStatsCategory, rank, issueCount, avgRank uint, avg float64) CharacterStats {
 	return CharacterStats{
-		Category: c,
+		Category:       c,
 		IssueCountRank: rank,
-		IssueCount: issueCount,
-		Average: avg,
-		AverageRank: avgRank,
+		IssueCount:     issueCount,
+		Average:        avg,
+		AverageRank:    avgRank,
 	}
 }
 
@@ -327,20 +327,20 @@ func (c *ExpandedCharacter) MarshalJSON() ([]byte, error) {
 	if c.VendorImage != "" {
 		vendorImg = fmt.Sprintf("%s/%s", cdnURL, c.VendorImage)
 	}
-  	type Alias Character
+	type Alias Character
 	return json.Marshal(&struct {
 		*Alias
-		Image       string `json:"image"`
-		VendorImage string `json:"vendor_image"`
-		LastSyncs   []*LastSync `json:"last_syncs"`
-		Stats []CharacterStats        `json:"stats"`
+		Image       string               `json:"image"`
+		VendorImage string               `json:"vendor_image"`
+		LastSyncs   []*LastSync          `json:"last_syncs"`
+		Stats       []CharacterStats     `json:"stats"`
 		Appearances []AppearancesByYears `json:"appearances"`
 	}{
-		Alias: (*Alias)(c.Character),
+		Alias:       (*Alias)(c.Character),
 		Image:       img,
 		VendorImage: vendorImg,
-		LastSyncs: c.LastSyncs,
-		Stats: c.Stats,
+		LastSyncs:   c.LastSyncs,
+		Stats:       c.Stats,
 		Appearances: c.Appearances,
 	})
 }
@@ -452,6 +452,7 @@ func (r IssueCountRank) Value() uint {
 func (r AvgPerYearRank) Value() uint {
 	return uint(r)
 }
+
 // MarshalJSON overrides JSON marshaling for CDN url.
 func (c *Character) MarshalJSON() ([]byte, error) {
 	strctImage := ""

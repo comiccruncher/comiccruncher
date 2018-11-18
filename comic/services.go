@@ -128,18 +128,18 @@ type ExpandedServicer interface {
 
 // ExpandedService gets an expanded character.
 type ExpandedService struct {
-	cr CharacterRepository
-	ar AppearancesByYearsRepository
-	r RedisClient
+	cr  CharacterRepository
+	ar  AppearancesByYearsRepository
+	r   RedisClient
 	slr CharacterSyncLogRepository
 }
 
 // RankedService is the service for getting ranked and popular characters.
 type RankedService struct {
 	popRepo PopularRepository
-	cr CharacterRepository
-	ar AppearancesByYearsRepository
-	r RedisClient
+	cr      CharacterRepository
+	ar      AppearancesByYearsRepository
+	r       RedisClient
 }
 
 // Character gets an expanded character.
@@ -223,7 +223,6 @@ func (s *RankedService) DCPopular(cr PopularCriteria) ([]*RankedCharacter, error
 func (s *RankedService) MarvelPopular(cr PopularCriteria) ([]*RankedCharacter, error) {
 	return s.popRepo.Marvel(cr)
 }
-
 
 // PublisherService is the service for publishers.
 type PublisherService struct {
@@ -544,9 +543,9 @@ func NewRankedService(repository PopularRepository) RankedServicer {
 // NewExpandedService creates a new service for getting expanded details for a character
 func NewExpandedService(cr CharacterRepository, ar AppearancesByYearsRepository, rc RedisClient, slr CharacterSyncLogRepository) ExpandedServicer {
 	return &ExpandedService{
-		cr: cr,
-		ar: ar,
-		r: rc,
+		cr:  cr,
+		ar:  ar,
+		r:   rc,
 		slr: slr,
 	}
 }

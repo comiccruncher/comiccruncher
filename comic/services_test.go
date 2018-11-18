@@ -30,7 +30,7 @@ func TestExpandedServiceCharacter(t *testing.T) {
 			Name: "Marvel",
 		},
 		PublisherID: 1,
-		Slug: "emma-frost",
+		Slug:        "emma-frost",
 	}
 
 	cr := mock_comic.NewMockCharacterRepository(ctrl)
@@ -130,7 +130,7 @@ func TestExpandedServiceCharacterNoRedisResult(t *testing.T) {
 			Name: "Marvel",
 		},
 		PublisherID: 1,
-		Slug: "emma-frost",
+		Slug:        "emma-frost",
 	}
 
 	cr := mock_comic.NewMockCharacterRepository(ctrl)

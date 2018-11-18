@@ -115,7 +115,7 @@ func TestCharacterControllerCharacter(t *testing.T) {
 
 	expandedSvc := mock_comic.NewMockExpandedServicer(ctrl)
 	stats := comic.CharacterStats{
-		Category: "all-time",
+		Category:    "all-time",
 		AverageRank: 1,
 	}
 	tm, err := time.Parse("2006-01-02", "2018-01-02")
@@ -123,9 +123,9 @@ func TestCharacterControllerCharacter(t *testing.T) {
 		panic(err)
 	}
 	ec := &comic.ExpandedCharacter{
-		Character: mockCharacter(),
+		Character:   mockCharacter(),
 		Appearances: apps,
-		Stats: []comic.CharacterStats{stats},
+		Stats:       []comic.CharacterStats{stats},
 		LastSyncs: []*comic.LastSync{
 			{
 				CharacterID: 1,
@@ -187,7 +187,7 @@ func TestCharacterControllerCharacters(t *testing.T) {
 		Average: 2, AverageRank: 1, IssueCount: 10, IssueCountRank: 1,
 	}
 	stats2 := comic.CharacterStats{
-		Average: 2, AverageRank: 2, IssueCountRank:2, IssueCount: 5,
+		Average: 2, AverageRank: 2, IssueCountRank: 2, IssueCount: 5,
 	}
 	rankedChrs := []*comic.RankedCharacter{
 		{ID: 1, PublisherID: 1, Publisher: p, Stats: stats1, Name: "Test", Slug: "test", Image: "test.jpg", VendorImage: "test2.jpg"},
@@ -231,7 +231,7 @@ func TestPublisherControllerDC(t *testing.T) {
 		Average: 2, AverageRank: 1, IssueCount: 10, IssueCountRank: 1,
 	}
 	stats2 := comic.CharacterStats{
-		Average: 2, AverageRank: 2, IssueCountRank:2, IssueCount: 5,
+		Average: 2, AverageRank: 2, IssueCountRank: 2, IssueCount: 5,
 	}
 	rankedChrs := []*comic.RankedCharacter{
 		{ID: 1, PublisherID: 1, Stats: stats1, Name: "Test", Slug: "test"},
@@ -261,7 +261,7 @@ func TestPublisherControllerMarvel(t *testing.T) {
 		Average: 2, AverageRank: 1, IssueCount: 10, IssueCountRank: 1,
 	}
 	stats2 := comic.CharacterStats{
-		Average: 2, AverageRank: 2, IssueCountRank:2, IssueCount: 5,
+		Average: 2, AverageRank: 2, IssueCountRank: 2, IssueCount: 5,
 	}
 	rankedChrs := []*comic.RankedCharacter{
 		{ID: 1, PublisherID: 1, Stats: stats1, Name: "Test", Slug: "test"},

@@ -87,15 +87,15 @@ func TestRedisCharacterStatsSyncerSyncMarvel(t *testing.T) {
 	pr := mock_comic.NewMockPopularRepository(ctrl)
 	pr.EXPECT().FindOneByDC(gomock.Any()).Times(0)
 	pr.EXPECT().FindOneByMarvel(gomock.Any()).Return(&comic.RankedCharacter{
-		Stats: comic.CharacterStats {
+		Stats: comic.CharacterStats{
 			IssueCountRank: 1,
-			IssueCount: 100,
+			IssueCount:     100,
 		},
 	}, nil)
 	pr.EXPECT().FindOneByAll(gomock.Any()).Return(&comic.RankedCharacter{
 		Stats: comic.CharacterStats{
 			IssueCountRank: 2,
-			IssueCount: 200,
+			IssueCount:     200,
 		},
 	}, nil)
 
@@ -122,13 +122,13 @@ func TestRedisCharacterStatsSyncerSyncDC(t *testing.T) {
 	pr.EXPECT().FindOneByDC(gomock.Any()).Return(&comic.RankedCharacter{
 		Stats: comic.CharacterStats{
 			IssueCountRank: 1,
-			IssueCount: 100,
+			IssueCount:     100,
 		},
 	}, nil)
 	pr.EXPECT().FindOneByAll(gomock.Any()).Return(&comic.RankedCharacter{
 		Stats: comic.CharacterStats{
 			IssueCountRank: 2,
-			IssueCount: 200,
+			IssueCount:     200,
 		},
 	}, nil)
 

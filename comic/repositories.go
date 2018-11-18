@@ -131,7 +131,7 @@ type PopularRefresher interface {
 
 // PGPopularRepository is the postgres implementation for the popular character repository.
 type PGPopularRepository struct {
-	db  *pg.DB
+	db *pg.DB
 }
 
 // PGAppearancesByYearsRepository is the postgres implementation for the appearances per year repository.
@@ -907,7 +907,7 @@ func (r *PGPopularRepository) FindOneByAll(id CharacterID) (*RankedCharacter, er
 
 // Refresh refreshes the specified the materialized view. Note this can take several seconds!
 func (r *PGPopularRepository) Refresh(view MaterializedView) error {
-	 _, err := r.db.Exec("REFRESH MATERIALIZED VIEW CONCURRENTLY " + view.Value())
+	_, err := r.db.Exec("REFRESH MATERIALIZED VIEW CONCURRENTLY " + view.Value())
 	return err
 }
 
@@ -939,7 +939,7 @@ func (r *PGPopularRepository) RefreshAll() error {
 	}
 	wg.Wait() // done goroutines
 	select {
-	case err, ok := <- errCh:
+	case err, ok := <-errCh:
 		if ok {
 			return err
 		}
@@ -1065,7 +1065,7 @@ func NewPGCharacterSyncLogRepository(db *pg.DB) CharacterSyncLogRepository {
 // and the redis cache for appearances.
 func NewPGPopularRepository(db *pg.DB) PopularRepository {
 	return &PGPopularRepository{
-		db:  db,
+		db: db,
 	}
 }
 
@@ -1084,6 +1084,6 @@ func NewAppearancesByYearsWriter(c RedisClient) AppearancesByYearsWriter {
 // NewPopularRefresher creates a new refresher for refreshing the materialized views.
 func NewPopularRefresher(db *pg.DB) PopularRefresher {
 	return &PGPopularRepository{
-		db:  db,
+		db: db,
 	}
 }

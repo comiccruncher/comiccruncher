@@ -14,9 +14,9 @@ type Page struct {
 
 // Pagination is a view that displays pagination info.
 type Pagination struct {
-	PerPage      int   `json:"per_page"`
+	PerPage      int    `json:"per_page"`
 	PreviousPage string `json:"previous_page"`
-	CurrentPage  string  `json:"current_page"`
+	CurrentPage  string `json:"current_page"`
 	NextPage     string `json:"next_page"`
 }
 
