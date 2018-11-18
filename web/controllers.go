@@ -131,7 +131,7 @@ func decodeCriteria(ctx echo.Context) (comic.PopularCriteria, error) {
 		sortBy = comic.AverageIssuesPerYear
 	}
 	appearanceType := comic.Main | comic.Alternate
-	typeReq := ctx.QueryParam("type")
+	typeReq := ctx.QueryParam("category")
 	switch typeReq {
 	case "main":
 		appearanceType = comic.Main
