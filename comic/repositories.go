@@ -844,10 +844,10 @@ func (r *RedisAppearancesByYearsRepository) Set(character AppearancesByYears) er
 
 // All returns all the popular characters for DC and Marvel.
 func (r *PGPopularRepository) All(cr PopularCriteria) ([]*RankedCharacter, error) {
-	if cr.AppearanceType.HasAll(Main) {
+	if cr.AppearanceType == Main {
 		return r.query(MainView, cr)
 	}
-	if cr.AppearanceType.HasAll(Alternate) {
+	if cr.AppearanceType == Alternate  {
 		return r.query(AltView, cr)
 	}
 	return r.query(AllView, cr)
@@ -957,7 +957,7 @@ func (r *PGPopularRepository) sql(table MaterializedView, sort PopularSortCriter
 		cat = "all_time"
 	}
 	if table == AltView {
-		cat = "alternative"
+		cat = "alternate"
 	}
 	return fmt.Sprintf(`SELECT 
 			average_per_year_rank as stats__average_rank, 
