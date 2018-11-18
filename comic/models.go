@@ -120,7 +120,7 @@ type Format string
 // VendorType is type of vendor from an external source for an issue.
 type VendorType int
 
-// IssueCountRankID is the ranking for the number of issues for a character.
+// IssueCountRank is the ranking for the number of issues for a character.
 type IssueCountRank uint
 
 // AvgPerYearRank is the rank for average issues per year.
