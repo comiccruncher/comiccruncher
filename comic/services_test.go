@@ -150,3 +150,27 @@ func TestExpandedServiceCharacterNoRedisResult(t *testing.T) {
 	assert.Len(t, ec.Appearances, 0)
 	assert.Len(t, ec.Stats, 0)
 }
+
+func TestRankedServiceDCTrending(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	r := mock_comic.NewMockPopularRepository(ctrl)
+	r.EXPECT().DCTrending(25, 0).Times(1).Return([]*comic.RankedCharacter{}, nil)
+	svc := comic.NewRankedService(r)
+	results, err := svc.DCTrending(25, 0)
+	assert.Nil(t, err)
+	assert.Len(t, results, 0)
+}
+
+func TestRankedServiceMarvelTrending(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	r := mock_comic.NewMockPopularRepository(ctrl)
+	r.EXPECT().MarvelTrending(25, 0).Times(1).Return([]*comic.RankedCharacter{}, nil)
+	svc := comic.NewRankedService(r)
+	results, err := svc.MarvelTrending(25, 0)
+	assert.Nil(t, err)
+	assert.Len(t, results, 0)
+}
