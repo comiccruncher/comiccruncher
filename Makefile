@@ -308,15 +308,13 @@ remote-deploy-nginx: remote-upload-nginx
 
 remote-deploy-api1:
 	scp ./${WEBAPP_BIN} ${API_SERVER1}:~/${WEBAPP_TMP_BIN}
-	ssh ${API_SERVER1} "bash -s" < ./build/webapp.sh
+	ssh ${API_SERVER1} "bin/webapp start -p 8001 | logger &"
 
 remote-deploy-api2:
 	scp ./${WEBAPP_BIN} ${API_SERVER2}:~/${WEBAPP_TMP_BIN}
-	ssh ${API_SERVER2} "bash -s" < ./build/webapp.sh
+	ssh ${API_SERVER2} "bin/webapp start -p 8001 | logger &"
 
 remote-deploy-lb: remote-upload-nginx
 	ssh ${LB_SERVER} "nginx -s reload"
 
-remote-deploy-webapps:
-	make remote-deploy-api1 & make remote-deploy-api2 &
-	sleep 5 && make remote-deploy-lb
+remote-deploy-webapps: remote-deploy-api1 remote-deploy-api2 remote-deploy-lb
