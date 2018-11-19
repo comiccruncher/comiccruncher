@@ -10,7 +10,7 @@ import (
 	"testing"
 )
 
-func TestCharacterCBParser_Parse(t *testing.T) {
+func TestCharacterCBExtractorExtract(t *testing.T) {
 	sourceCtrl := gomock.NewController(t)
 	defer sourceCtrl.Finish()
 	sourceMock := mock_externalissuesource.NewMockExternalSource(sourceCtrl)
@@ -44,8 +44,8 @@ func TestCharacterCBParser_Parse(t *testing.T) {
 	}
 	sourceMock.EXPECT().CharacterPage(gomock.Any()).Times(1).Return(pages[0], nil)
 	sourceMock.EXPECT().CharacterPage(gomock.Any()).Return(pages[1], nil)
-	parser := cerebro.NewCharacterCBParser(sourceMock)
-	vi, err := parser.Parse(sources)
+	parser := cerebro.NewCharacterCBExtractor(sourceMock)
+	vi, err := parser.Extract(sources)
 	assert.Nil(t, err)
 	assert.True(t, vi.MainSources[cerebro.ExternalVendorID("123")])
 	assert.True(t, vi.MainSources[cerebro.ExternalVendorID("1234")])
@@ -57,12 +57,12 @@ func TestCharacterCBParser_Parse(t *testing.T) {
 	assert.True(t, vi.AltSources[cerebro.ExternalVendorID("1884")])
 }
 
-func TestCharacterCBParser_Parse_NoSources(t *testing.T) {
+func TestCharacterCBExtractorExtractNoSources(t *testing.T) {
 	sourceCtrl := gomock.NewController(t)
 	defer sourceCtrl.Finish()
 	sourceMock := mock_externalissuesource.NewMockExternalSource(sourceCtrl)
 	sources := []*comic.CharacterSource{}
-	parser := cerebro.NewCharacterCBParser(sourceMock)
-	_, err := parser.Parse(sources)
+	parser := cerebro.NewCharacterCBExtractor(sourceMock)
+	_, err := parser.Extract(sources)
 	assert.Error(t, err)
 }

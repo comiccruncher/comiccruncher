@@ -77,14 +77,16 @@ func NewImportRunner() (*ImportRunner, error) {
 	container := comic.NewPGRepositoryContainer(db)
 	httpClient := http.DefaultClient
 	s3Storage, err := storage.NewS3StorageFromEnv()
-	redisRepository := comic.NewRedisAppearancesPerYearRepository(rediscache.Instance())
+	r := rediscache.Instance()
+	redisRepository := comic.NewRedisAppearancesPerYearRepository(r)
 	appearancesSyncer := comic.NewAppearancesSyncer(container, redisRepository)
 	// Use the http client provided from the external source.
 	externalSource := externalissuesource.NewCbExternalSource(externalissuesource.NewHttpClient(), &externalissuesource.CbExternalSourceConfig{})
+	statsSyncer := comic.NewCharacterStatsSyncer(r, container.CharacterRepository(), comic.NewPGPopularRepository(db))
 	return &ImportRunner{
 		marvelImporter:          NewMarvelCharactersImporter(marvel.NewMarvelAPI(httpClient), container, s3Storage),
 		dcImporter:              NewDcCharactersImporter(dc.NewDcAPI(httpClient), container, s3Storage),
-		characterIssueImporter:  *NewCharacterIssueImporter(container, appearancesSyncer, externalSource),
+		characterIssueImporter:  *NewCharacterIssueImporter(container, appearancesSyncer, externalSource, statsSyncer),
 		characterSourceImporter: *NewCharacterSourceImporter(httpClient, container, externalSource),
 		pgContainer:             *container,
 	}, err

@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 )
 
 func TestStatsControllerStatsReturnsOK(t *testing.T) {
@@ -112,10 +113,28 @@ func TestCharacterControllerCharacter(t *testing.T) {
 		comic.NewAppearancesByYears("test", comic.Alternate, aggs),
 	}
 
-	characterSvc := mock_comic.NewMockCharacterServicer(ctrl)
-	characterSvc.EXPECT().Character(gomock.Any()).Return(mockCharacter(), nil)
-	characterSvc.EXPECT().ListAppearances(gomock.Any()).Return(apps, nil)
-
+	expandedSvc := mock_comic.NewMockExpandedServicer(ctrl)
+	stats := comic.CharacterStats{
+		Category:    "all-time",
+		AverageRank: 1,
+	}
+	tm, err := time.Parse("2006-01-02", "2018-01-02")
+	if err != nil {
+		panic(err)
+	}
+	ec := &comic.ExpandedCharacter{
+		Character:   mockCharacter(),
+		Appearances: apps,
+		Stats:       []comic.CharacterStats{stats},
+		LastSyncs: []*comic.LastSync{
+			{
+				CharacterID: 1,
+				SyncedAt:    tm,
+				NumIssues:   10,
+			},
+		},
+	}
+	expandedSvc.EXPECT().Character(gomock.Any()).Return(ec, nil)
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodGet, "/characters/emma-frost", nil)
 	rec := httptest.NewRecorder()
@@ -123,7 +142,7 @@ func TestCharacterControllerCharacter(t *testing.T) {
 	header := c.Response().Header()
 
 	rankedSvc := mock_comic.NewMockRankedServicer(ctrl)
-	characterCtrl := web.NewCharacterController(characterSvc, rankedSvc)
+	characterCtrl := web.NewCharacterController(expandedSvc, rankedSvc)
 	err = characterCtrl.Character(c)
 
 	assert.Nil(t, err)
@@ -142,8 +161,8 @@ func TestCharacterControllerCharacterNotFound(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	characterSvc := mock_comic.NewMockCharacterServicer(ctrl)
-	characterSvc.EXPECT().Character(gomock.Any()).Return(nil, nil)
+	expandedSvc := mock_comic.NewMockExpandedServicer(ctrl)
+	expandedSvc.EXPECT().Character(gomock.Any()).Return(nil, nil)
 
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodGet, "/characters/emma-frost", nil)
@@ -151,7 +170,7 @@ func TestCharacterControllerCharacterNotFound(t *testing.T) {
 	c := e.NewContext(req, rec)
 
 	rankedSvc := mock_comic.NewMockRankedServicer(ctrl)
-	characterCtrl := web.NewCharacterController(characterSvc, rankedSvc)
+	characterCtrl := web.NewCharacterController(expandedSvc, rankedSvc)
 	err := characterCtrl.Character(c)
 
 	assert.Equal(t, web.ErrNotFound.Error(), err.Error())
@@ -164,11 +183,17 @@ func TestCharacterControllerCharacters(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	p := comic.Publisher{ID: 1, Slug: "marvel", Name: "Marvel"}
-	rankedChrs := []*comic.RankedCharacter{
-		{ID: 1, PublisherID: 1, Publisher: p, AvgRank: 2, AvgRankID: 1, IssueCount: 10, IssueCountRankID: 1, Name: "Test", Slug: "test", Image: "test.jpg", VendorImage: "test2.jpg"},
-		{ID: 2, PublisherID: 1, Publisher: p, AvgRank: 2, AvgRankID: 2, IssueCount: 5, IssueCountRankID: 2, Name: "Test2", Slug: "test2"},
+	stats1 := comic.CharacterStats{
+		Average: 2, AverageRank: 1, IssueCount: 10, IssueCountRank: 1,
 	}
-	characterSvc := mock_comic.NewMockCharacterServicer(ctrl)
+	stats2 := comic.CharacterStats{
+		Average: 2, AverageRank: 2, IssueCountRank: 2, IssueCount: 5,
+	}
+	rankedChrs := []*comic.RankedCharacter{
+		{ID: 1, PublisherID: 1, Publisher: p, Stats: stats1, Name: "Test", Slug: "test", Image: "test.jpg", VendorImage: "test2.jpg"},
+		{ID: 2, PublisherID: 1, Publisher: p, Stats: stats2, Name: "Test2", Slug: "test2"},
+	}
+	expandedSvc := mock_comic.NewMockExpandedServicer(ctrl)
 
 	e := echo.New()
 	req := httptest.NewRequest(http.MethodGet, "/characters?page=1", nil)
@@ -178,7 +203,7 @@ func TestCharacterControllerCharacters(t *testing.T) {
 
 	rankedSvc := mock_comic.NewMockRankedServicer(ctrl)
 	rankedSvc.EXPECT().AllPopular(gomock.Any()).Return(rankedChrs, nil)
-	characterCtrl := web.NewCharacterController(characterSvc, rankedSvc)
+	characterCtrl := web.NewCharacterController(expandedSvc, rankedSvc)
 	// make the call
 	err = characterCtrl.Characters(c)
 	assert.Nil(t, err)
@@ -202,12 +227,24 @@ func TestPublisherControllerDC(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 	header := c.Response().Header()
+	stats1 := comic.CharacterStats{
+		Average: 2, AverageRank: 1, IssueCount: 10, IssueCountRank: 1,
+	}
+	stats2 := comic.CharacterStats{
+		Average: 2, AverageRank: 2, IssueCountRank: 2, IssueCount: 5,
+	}
 	rankedChrs := []*comic.RankedCharacter{
-		{ID: 1, PublisherID: 1, AvgRank: 2, AvgRankID: 1, IssueCount: 10, IssueCountRankID: 1, Name: "Test", Slug: "test"},
-		{ID: 2, PublisherID: 1, AvgRank: 2, AvgRankID: 2, IssueCount: 5, IssueCountRankID: 2, Name: "Test2", Slug: "test2"},
+		{ID: 1, PublisherID: 1, Stats: stats1, Name: "Test", Slug: "test"},
+		{ID: 2, PublisherID: 1, Stats: stats2, Name: "Test2", Slug: "test2"},
+	}
+	cr := comic.PopularCriteria{
+		SortBy:         comic.MostIssues,
+		AppearanceType: comic.Main | comic.Alternate,
+		Limit:          25,
+		Offset:         0,
 	}
 	rankedSvc := mock_comic.NewMockRankedServicer(ctrl)
-	rankedSvc.EXPECT().DCPopular(gomock.Any()).Return(rankedChrs, nil)
+	rankedSvc.EXPECT().DCPopular(cr).Return(rankedChrs, nil)
 
 	publisherCtrlr := web.NewPublisherController(rankedSvc)
 	err := publisherCtrlr.DC(c)
@@ -226,15 +263,88 @@ func TestPublisherControllerMarvel(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 	header := c.Response().Header()
+	stats1 := comic.CharacterStats{
+		Average: 2, AverageRank: 1, IssueCount: 10, IssueCountRank: 1,
+	}
+	stats2 := comic.CharacterStats{
+		Average: 2, AverageRank: 2, IssueCountRank: 2, IssueCount: 5,
+	}
 	rankedChrs := []*comic.RankedCharacter{
-		{ID: 1, PublisherID: 1, AvgRank: 2, AvgRankID: 1, IssueCount: 10, IssueCountRankID: 1, Name: "Test", Slug: "test"},
-		{ID: 2, PublisherID: 1, AvgRank: 2, AvgRankID: 2, IssueCount: 5, IssueCountRankID: 2, Name: "Test2", Slug: "test2"},
+		{ID: 1, PublisherID: 1, Stats: stats1, Name: "Test", Slug: "test"},
+		{ID: 2, PublisherID: 1, Stats: stats2, Name: "Test2", Slug: "test2"},
+	}
+
+	cr := comic.PopularCriteria{
+		SortBy:         comic.MostIssues,
+		AppearanceType: comic.Main | comic.Alternate,
+		Limit:          25,
+		Offset:         0,
 	}
 	rankedSvc := mock_comic.NewMockRankedServicer(ctrl)
-	rankedSvc.EXPECT().MarvelPopular(gomock.Any()).Return(rankedChrs, nil)
+	rankedSvc.EXPECT().MarvelPopular(cr).Return(rankedChrs, nil)
 
 	publisherCtrlr := web.NewPublisherController(rankedSvc)
 	err := publisherCtrlr.Marvel(c)
+
+	assert.Nil(t, err)
+	assert.Equal(t, http.StatusOK, rec.Code)
+	assert.Equal(t, "application/json; charset=UTF-8", header.Get("Content-Type"))
+}
+
+func TestTrendingControllerMarvel(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/characters?page=1", nil)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	header := c.Response().Header()
+	stats1 := comic.CharacterStats{
+		Average: 2, AverageRank: 1, IssueCount: 10, IssueCountRank: 1,
+	}
+	stats2 := comic.CharacterStats{
+		Average: 2, AverageRank: 2, IssueCountRank: 2, IssueCount: 5,
+	}
+	rankedChrs := []*comic.RankedCharacter{
+		{ID: 1, PublisherID: 1, Stats: stats1, Name: "Test", Slug: "test"},
+		{ID: 2, PublisherID: 1, Stats: stats2, Name: "Test2", Slug: "test2"},
+	}
+	rankedSvc := mock_comic.NewMockRankedServicer(ctrl)
+	rankedSvc.EXPECT().MarvelTrending(25, 0).Return(rankedChrs, nil)
+
+	trendingCtrl := web.NewTrendingController(rankedSvc)
+	err := trendingCtrl.Marvel(c)
+
+	assert.Nil(t, err)
+	assert.Equal(t, http.StatusOK, rec.Code)
+	assert.Equal(t, "application/json; charset=UTF-8", header.Get("Content-Type"))
+}
+
+func TestTrendingControllerDC(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	e := echo.New()
+	req := httptest.NewRequest(http.MethodGet, "/characters?page=1", nil)
+	rec := httptest.NewRecorder()
+	c := e.NewContext(req, rec)
+	header := c.Response().Header()
+	stats1 := comic.CharacterStats{
+		Average: 2, AverageRank: 1, IssueCount: 10, IssueCountRank: 1,
+	}
+	stats2 := comic.CharacterStats{
+		Average: 2, AverageRank: 2, IssueCountRank: 2, IssueCount: 5,
+	}
+	rankedChrs := []*comic.RankedCharacter{
+		{ID: 1, PublisherID: 1, Stats: stats1, Name: "Test", Slug: "test"},
+		{ID: 2, PublisherID: 1, Stats: stats2, Name: "Test2", Slug: "test2"},
+	}
+	rankedSvc := mock_comic.NewMockRankedServicer(ctrl)
+	rankedSvc.EXPECT().DCTrending(25, 0).Return(rankedChrs, nil)
+
+	trendingCtrl := web.NewTrendingController(rankedSvc)
+	err := trendingCtrl.DC(c)
 
 	assert.Nil(t, err)
 	assert.Equal(t, http.StatusOK, rec.Code)

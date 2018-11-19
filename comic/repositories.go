@@ -3,15 +3,44 @@ package comic
 import (
 	"errors"
 	"fmt"
+	"github.com/aimeelaplant/comiccruncher/internal/log"
 	"github.com/aimeelaplant/comiccruncher/internal/stringutil"
 	"github.com/go-pg/pg"
 	"github.com/go-redis/redis"
 	"github.com/gosimple/slug"
+	"go.uber.org/zap"
 	"strings"
+	"sync"
 	"time"
 )
 
 const appearancesPerYearsKey = "yearly"
+
+var (
+	// AllView is the materialized view for all characters with both main and alternate appearances.
+	AllView MaterializedView = "mv_ranked_characters"
+	// MainView is the materialized view for all characters with main appearances.
+	MainView MaterializedView = "mv_ranked_characters_main"
+	// AltView is the materialized view for all characters with alternate appearances.
+	AltView MaterializedView = "mv_ranked_characters_alternate"
+	// DcMainView is the materialized view for DC characters with main appearances.
+	DcMainView MaterializedView = "mv_ranked_characters_dc_main"
+	// MarvelMainView is the materialized view for Marvel characters with main appearances.
+	MarvelMainView MaterializedView = "mv_ranked_characters_marvel_main"
+	// MarvelTrendingView is the materialized view for trending Marvel characters for main appearances only.
+	MarvelTrendingView MaterializedView = "mv_trending_characters_marvel"
+	// DCTrendingView is the materialized view for trending DC characters for main appearances only.
+	DCTrendingView MaterializedView = "mv_trending_characters_dc"
+	// Sooo many. In hindsight I should have used something like MongoDB. ¯\_(ツ)_/¯
+)
+
+// MaterializedView is the name of a table with a materialized view to cache expensive query results.
+type MaterializedView string
+
+// Value returns the string value.
+func (v MaterializedView) Value() string {
+	return string(v)
+}
 
 // PublisherRepository is the repository interface for publishers.
 type PublisherRepository interface {
@@ -54,6 +83,7 @@ type CharacterSyncLogRepository interface {
 	FindAllByCharacterID(characterID CharacterID) ([]*CharacterSyncLog, error)
 	Update(s *CharacterSyncLog) error
 	FindByID(id CharacterSyncLogID) (*CharacterSyncLog, error)
+	LastSyncs(id CharacterID) ([]*LastSync, error)
 }
 
 // CharacterIssueRepository is the repository interface for character issues.
@@ -92,12 +122,22 @@ type PopularRepository interface {
 	All(cr PopularCriteria) ([]*RankedCharacter, error)
 	DC(cr PopularCriteria) ([]*RankedCharacter, error)
 	Marvel(cr PopularCriteria) ([]*RankedCharacter, error)
+	FindOneByDC(id CharacterID) (*RankedCharacter, error)
+	FindOneByMarvel(id CharacterID) (*RankedCharacter, error)
+	FindOneByAll(id CharacterID) (*RankedCharacter, error)
+	MarvelTrending(limit, offset int) ([]*RankedCharacter, error)
+	DCTrending(limit, offset int) ([]*RankedCharacter, error)
+}
+
+// PopularRefresher concurrently refreshes the materialized views.
+type PopularRefresher interface {
+	Refresh(view MaterializedView) error
+	RefreshAll() error
 }
 
 // PGPopularRepository is the postgres implementation for the popular character repository.
 type PGPopularRepository struct {
-	db  *pg.DB
-	apy AppearancesByYearsMapRepository
+	db *pg.DB
 }
 
 // PGAppearancesByYearsRepository is the postgres implementation for the appearances per year repository.
@@ -142,7 +182,7 @@ type PGStatsRepository struct {
 
 // RedisAppearancesByYearsRepository is the Redis implementation for appearances per year repository.
 type RedisAppearancesByYearsRepository struct {
-	redisClient *redis.Client
+	redisClient RedisClient
 }
 
 // FindBySlug gets a publisher by its slug.
@@ -476,6 +516,23 @@ func (r *PGCharacterSyncLogRepository) FindByID(id CharacterSyncLogID) (*Charact
 	return syncLog, nil
 }
 
+// LastSyncs gets the last successful sync logs for a character.
+func (r *PGCharacterSyncLogRepository) LastSyncs(id CharacterID) ([]*LastSync, error) {
+	var ls []*LastSync
+	sql := `SELECT
+		character_id,
+		synced_at,
+		(message)::int as num_issues
+		FROM character_sync_logs
+		WHERE character_id = ?
+			AND message IS NOT NULL
+			AND synced_at IS NOT NULL
+			AND sync_status = ?
+		ORDER BY synced_at DESC LIMIT 3`
+	_, err := r.db.Query(&ls, sql, id, Success)
+	return ls, err
+}
+
 // Create creates an issue.
 func (r *PGIssueRepository) Create(issue *Issue) error {
 	_, err := r.db.Model(issue).Returning("*").Insert(issue)
@@ -794,50 +851,170 @@ func (r *RedisAppearancesByYearsRepository) Set(character AppearancesByYears) er
 // All returns all the popular characters for DC and Marvel.
 func (r *PGPopularRepository) All(cr PopularCriteria) ([]*RankedCharacter, error) {
 	if cr.AppearanceType == Main {
-		return r.query("mv_ranked_characters_main", cr)
+		return r.query(MainView, cr)
 	}
 	if cr.AppearanceType == Alternate {
-		return r.query("mv_ranked_characters_alternate", cr)
+		return r.query(AltView, cr)
 	}
-	return r.query("mv_ranked_characters", cr)
+	return r.query(AllView, cr)
 }
 
 // DC gets the popular characters for DC characters only. The rank will be adjusted for DC.
 func (r *PGPopularRepository) DC(cr PopularCriteria) ([]*RankedCharacter, error) {
-	if cr.AppearanceType == Main {
-		return r.query("mv_ranked_characters_dc_main", cr)
-	}
-	if cr.AppearanceType == Alternate {
-		return r.query("mv_ranked_characters_dc_alternate", cr)
-	}
-	return r.query("mv_ranked_characters_dc", cr)
+	return r.query(DcMainView, cr)
 }
 
 // Marvel gets the popular characters for Marvel characters only. The rank will be adjusted for Marvel.
 func (r *PGPopularRepository) Marvel(cr PopularCriteria) ([]*RankedCharacter, error) {
-	if cr.AppearanceType == Main {
-		return r.query("mv_ranked_characters_marvel_main", cr)
+	return r.query(MarvelMainView, cr)
+}
+
+// MarvelTrending gets the trending characters for Marvel.
+func (r *PGPopularRepository) MarvelTrending(limit, offset int) ([]*RankedCharacter, error) {
+	return r.query(MarvelTrendingView, PopularCriteria{
+		AppearanceType: Main,
+		SortBy:         MostIssues,
+		Limit:          limit,
+		Offset:         offset,
+	})
+}
+
+// DCTrending gets the trending characters for DC.
+func (r *PGPopularRepository) DCTrending(limit, offset int) ([]*RankedCharacter, error) {
+	return r.query(DCTrendingView, PopularCriteria{
+		AppearanceType: Main,
+		SortBy:         MostIssues,
+		Limit:          limit,
+		Offset:         offset,
+	})
+}
+
+func (r *PGPopularRepository) findOneBy(id CharacterID, view MaterializedView) (*RankedCharacter, error) {
+	sql := fmt.Sprintf(`SELECT
+		average_per_year_rank as stats__average_rank,
+		average_per_year as stats__average,
+		issue_count as stats__issue_count,
+		issue_count_rank as stats__issue_count_rank,
+		id,
+		publisher_id,
+		name,
+		other_name,
+		description,
+		image,
+		slug,
+		vendor_image,
+		vendor_url,
+		vendor_description,
+		publisher__id,
+		publisher__slug,
+		publisher__name
+		FROM %s
+		WHERE id = ?
+		`, view)
+	c := &RankedCharacter{}
+	_, err := r.db.QueryOne(c, sql, id)
+	return c, err
+}
+
+// FindOneByDC finds a ranked character for DC main appearances.
+func (r *PGPopularRepository) FindOneByDC(id CharacterID) (*RankedCharacter, error) {
+	return r.findOneBy(id, DcMainView)
+}
+
+// FindOneByMarvel finds a ranked character for Marvel main appearances.
+func (r *PGPopularRepository) FindOneByMarvel(id CharacterID) (*RankedCharacter, error) {
+	return r.findOneBy(id, MarvelMainView)
+}
+
+// FindOneByAll finds a ranked character for all-time types of appearances.
+func (r *PGPopularRepository) FindOneByAll(id CharacterID) (*RankedCharacter, error) {
+	return r.findOneBy(id, AllView)
+}
+
+// Refresh refreshes the specified the materialized view. Note this can take several seconds!
+func (r *PGPopularRepository) Refresh(view MaterializedView) error {
+	_, err := r.db.Exec("REFRESH MATERIALIZED VIEW CONCURRENTLY " + view.Value())
+	return err
+}
+
+// RefreshAll refreshes all the materialized views in a transaction. Note this can take a while, so refreshing is done concurrently
+// for all tables!
+func (r *PGPopularRepository) RefreshAll() error {
+	allViews := []MaterializedView{
+		AllView,
+		MainView,
+		AltView,
+		DcMainView,
+		MarvelMainView,
+		MarvelTrendingView,
+		MarvelMainView,
 	}
-	if cr.AppearanceType == Alternate {
-		return r.query("mv_ranked_characters_marvel_alternate", cr)
+	var wg sync.WaitGroup
+	wg.Add(len(allViews))
+	errCh := make(chan error, len(allViews))
+	defer close(errCh)
+	for idx := range allViews {
+		go func(idx int, wg *sync.WaitGroup) {
+			defer wg.Done()
+			err := r.Refresh(allViews[idx])
+			if err != nil {
+				errCh <- err
+				log.COMIC().Error("error refreshing", zap.String("view", allViews[idx].Value()), zap.Error(err))
+			} else {
+				log.COMIC().Info("done refreshing", zap.String("view", allViews[idx].Value()))
+			}
+		}(idx, &wg)
 	}
-	return r.query("mv_ranked_characters_marvel", cr)
+	wg.Wait() // done goroutines
+	select {
+	case err, ok := <-errCh:
+		if ok {
+			return err
+		}
+	default:
+		return nil
+	}
+
+	return nil
 }
 
 // Generates the SQL for the materialized view table.
-func (r *PGPopularRepository) sql(table string, sort PopularSortCriteria) string {
-	return fmt.Sprintf(`SELECT average_rank as avg_rank, average_rank_id as avg_rank_id, issue_count, issue_count_rank as issue_count_rank_id, id, publisher_id, name, other_name, description,
-			image, slug, vendor_image, vendor_url, vendor_description, publisher__id, publisher__slug, publisher__name
+func (r *PGPopularRepository) sql(table MaterializedView, sort PopularSortCriteria) string {
+	cat := "main"
+	if table == AllView {
+		cat = "all_time"
+	}
+	if table == AltView {
+		cat = "alternate"
+	}
+	return fmt.Sprintf(`SELECT 
+			average_per_year_rank as stats__average_rank, 
+			average_per_year as stats__average,
+			issue_count as stats__issue_count, 
+			issue_count_rank as stats__issue_count_rank, 
+			'%s' as stats__category,
+			id,
+			publisher_id, 
+			name, 
+			other_name,
+			description,
+			image,
+			slug,
+			vendor_image,
+			vendor_url,
+			vendor_description,
+			publisher__id,
+			publisher__slug,
+			publisher__name
 		FROM %s
-		ORDER BY %s DESC
-		LIMIT ?0 OFFSET ?1`, table, string(sort))
+		ORDER BY %s ASC
+		LIMIT ?0 OFFSET ?1`, cat, table.Value(), string(sort))
 }
 
 // queries the database for the table and criteria.
-func (r *PGPopularRepository) query(table string, cr PopularCriteria) ([]*RankedCharacter, error) {
+func (r *PGPopularRepository) query(table MaterializedView, cr PopularCriteria) ([]*RankedCharacter, error) {
 	var characters []*RankedCharacter
-	query := r.sql(table, cr.SortBy)
-	_, err := r.db.Query(&characters, query, cr.Limit, cr.Offset)
+	_, err := r.db.Query(&characters, r.sql(table, cr.SortBy), cr.Limit, cr.Offset)
 	if err != nil {
 		return nil, err
 	}
@@ -871,7 +1048,7 @@ func NewPGAppearancesPerYearRepository(db *pg.DB) *PGAppearancesByYearsRepositor
 }
 
 // NewRedisAppearancesPerYearRepository creates the redis yearly appearances repository.
-func NewRedisAppearancesPerYearRepository(client *redis.Client) *RedisAppearancesByYearsRepository {
+func NewRedisAppearancesPerYearRepository(client RedisClient) *RedisAppearancesByYearsRepository {
 	return &RedisAppearancesByYearsRepository{redisClient: client}
 }
 
@@ -912,22 +1089,29 @@ func NewPGCharacterSyncLogRepository(db *pg.DB) CharacterSyncLogRepository {
 	return &PGCharacterSyncLogRepository{db: db}
 }
 
-// NewPGPopularRepositoryWithCache creates the new popular characters repository for postgres
+// NewPGPopularRepository creates the new popular characters repository for postgres
 // and the redis cache for appearances.
-func NewPGPopularRepositoryWithCache(db *pg.DB, r *redis.Client) PopularRepository {
+func NewPGPopularRepository(db *pg.DB) PopularRepository {
 	return &PGPopularRepository{
-		db:  db,
-		apy: NewRedisAppearancesMapRepository(r),
+		db: db,
 	}
 }
 
 // NewRedisAppearancesMapRepository creates a new redis appearances map repository.
-func NewRedisAppearancesMapRepository(r *redis.Client) AppearancesByYearsMapRepository {
+func NewRedisAppearancesMapRepository(r RedisClient) AppearancesByYearsMapRepository {
 	return &RedisAppearancesByYearsRepository{
 		redisClient: r,
 	}
 }
 
-func NewAppearancesByYearsWriter(c *redis.Client) AppearancesByYearsWriter {
+// NewAppearancesByYearsWriter creates a new writer for writing to the appearances by years cache.
+func NewAppearancesByYearsWriter(c RedisClient) AppearancesByYearsWriter {
 	return &RedisAppearancesByYearsRepository{redisClient: c}
+}
+
+// NewPopularRefresher creates a new refresher for refreshing the materialized views.
+func NewPopularRefresher(db *pg.DB) PopularRefresher {
+	return &PGPopularRepository{
+		db: db,
+	}
 }

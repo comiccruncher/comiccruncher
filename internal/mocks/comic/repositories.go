@@ -403,6 +403,19 @@ func (mr *MockCharacterSyncLogRepositoryMockRecorder) FindByID(id interface{}) *
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindByID", reflect.TypeOf((*MockCharacterSyncLogRepository)(nil).FindByID), id)
 }
 
+// LastSyncs mocks base method
+func (m *MockCharacterSyncLogRepository) LastSyncs(id comic.CharacterID) ([]*comic.LastSync, error) {
+	ret := m.ctrl.Call(m, "LastSyncs", id)
+	ret0, _ := ret[0].([]*comic.LastSync)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// LastSyncs indicates an expected call of LastSyncs
+func (mr *MockCharacterSyncLogRepositoryMockRecorder) LastSyncs(id interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LastSyncs", reflect.TypeOf((*MockCharacterSyncLogRepository)(nil).LastSyncs), id)
+}
+
 // MockCharacterIssueRepository is a mock of CharacterIssueRepository interface
 type MockCharacterIssueRepository struct {
 	ctrl     *gomock.Controller
@@ -725,4 +738,116 @@ func (m *MockPopularRepository) Marvel(cr comic.PopularCriteria) ([]*comic.Ranke
 // Marvel indicates an expected call of Marvel
 func (mr *MockPopularRepositoryMockRecorder) Marvel(cr interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Marvel", reflect.TypeOf((*MockPopularRepository)(nil).Marvel), cr)
+}
+
+// FindOneByDC mocks base method
+func (m *MockPopularRepository) FindOneByDC(id comic.CharacterID) (*comic.RankedCharacter, error) {
+	ret := m.ctrl.Call(m, "FindOneByDC", id)
+	ret0, _ := ret[0].(*comic.RankedCharacter)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindOneByDC indicates an expected call of FindOneByDC
+func (mr *MockPopularRepositoryMockRecorder) FindOneByDC(id interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindOneByDC", reflect.TypeOf((*MockPopularRepository)(nil).FindOneByDC), id)
+}
+
+// FindOneByMarvel mocks base method
+func (m *MockPopularRepository) FindOneByMarvel(id comic.CharacterID) (*comic.RankedCharacter, error) {
+	ret := m.ctrl.Call(m, "FindOneByMarvel", id)
+	ret0, _ := ret[0].(*comic.RankedCharacter)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindOneByMarvel indicates an expected call of FindOneByMarvel
+func (mr *MockPopularRepositoryMockRecorder) FindOneByMarvel(id interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindOneByMarvel", reflect.TypeOf((*MockPopularRepository)(nil).FindOneByMarvel), id)
+}
+
+// FindOneByAll mocks base method
+func (m *MockPopularRepository) FindOneByAll(id comic.CharacterID) (*comic.RankedCharacter, error) {
+	ret := m.ctrl.Call(m, "FindOneByAll", id)
+	ret0, _ := ret[0].(*comic.RankedCharacter)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// FindOneByAll indicates an expected call of FindOneByAll
+func (mr *MockPopularRepositoryMockRecorder) FindOneByAll(id interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindOneByAll", reflect.TypeOf((*MockPopularRepository)(nil).FindOneByAll), id)
+}
+
+// MarvelTrending mocks base method
+func (m *MockPopularRepository) MarvelTrending(limit, offset int) ([]*comic.RankedCharacter, error) {
+	ret := m.ctrl.Call(m, "MarvelTrending", limit, offset)
+	ret0, _ := ret[0].([]*comic.RankedCharacter)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// MarvelTrending indicates an expected call of MarvelTrending
+func (mr *MockPopularRepositoryMockRecorder) MarvelTrending(limit, offset interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MarvelTrending", reflect.TypeOf((*MockPopularRepository)(nil).MarvelTrending), limit, offset)
+}
+
+// DCTrending mocks base method
+func (m *MockPopularRepository) DCTrending(limit, offset int) ([]*comic.RankedCharacter, error) {
+	ret := m.ctrl.Call(m, "DCTrending", limit, offset)
+	ret0, _ := ret[0].([]*comic.RankedCharacter)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DCTrending indicates an expected call of DCTrending
+func (mr *MockPopularRepositoryMockRecorder) DCTrending(limit, offset interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DCTrending", reflect.TypeOf((*MockPopularRepository)(nil).DCTrending), limit, offset)
+}
+
+// MockPopularRefresher is a mock of PopularRefresher interface
+type MockPopularRefresher struct {
+	ctrl     *gomock.Controller
+	recorder *MockPopularRefresherMockRecorder
+}
+
+// MockPopularRefresherMockRecorder is the mock recorder for MockPopularRefresher
+type MockPopularRefresherMockRecorder struct {
+	mock *MockPopularRefresher
+}
+
+// NewMockPopularRefresher creates a new mock instance
+func NewMockPopularRefresher(ctrl *gomock.Controller) *MockPopularRefresher {
+	mock := &MockPopularRefresher{ctrl: ctrl}
+	mock.recorder = &MockPopularRefresherMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockPopularRefresher) EXPECT() *MockPopularRefresherMockRecorder {
+	return m.recorder
+}
+
+// Refresh mocks base method
+func (m *MockPopularRefresher) Refresh(view comic.MaterializedView) error {
+	ret := m.ctrl.Call(m, "Refresh", view)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Refresh indicates an expected call of Refresh
+func (mr *MockPopularRefresherMockRecorder) Refresh(view interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Refresh", reflect.TypeOf((*MockPopularRefresher)(nil).Refresh), view)
+}
+
+// RefreshAll mocks base method
+func (m *MockPopularRefresher) RefreshAll() error {
+	ret := m.ctrl.Call(m, "RefreshAll")
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RefreshAll indicates an expected call of RefreshAll
+func (mr *MockPopularRefresherMockRecorder) RefreshAll() *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RefreshAll", reflect.TypeOf((*MockPopularRefresher)(nil).RefreshAll))
 }

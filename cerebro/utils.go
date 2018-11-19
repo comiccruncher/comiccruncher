@@ -10,6 +10,9 @@ import (
 	"time"
 )
 
+// An error returned from the http client. Unfortunately it has no variable associated with it.
+const errClientTimeoutString = "Client.Timeout exceeded"
+
 // The default retry delay option.
 var retryDelay = retry.Delay(time.Duration(10 * time.Second))
 

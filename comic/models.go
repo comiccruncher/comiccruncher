@@ -120,11 +120,11 @@ type Format string
 // VendorType is type of vendor from an external source for an issue.
 type VendorType int
 
-// IssueCountRankID is the ranking for the number of issues for a character.
+// IssueCountRank is the ranking for the number of issues for a character.
 type IssueCountRank uint
 
-// AvgIssuesPerYearRank is the rank for average issues per year.
-type AvgIssuesPerYearRank uint
+// AvgPerYearRank is the rank for average issues per year.
+type AvgPerYearRank uint
 
 // AppearanceType is a type of appearance, such as an alternate universe or main character appearance.
 // A bitwise enum representing the types of appearances.
@@ -257,21 +257,92 @@ type Stats struct {
 // RankedCharacter represents a character who has its rank and issue count accounted for
 // with its appearances attached..
 type RankedCharacter struct {
-	ID                CharacterID          `json:"-"`
-	Publisher         Publisher            `json:"publisher"`
-	PublisherID       PublisherID          `json:"-"`
-	AvgRankID         AvgIssuesPerYearRank `json:"average_issues_per_year_rank"`
-	AvgRank           float64              `json:"average_issues_per_year"`
-	IssueCountRankID  IssueCountRank       `json:"issue_count_rank"`
-	IssueCount        uint                 `json:"issue_count"`
-	Name              string               `json:"name"`
-	OtherName         string               `json:"other_name"`
-	Description       string               `json:"description"`
-	Image             string               `json:"image"`
-	Slug              CharacterSlug        `json:"slug"`
-	VendorImage       string               `json:"vendor_image"`
-	VendorURL         string               `json:"vendor_url"`
-	VendorDescription string               `json:"vendor_description"`
+	ID                CharacterID    `json:"-"`
+	Publisher         Publisher      `json:"publisher"`
+	PublisherID       PublisherID    `json:"-"`
+	Name              string         `json:"name"`
+	OtherName         string         `json:"other_name"`
+	Description       string         `json:"description"`
+	Image             string         `json:"image"`
+	Slug              CharacterSlug  `json:"slug"`
+	VendorImage       string         `json:"vendor_image"`
+	VendorURL         string         `json:"vendor_url"`
+	VendorDescription string         `json:"vendor_description"`
+	Stats             CharacterStats `json:"stats"`
+}
+
+// LastSync represents the last sync for a character.
+type LastSync struct {
+	CharacterID CharacterID `json:"-"`
+	SyncedAt    time.Time   `json:"synced_at"`
+	NumIssues   int         `json:"num_issues"`
+}
+
+// ExpandedCharacter represents a character with their all-time rank as well as their rank for
+// their main appearances per publisher and the last sync for the character.
+type ExpandedCharacter struct {
+	*Character
+	LastSyncs   []*LastSync          `json:"last_syncs"`
+	Stats       []CharacterStats     `json:"stats"`
+	Appearances []AppearancesByYears `json:"appearances"`
+}
+
+// CharacterStatsCategory is the category types for character stats.
+type CharacterStatsCategory string
+
+var (
+	// AllTimeStats represents stats ALL appearances and rankings for Marvel + DC combined.
+	AllTimeStats CharacterStatsCategory = "all_time"
+	// MainStats represents stats for MAIN appearances only and rankings per publisher.
+	MainStats CharacterStatsCategory = "main"
+)
+
+// CharacterStats represents ranking and issue statistic information.
+type CharacterStats struct {
+	Category       CharacterStatsCategory `json:"category"`
+	IssueCountRank uint                   `json:"issue_count_rank"`
+	IssueCount     uint                   `json:"issue_count"`
+	Average        float64                `json:"average_issues_per_year"`
+	AverageRank    uint                   `json:"average_issues_per_year_rank"`
+}
+
+// NewCharacterStats creates a new character stats struct.
+func NewCharacterStats(c CharacterStatsCategory, rank, issueCount, avgRank uint, avg float64) CharacterStats {
+	return CharacterStats{
+		Category:       c,
+		IssueCountRank: rank,
+		IssueCount:     issueCount,
+		Average:        avg,
+		AverageRank:    avgRank,
+	}
+}
+
+// MarshalJSON overrides the marshaling of JSON with presentation for CDN urls.
+func (c *ExpandedCharacter) MarshalJSON() ([]byte, error) {
+	img := ""
+	if c.Image != "" {
+		img = fmt.Sprintf("%s/%s", cdnURL, c.Image)
+	}
+	vendorImg := ""
+	if c.VendorImage != "" {
+		vendorImg = fmt.Sprintf("%s/%s", cdnURL, c.VendorImage)
+	}
+	type Alias Character
+	return json.Marshal(&struct {
+		*Alias
+		Image       string               `json:"image"`
+		VendorImage string               `json:"vendor_image"`
+		LastSyncs   []*LastSync          `json:"last_syncs"`
+		Stats       []CharacterStats     `json:"stats"`
+		Appearances []AppearancesByYears `json:"appearances"`
+	}{
+		Alias:       (*Alias)(c.Character),
+		Image:       img,
+		VendorImage: vendorImg,
+		LastSyncs:   c.LastSyncs,
+		Stats:       c.Stats,
+		Appearances: c.Appearances,
+	})
 }
 
 // MarshalJSON overrides the image and vendor image for the CDN url.
@@ -295,6 +366,7 @@ func (c *RankedCharacter) MarshalJSON() ([]byte, error) {
 		VendorImage: strctVendorImage,
 	})
 }
+
 // HasAny checks that the category has any of the given flags.
 func (u AppearanceType) HasAny(flags AppearanceType) bool {
 	return u&flags > 0
@@ -369,6 +441,16 @@ func (id CharacterSyncLogID) Value() uint {
 // Value returns the raw value.
 func (slug PublisherSlug) Value() string {
 	return string(slug)
+}
+
+// Value returns the raw value.
+func (r IssueCountRank) Value() uint {
+	return uint(r)
+}
+
+// Value returns the raw value.
+func (r AvgPerYearRank) Value() uint {
+	return uint(r)
 }
 
 // MarshalJSON overrides JSON marshaling for CDN url.

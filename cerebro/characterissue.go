@@ -19,9 +19,6 @@ import (
 // Concurrency limit for fetching issues from an external source.
 const jobLimit = 10
 
-// An error returned from the http client. Unfortunately it has no variable associated with it.
-const errClientTimeoutString = "Client.Timeout exceeded"
-
 var (
 	// Maps formats from the external source to our own formats.
 	externalToLocalFormatMap = map[externalissuesource.Format]comic.Format{
@@ -77,10 +74,10 @@ func (u ExternalVendorURL) String() string {
 	return string(u)
 }
 
-// CharacterVendorParser parses information about a vendor for a character.
-type CharacterVendorParser interface {
-	// Parse parses character source information into CharacterVendorInfo.
-	Parse(sources []*comic.CharacterSource) (CharacterVendorInfo, error)
+// CharacterVendorExtractor parses information about a vendor for a character.
+type CharacterVendorExtractor interface {
+	// Extract extracts character source information into CharacterVendorInfo.
+	Extract(sources []*comic.CharacterSource) (CharacterVendorInfo, error)
 }
 
 // CharacterIssueImporter is the importer for getting a character's issues from a character source.
@@ -89,7 +86,9 @@ type CharacterIssueImporter struct {
 	characterSvc     comic.CharacterServicer
 	issueSvc         comic.IssueServicer
 	externalSource   externalissuesource.ExternalSource
-	vendorParser     CharacterVendorParser
+	extractor        CharacterVendorExtractor
+	refresher        comic.PopularRefresher
+	statsSyncer      comic.CharacterStatsSyncer
 	logger           *zap.Logger
 }
 
@@ -104,14 +103,14 @@ type CharacterVendorInfo struct {
 	AltSources map[ExternalVendorID]bool
 }
 
-// CharacterCBParser parses a character's sources and into CharacterVendorInfo.
-type CharacterCBParser struct {
+// CharacterCBExtractor parses a character's sources and into CharacterVendorInfo.
+type CharacterCBExtractor struct {
 	src    externalissuesource.ExternalSource
 	logger *zap.Logger
 }
 
 // requestCharacterPage requests a character source page and retries if there's a connection failure.
-func (p *CharacterCBParser) requestCharacterPage(source string) (externalissuesource.CharacterPage, error) {
+func (p *CharacterCBExtractor) requestCharacterPage(source string) (externalissuesource.CharacterPage, error) {
 	pageChan := make(chan *externalissuesource.CharacterPage, 1)
 	retry.Do(func() error {
 		p.logger.Info("getting character page", zap.String("source", source))
@@ -138,8 +137,8 @@ func (p *CharacterCBParser) requestCharacterPage(source string) (externalissueso
 	return externalissuesource.CharacterPage{}, errors.New("couldn't get the page")
 }
 
-// Parse parses the vendor information from a character's many character sources.
-func (p *CharacterCBParser) Parse(sources []*comic.CharacterSource) (CharacterVendorInfo, error) {
+// Extract parses the vendor information from a character's many character sources.
+func (p *CharacterCBExtractor) Extract(sources []*comic.CharacterSource) (CharacterVendorInfo, error) {
 	ei := CharacterVendorInfo{}
 	if len(sources) == 0 {
 		return ei, fmt.Errorf("0 sources returned. no sources to import")
@@ -274,7 +273,7 @@ func (i *CharacterIssueImporter) importIssues(character comic.Character) (int, e
 	if err != nil {
 		return 0, err
 	}
-	vi, err := i.vendorParser.Parse(sources)
+	vi, err := i.extractor.Extract(sources)
 	if err != nil {
 		return 0, err
 	}
@@ -380,6 +379,16 @@ func (i *CharacterIssueImporter) MustImportAll(slugs []comic.CharacterSlug) erro
 			}
 		}
 	}
+	// Now refresh all the views.
+	if err := i.refresher.RefreshAll(); err != nil {
+		return err
+	}
+	// Now sync each character to Redis.
+	for idx := 0; idx < len(characters); idx++ {
+		if err := i.statsSyncer.Sync(characters[idx].Slug); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
@@ -459,20 +468,23 @@ func isAppearance(issue *comic.Issue) bool {
 func NewCharacterIssueImporter(
 	container *comic.PGRepositoryContainer,
 	appearancesSyncer comic.Syncer,
-	externalSource externalissuesource.ExternalSource) *CharacterIssueImporter {
+	externalSource externalissuesource.ExternalSource,
+	statsSyncer comic.CharacterStatsSyncer) *CharacterIssueImporter {
 	return &CharacterIssueImporter{
 		characterSvc:     comic.NewCharacterService(container),
 		issueSvc:         comic.NewIssueService(container),
 		externalSource:   externalSource,
 		appearanceSyncer: appearancesSyncer,
 		logger:           log.CEREBRO(),
-		vendorParser:     NewCharacterCBParser(externalSource),
+		extractor:        NewCharacterCBExtractor(externalSource),
+		refresher:        container.Refresher(),
+		statsSyncer:      statsSyncer,
 	}
 }
 
-// NewCharacterCBParser creates a new character CB vendor parser from the params.
-func NewCharacterCBParser(externalSource externalissuesource.ExternalSource) CharacterVendorParser {
-	return &CharacterCBParser{
+// NewCharacterCBExtractor creates a new character CB vendor extractor from the params.
+func NewCharacterCBExtractor(externalSource externalissuesource.ExternalSource) CharacterVendorExtractor {
+	return &CharacterCBExtractor{
 		src:    externalSource,
 		logger: log.CEREBRO(),
 	}

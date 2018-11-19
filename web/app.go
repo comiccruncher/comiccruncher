@@ -12,10 +12,11 @@ import (
 // App is the struct for the web app with echo and the controllers.
 type App struct {
 	echo           *echo.Echo
-	searchCtrlr    SearchController
-	characterCtrlr CharacterController
-	statsCtrlr     StatsController
-	publisherCtrlr PublisherController
+	searchCtrlr    *SearchController
+	characterCtrlr *CharacterController
+	statsCtrlr     *StatsController
+	publisherCtrlr *PublisherController
+	trendingCtrlr  *TrendingController
 }
 
 // MustRun runs the web application from the specified port. Logs and exits if there is an error.
@@ -41,6 +42,10 @@ func (a App) MustRun(port string) {
 	a.echo.GET("/publishers/dc", a.publisherCtrlr.DC)
 	a.echo.GET("/publishers/marvel", a.publisherCtrlr.Marvel)
 
+	// trending
+	a.echo.GET("trending/marvel", a.trendingCtrlr.Marvel)
+	a.echo.GET("trending/dc", a.trendingCtrlr.DC)
+
 	// Start the server.
 	if err := a.echo.Start(":" + port); err != nil {
 		log.WEB().Fatal("error starting server", zap.Error(err))
@@ -49,15 +54,16 @@ func (a App) MustRun(port string) {
 
 // NewApp creates a new app from the parameters.
 func NewApp(
-	characterSvc comic.CharacterServicer,
+	expandedSvc comic.ExpandedServicer,
 	searcher search.Searcher,
 	statsRepository comic.StatsRepository,
-	rankedSvc comic.RankedServicer) App {
-	return App{
+	rankedSvc comic.RankedServicer) *App {
+	return &App{
 		echo:           echo.New(),
 		statsCtrlr:     NewStatsController(statsRepository),
 		searchCtrlr:    NewSearchController(searcher),
-		characterCtrlr: NewCharacterController(characterSvc, rankedSvc),
+		characterCtrlr: NewCharacterController(expandedSvc, rankedSvc),
 		publisherCtrlr: NewPublisherController(rankedSvc),
+		trendingCtrlr:  NewTrendingController(rankedSvc),
 	}
 }

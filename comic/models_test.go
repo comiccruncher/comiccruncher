@@ -14,7 +14,7 @@ func TestNewCharacterSlugs(t *testing.T) {
 	assert.Len(t, comic.NewCharacterSlugs(slugs1...), 0)
 }
 
-func TestAppearanceType_HasAll(t *testing.T) {
+func TestAppearanceTypeHasAll(t *testing.T) {
 	c := comic.AppearanceType(comic.Main)
 	assert.True(t, c.HasAll(comic.Main))
 	assert.False(t, c.HasAll(comic.Alternate))
@@ -26,7 +26,7 @@ func TestAppearanceType_HasAll(t *testing.T) {
 	assert.True(t, c.HasAll(comic.Main))
 }
 
-func TestAppearanceType_HasAny(t *testing.T) {
+func TestAppearanceTypeHasAny(t *testing.T) {
 	c := comic.AppearanceType(comic.Main)
 	assert.True(t, c.HasAny(comic.Main|comic.Alternate))
 	assert.True(t, c.HasAny(comic.Main))
@@ -38,7 +38,7 @@ func TestAppearanceType_HasAny(t *testing.T) {
 	assert.True(t, c.HasAny(comic.Alternate))
 }
 
-func TestAppearanceType_MarshalJSON(t *testing.T) {
+func TestAppearanceTypeMarshalJSON(t *testing.T) {
 	main := comic.AppearanceType(comic.Main)
 	bytes, err := main.MarshalJSON()
 	assert.Nil(t, err)
@@ -53,4 +53,28 @@ func TestAppearanceType_MarshalJSON(t *testing.T) {
 	bytes, err = all.MarshalJSON()
 	assert.Nil(t, err)
 	assert.Equal(t, "\"all\"", string(bytes))
+}
+
+func TestExpandedCharacterMarshalJSON(t *testing.T) {
+	c := comic.NewCharacter("emma frost", 1, comic.VendorTypeCb, "123")
+	c.VendorURL = "https://example.com"
+	c.Slug = "emma-frost"
+	stats := []comic.CharacterStats{
+		{Category: comic.AllTimeStats, IssueCount: 1, IssueCountRank: 1, AverageRank: 1, Average: 1},
+	}
+	aggs := []comic.YearlyAggregate{
+		{Count: 10, Year: 1900},
+	}
+	apps := []comic.AppearancesByYears{
+		{CharacterSlug: c.Slug, Category: comic.Main, Aggregates: aggs},
+	}
+	ec := comic.ExpandedCharacter{
+		Character:   c,
+		Stats:       stats,
+		Appearances: apps,
+	}
+	b, err := ec.MarshalJSON()
+	assert.Nil(t, err)
+	s := `{"publisher":{"name":"","slug":""},"name":"emma frost","other_name":"","description":"","slug":"emma-frost","vendor_url":"https://example.com","vendor_description":"","image":"","vendor_image":"","last_syncs":null,"stats":[{"category":"all_time","issue_count_rank":1,"issue_count":1,"average_issues_per_year":1,"average_issues_per_year_rank":1}],"appearances":[{"slug":"emma-frost","category":"main","aggregates":[{"year":1900,"count":10}]}]}`
+	assert.Equal(t, s, string(b))
 }

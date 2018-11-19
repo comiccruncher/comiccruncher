@@ -11,38 +11,38 @@ import (
 	reflect "reflect"
 )
 
-// MockCharacterVendorParser is a mock of CharacterVendorParser interface
-type MockCharacterVendorParser struct {
+// MockCharacterVendorExtractor is a mock of CharacterVendorExtractor interface
+type MockCharacterVendorExtractor struct {
 	ctrl     *gomock.Controller
-	recorder *MockCharacterVendorParserMockRecorder
+	recorder *MockCharacterVendorExtractorMockRecorder
 }
 
-// MockCharacterVendorParserMockRecorder is the mock recorder for MockCharacterVendorParser
-type MockCharacterVendorParserMockRecorder struct {
-	mock *MockCharacterVendorParser
+// MockCharacterVendorExtractorMockRecorder is the mock recorder for MockCharacterVendorExtractor
+type MockCharacterVendorExtractorMockRecorder struct {
+	mock *MockCharacterVendorExtractor
 }
 
-// NewMockCharacterVendorParser creates a new mock instance
-func NewMockCharacterVendorParser(ctrl *gomock.Controller) *MockCharacterVendorParser {
-	mock := &MockCharacterVendorParser{ctrl: ctrl}
-	mock.recorder = &MockCharacterVendorParserMockRecorder{mock}
+// NewMockCharacterVendorExtractor creates a new mock instance
+func NewMockCharacterVendorExtractor(ctrl *gomock.Controller) *MockCharacterVendorExtractor {
+	mock := &MockCharacterVendorExtractor{ctrl: ctrl}
+	mock.recorder = &MockCharacterVendorExtractorMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockCharacterVendorParser) EXPECT() *MockCharacterVendorParserMockRecorder {
+func (m *MockCharacterVendorExtractor) EXPECT() *MockCharacterVendorExtractorMockRecorder {
 	return m.recorder
 }
 
-// Parse mocks base method
-func (m *MockCharacterVendorParser) Parse(sources []*comic.CharacterSource) (cerebro.CharacterVendorInfo, error) {
-	ret := m.ctrl.Call(m, "Parse", sources)
+// Extract mocks base method
+func (m *MockCharacterVendorExtractor) Extract(sources []*comic.CharacterSource) (cerebro.CharacterVendorInfo, error) {
+	ret := m.ctrl.Call(m, "Extract", sources)
 	ret0, _ := ret[0].(cerebro.CharacterVendorInfo)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-// Parse indicates an expected call of Parse
-func (mr *MockCharacterVendorParserMockRecorder) Parse(sources interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Parse", reflect.TypeOf((*MockCharacterVendorParser)(nil).Parse), sources)
+// Extract indicates an expected call of Extract
+func (mr *MockCharacterVendorExtractorMockRecorder) Extract(sources interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Extract", reflect.TypeOf((*MockCharacterVendorExtractor)(nil).Extract), sources)
 }

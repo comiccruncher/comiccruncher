@@ -2,20 +2,20 @@ package comic
 
 import (
 	"fmt"
-	"github.com/go-redis/redis"
+	"strconv"
 	"time"
 )
 
 const (
 	// disableSourcesSql is the SQL for disabling character sources.
-	disableSourcesSql = `
+	disableSourcesSQL = `
 	UPDATE character_sources
 	SET is_disabled = TRUE	
 	WHERE character_id = ?
 		AND is_disabled = false -- no need to reset ones already disabled
 		AND vendor_name ILIKE ANY(ARRAY[%s]);`
 	// mainSourcesSql is the SQL for setting main sources.
-	mainSourcesSql = `
+	mainSourcesSQL = `
 	UPDATE character_sources
 	SET is_main = TRUE	
 	WHERE character_id = ?
@@ -23,7 +23,7 @@ const (
 		AND is_disabled = FALSE -- ignore disabled ones
 		AND vendor_name NOT ILIKE ALL(ARRAY[%s])`
 	// altSourcesSql is the sql for setting alternate sources.
-	altSourcesSql = `
+	altSourcesSQL = `
 	UPDATE character_sources
 	SET is_main = FALSE
 	WHERE character_id = ?
@@ -119,11 +119,94 @@ type RankedServicer interface {
 	AllPopular(cr PopularCriteria) ([]*RankedCharacter, error)
 	DCPopular(cr PopularCriteria) ([]*RankedCharacter, error)
 	MarvelPopular(cr PopularCriteria) ([]*RankedCharacter, error)
+	MarvelTrending(limit, offset int) ([]*RankedCharacter, error)
+	DCTrending(limit, offset int) ([]*RankedCharacter, error)
+}
+
+// ExpandedServicer is the interface for getting a character with expanded details.
+type ExpandedServicer interface {
+	Character(slug CharacterSlug) (*ExpandedCharacter, error)
+}
+
+// ExpandedService gets an expanded character.
+type ExpandedService struct {
+	cr  CharacterRepository
+	ar  AppearancesByYearsRepository
+	r   RedisClient
+	slr CharacterSyncLogRepository
 }
 
 // RankedService is the service for getting ranked and popular characters.
 type RankedService struct {
 	popRepo PopularRepository
+	cr      CharacterRepository
+	ar      AppearancesByYearsRepository
+	r       RedisClient
+}
+
+// Character gets an expanded character.
+func (s *ExpandedService) Character(slug CharacterSlug) (*ExpandedCharacter, error) {
+	c, err := s.cr.FindBySlug(slug, false)
+	if c == nil || err != nil {
+		return nil, err
+	}
+	sl, err := s.slr.LastSyncs(c.ID)
+	if err != nil {
+		return nil, err
+	}
+	res, err := s.r.HGetAll(fmt.Sprintf("%s:stats", slug.Value())).Result()
+	if err != nil {
+		return nil, err
+	}
+	ec := &ExpandedCharacter{}
+	if len(res) > 0 {
+		atCount, err := parseUint(res["all_time_issue_count"])
+		if err != nil {
+			return nil, err
+		}
+		atRank, err := parseUint(res["all_time_issue_count_rank"])
+		if err != nil {
+			return nil, err
+		}
+		atAvg, err := strconv.ParseFloat(res["all_time_average_per_year"], 64)
+		if err != nil {
+			return nil, err
+		}
+		atAvgRank, err := parseUint(res["all_time_average_per_year_rank"])
+		if err != nil {
+			return nil, err
+		}
+		allTime := NewCharacterStats(AllTimeStats, atRank, atCount, atAvgRank, atAvg)
+		miCount, err := parseUint(res["main_issue_count"])
+		if err != nil {
+			return nil, err
+		}
+		miRank, err := parseUint(res["main_issue_count_rank"])
+		if err != nil {
+			return nil, err
+		}
+		miAvgRank, err := parseUint(res["main_average_per_year_rank"])
+		if err != nil {
+			return nil, err
+		}
+		miAvg, err := strconv.ParseFloat(res["main_average_per_year"], 64)
+		if err != nil {
+			return nil, err
+		}
+		mainStats := NewCharacterStats(MainStats, miRank, miCount, miAvgRank, miAvg)
+		stats := make([]CharacterStats, 2)
+		stats[0] = allTime
+		stats[1] = mainStats
+		ec.Stats = stats
+	}
+	apps, err := s.ar.List(slug)
+	if err != nil {
+		return nil, err
+	}
+	ec.Appearances = apps
+	ec.Character = c
+	ec.LastSyncs = sl
+	return ec, nil
 }
 
 // AllPopular gets the most popular characters per year ordered by either issue count or
@@ -141,6 +224,16 @@ func (s *RankedService) DCPopular(cr PopularCriteria) ([]*RankedCharacter, error
 // or average appearances per year.
 func (s *RankedService) MarvelPopular(cr PopularCriteria) ([]*RankedCharacter, error) {
 	return s.popRepo.Marvel(cr)
+}
+
+// MarvelTrending gets the trending characters for marvel.
+func (s *RankedService) MarvelTrending(limit, offset int) ([]*RankedCharacter, error) {
+	return s.popRepo.MarvelTrending(limit, offset)
+}
+
+// DCTrending gets the trending characters for marvel.
+func (s *RankedService) DCTrending(limit, offset int) ([]*RankedCharacter, error) {
+	return s.popRepo.DCTrending(limit, offset)
 }
 
 // PublisherService is the service for publishers.
@@ -310,14 +403,14 @@ func (s *CharacterService) MustNormalizeSources(c *Character) {
 	// todo: better to run all this in a transaction.
 	// disable clones, impostors, etc.
 	if !ignoreIDsForDisabled[id] {
-		must(s.sourceRepository.Raw(fmt.Sprintf(disableSourcesSql, pgSearchString(disabledUniverses)), id))
+		must(s.sourceRepository.Raw(fmt.Sprintf(disableSourcesSQL, pgSearchString(disabledUniverses)), id))
 	}
 	// set the main universes from alt universes.
-	must(s.sourceRepository.Raw(fmt.Sprintf(mainSourcesSql, pgSearchString(altUniverses)), id))
+	must(s.sourceRepository.Raw(fmt.Sprintf(mainSourcesSQL, pgSearchString(altUniverses)), id))
 	// now set the alternate sources from alternate sources.
 	// b/c if we add any more sources after running the above query, we
 	// won't be able to set is_main = false for any of them. sooo stupid and i'm sure there's a better way to do this but whatever.
-	must(s.sourceRepository.Raw(fmt.Sprintf(altSourcesSql, pgSearchString(altUniverses)), id))
+	must(s.sourceRepository.Raw(fmt.Sprintf(altSourcesSQL, pgSearchString(altUniverses)), id))
 	// Now make sure earth-616 is set as main. (Some sources have 616 .. some don't. :( )
 	if c.Publisher.Slug == "marvel" {
 		must(s.sourceRepository.Raw("UPDATE character_sources SET is_main = TRUE WHERE vendor_name ILIKE '%earth-616)%' AND character_id = ?", id))
@@ -435,7 +528,7 @@ func NewCharacterService(container *PGRepositoryContainer) CharacterServicer {
 }
 
 // NewCharacterServiceWithCache creates a new character service but with the appearances by years coming from the Redis cache.
-func NewCharacterServiceWithCache(container *PGRepositoryContainer, redis *redis.Client) CharacterServicer {
+func NewCharacterServiceWithCache(container *PGRepositoryContainer, redis RedisClient) CharacterServicer {
 	return &CharacterService{
 		repository:            container.CharacterRepository(),
 		issueRepository:       container.CharacterIssueRepository(),
@@ -457,4 +550,19 @@ func NewRankedService(repository PopularRepository) RankedServicer {
 	return &RankedService{
 		popRepo: repository,
 	}
+}
+
+// NewExpandedService creates a new service for getting expanded details for a character
+func NewExpandedService(cr CharacterRepository, ar AppearancesByYearsRepository, rc RedisClient, slr CharacterSyncLogRepository) ExpandedServicer {
+	return &ExpandedService{
+		cr:  cr,
+		ar:  ar,
+		r:   rc,
+		slr: slr,
+	}
+}
+
+func parseUint(s string) (uint, error) {
+	u, err := strconv.ParseUint(s, 10, 64)
+	return uint(u), err
 }

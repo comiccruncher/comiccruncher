@@ -5,7 +5,6 @@ import (
 	"github.com/aimeelaplant/comiccruncher/comic"
 	"github.com/aimeelaplant/comiccruncher/search"
 	"github.com/labstack/echo"
-	"strconv"
 )
 
 // Pagination limit.
@@ -64,7 +63,7 @@ type PublisherController struct {
 
 // DC gets the publisher's characters with their appearances.
 func (c PublisherController) DC(ctx echo.Context) error {
-	cr, err := popularCriteria(ctx)
+	cr, err := decodeCriteria(ctx)
 	if err != nil {
 		return err
 	}
@@ -77,7 +76,7 @@ func (c PublisherController) DC(ctx echo.Context) error {
 
 // Marvel gets the publisher's characters with their appearances.
 func (c PublisherController) Marvel(ctx echo.Context) error {
-	cr, err := popularCriteria(ctx)
+	cr, err := decodeCriteria(ctx)
 	if err != nil {
 		return err
 	}
@@ -90,35 +89,26 @@ func (c PublisherController) Marvel(ctx echo.Context) error {
 
 // CharacterController is the character controller.
 type CharacterController struct {
-	characterSvc comic.CharacterServicer
-	rankedSvc    comic.RankedServicer
+	rankedSvc   comic.RankedServicer
+	expandedSvc comic.ExpandedServicer
 }
 
 // Character gets a character by its slug.
 func (c CharacterController) Character(ctx echo.Context) error {
 	slug := comic.CharacterSlug(ctx.Param("slug"))
-	character, err := c.characterSvc.Character(slug)
+	character, err := c.expandedSvc.Character(slug)
 	if err != nil {
 		return err
 	}
 	if character == nil {
 		return ErrNotFound
 	}
-	// TODO: Query for ranked character instead.
-	apps, err := c.characterSvc.ListAppearances(character.Slug)
-	if err != nil {
-		return err
-	}
-	ch := NewCharacter(*character, apps)
-	if err != nil {
-		return err
-	}
-	return JSONDetailViewOK(ctx, ch)
+	return JSONDetailViewOK(ctx, character)
 }
 
 // Characters lists the characters.
 func (c CharacterController) Characters(ctx echo.Context) error {
-	cr, err := popularCriteria(ctx)
+	cr, err := decodeCriteria(ctx)
 	if err != nil {
 		return err
 	}
@@ -129,22 +119,40 @@ func (c CharacterController) Characters(ctx echo.Context) error {
 	return JSONListViewOK(ctx, listRanked(results), pageLimit)
 }
 
-// Gets the page number from the query parameter `page` with default value if empty.
-func pageNumber(ctx echo.Context) (int, error) {
-	query := ctx.QueryParam("page")
-	if query != "" {
-		page, err := strconv.Atoi(query)
-		if err != nil {
-			return 1, ErrInvalidPageParameter
-		}
-		return page, nil
+// TrendingController is the controller for trending characters.
+type TrendingController struct {
+	svc comic.RankedServicer
+}
+
+// Marvel gets the trending characters for Marvel.
+func (c *TrendingController) Marvel(ctx echo.Context) error {
+	page, err := parsePageNumber(ctx)
+	if err != nil {
+		return err
 	}
-	return 1, nil
+	results, err := c.svc.MarvelTrending(pageLimit+1, (page-1)*pageLimit)
+	if err != nil {
+		return err
+	}
+	return JSONListViewOK(ctx, listRanked(results), pageLimit)
+}
+
+// DC gets the trending characters for DC.
+func (c *TrendingController) DC(ctx echo.Context) error {
+	page, err := parsePageNumber(ctx)
+	if err != nil {
+		return err
+	}
+	results, err := c.svc.DCTrending(pageLimit+1, (page-1)*pageLimit)
+	if err != nil {
+		return err
+	}
+	return JSONListViewOK(ctx, listRanked(results), pageLimit)
 }
 
 // Gets a popular criteria struct based on the context.
-func popularCriteria(ctx echo.Context) (comic.PopularCriteria, error) {
-	page, err := pageNumber(ctx)
+func decodeCriteria(ctx echo.Context) (comic.PopularCriteria, error) {
+	page, err := parsePageNumber(ctx)
 	if err != nil {
 		return comic.PopularCriteria{}, err
 	}
@@ -154,7 +162,7 @@ func popularCriteria(ctx echo.Context) (comic.PopularCriteria, error) {
 		sortBy = comic.AverageIssuesPerYear
 	}
 	appearanceType := comic.Main | comic.Alternate
-	typeReq := ctx.QueryParam("type")
+	typeReq := ctx.QueryParam("category")
 	switch typeReq {
 	case "main":
 		appearanceType = comic.Main
@@ -181,30 +189,37 @@ func listRanked(results []*comic.RankedCharacter) []interface{} {
 }
 
 // NewCharacterController creates a new character controller.
-func NewCharacterController(service comic.CharacterServicer, rankedSvc comic.RankedServicer) CharacterController {
-	return CharacterController{
-		characterSvc: service,
-		rankedSvc:    rankedSvc,
+func NewCharacterController(eSvc comic.ExpandedServicer, rSvc comic.RankedServicer) *CharacterController {
+	return &CharacterController{
+		expandedSvc: eSvc,
+		rankedSvc:   rSvc,
 	}
 }
 
 // NewSearchController creates a new search controller.
-func NewSearchController(searcher search.Searcher) SearchController {
-	return SearchController{
+func NewSearchController(searcher search.Searcher) *SearchController {
+	return &SearchController{
 		searcher: searcher,
 	}
 }
 
 // NewStatsController creates a new stats controller.
-func NewStatsController(repository comic.StatsRepository) StatsController {
-	return StatsController{
+func NewStatsController(repository comic.StatsRepository) *StatsController {
+	return &StatsController{
 		statsRepository: repository,
 	}
 }
 
 // NewPublisherController creates a new publisher controller.
-func NewPublisherController(s comic.RankedServicer) PublisherController {
-	return PublisherController{
+func NewPublisherController(s comic.RankedServicer) *PublisherController {
+	return &PublisherController{
 		rankedSvc: s,
+	}
+}
+
+// NewTrendingController creates a new trending controller.
+func NewTrendingController(s comic.RankedServicer) *TrendingController {
+	return &TrendingController{
+		svc: s,
 	}
 }
