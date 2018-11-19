@@ -308,11 +308,11 @@ remote-deploy-nginx: remote-upload-nginx
 
 remote-deploy-api1:
 	scp ./${WEBAPP_BIN} ${API_SERVER1}:~/${WEBAPP_TMP_BIN}
-	ssh ${API_SERVER1} "bin/webapp start -p 8001 | logger &"
+	ssh ${API_SERVER1} "nohup bin/webapp start -p 8001 | logger &"
 
 remote-deploy-api2:
 	scp ./${WEBAPP_BIN} ${API_SERVER2}:~/${WEBAPP_TMP_BIN}
-	ssh ${API_SERVER2} "bin/webapp start -p 8001 | logger &"
+	ssh ${API_SERVER2} "nohup bin/webapp start -p 8001 | logger &"
 
 remote-deploy-lb: remote-upload-nginx
 	ssh ${LB_SERVER} "nginx -s reload"
