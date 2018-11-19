@@ -62,6 +62,10 @@ jobs:
       - run:
           name: Cleanup netrc
           command: rm .netrc
+      - save_cache:
+          key: {{ .Branch }}-{{ .BuildNum }}-{{ .Revision }}-coverage.txt
+          paths:
+            - "coverage.txt"
       - run:
           name: Build the build container.
           command: make docker-up
@@ -79,6 +83,7 @@ jobs:
       - restore_cache:
           keys:
             - vendor-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
+            - {{ .Branch }}-{{ .BuildNum }}-{{ .Revision }}-coverage.txt
       - run:
           name: Vet the files and report any errors.
           command: make docker-vet
