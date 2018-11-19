@@ -37,7 +37,7 @@
   version = "1.0.2"
 
 [[projects]]
-  digest = "1:a0ef6846a7bbad17a1a5fa91d8f303066c9a24a4974edf082d265e2e6077a494"
+  digest = "1:505ec984bd38f00436a729ac37cbafe349441a05b0fcde03607f0014f2846ee9"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -76,8 +76,8 @@
     "service/sts",
   ]
   pruneopts = "UT"
-  revision = "8cb75b60636a37baea457bc6d900b49d663e309c"
-  version = "v1.15.71"
+  revision = "5ebc7a404e942062fd3aa7ff50975498716eb990"
+  version = "v1.15.78"
 
 [[projects]]
   digest = "1:ffe9824d294da03b391f44e1ae8281281b4afc1bdaa9588c9097785e3af10cec"
@@ -178,7 +178,7 @@
   version = "v3.3.7"
 
 [[projects]]
-  digest = "1:568171fc14a3d819b112c3e219d351ea7b05e8dad7935c4168c6b3373244a686"
+  digest = "1:764bce605f1c70823a567ac3205a03e6b7f375ca747d8820fded0b0abddda802"
   name = "github.com/labstack/gommon"
   packages = [
     "bytes",
@@ -187,8 +187,8 @@
     "random",
   ]
   pruneopts = "UT"
-  revision = "2a618302b929cc20862dda3aa6f02f64dbe740dd"
-  version = "v0.2.7"
+  revision = "7fd9f68ece0bcb1a905fac8f1549f0083f71c51b"
+  version = "v0.2.8"
 
 [[projects]]
   digest = "1:c658e84ad3916da105a761660dcaeb01e63416c8ec7bc62256a9b411a05fcd67"
@@ -310,7 +310,7 @@
     "acme/autocert",
   ]
   pruneopts = "UT"
-  revision = "e4dc69e5b2fd71dcaf8bd5d054eb936deb78d1fa"
+  revision = "3d3f9f413869b949e48070b5bc593aa22cc2b8f2"
 
 [[projects]]
   branch = "master"
@@ -322,15 +322,15 @@
     "html/atom",
   ]
   pruneopts = "UT"
-  revision = "1c5f79cfb1642860bbe00b6cfce66700c01e04f6"
+  revision = "adae6a3d119ae4890b46832a2e88a95adc62b8e7"
 
 [[projects]]
   branch = "master"
-  digest = "1:7ba061af4131fb44b30448572acd0d6fefbf63a61b97b7ef1dea0be5871c2742"
+  digest = "1:a62e80faf19c93dcbd7954a26fdb51acbfcb4b7161966adf1de531e593c4834a"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
-  revision = "66b7b1311ac80bbafcd2daeef9a5e6e2cd1e2399"
+  revision = "93218def8b18e66adbdab3eca8ec334700329f1f"
 
 [[projects]]
   digest = "1:e2e7f5211c3327ff52e02773e4fd477842b2fed07ead33ec342970de162610ac"
