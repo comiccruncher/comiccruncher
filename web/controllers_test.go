@@ -238,10 +238,10 @@ func TestPublisherControllerDC(t *testing.T) {
 		{ID: 2, PublisherID: 1, Stats: stats2, Name: "Test2", Slug: "test2"},
 	}
 	cr := comic.PopularCriteria{
-		SortBy: comic.MostIssues,
+		SortBy:         comic.MostIssues,
 		AppearanceType: comic.Main | comic.Alternate,
-		Limit: 25,
-		Offset: 0,
+		Limit:          25,
+		Offset:         0,
 	}
 	rankedSvc := mock_comic.NewMockRankedServicer(ctrl)
 	rankedSvc.EXPECT().DCPopular(cr).Return(rankedChrs, nil)
@@ -275,10 +275,10 @@ func TestPublisherControllerMarvel(t *testing.T) {
 	}
 
 	cr := comic.PopularCriteria{
-		SortBy: comic.MostIssues,
+		SortBy:         comic.MostIssues,
 		AppearanceType: comic.Main | comic.Alternate,
-		Limit: 25,
-		Offset: 0,
+		Limit:          25,
+		Offset:         0,
 	}
 	rankedSvc := mock_comic.NewMockRankedServicer(ctrl)
 	rankedSvc.EXPECT().MarvelPopular(cr).Return(rankedChrs, nil)

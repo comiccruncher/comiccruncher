@@ -853,7 +853,7 @@ func (r *PGPopularRepository) All(cr PopularCriteria) ([]*RankedCharacter, error
 	if cr.AppearanceType == Main {
 		return r.query(MainView, cr)
 	}
-	if cr.AppearanceType == Alternate  {
+	if cr.AppearanceType == Alternate {
 		return r.query(AltView, cr)
 	}
 	return r.query(AllView, cr)
@@ -873,9 +873,9 @@ func (r *PGPopularRepository) Marvel(cr PopularCriteria) ([]*RankedCharacter, er
 func (r *PGPopularRepository) MarvelTrending(limit, offset int) ([]*RankedCharacter, error) {
 	return r.query(MarvelTrendingView, PopularCriteria{
 		AppearanceType: Main,
-		SortBy: MostIssues,
-		Limit: limit,
-		Offset: offset,
+		SortBy:         MostIssues,
+		Limit:          limit,
+		Offset:         offset,
 	})
 }
 
@@ -883,9 +883,9 @@ func (r *PGPopularRepository) MarvelTrending(limit, offset int) ([]*RankedCharac
 func (r *PGPopularRepository) DCTrending(limit, offset int) ([]*RankedCharacter, error) {
 	return r.query(DCTrendingView, PopularCriteria{
 		AppearanceType: Main,
-		SortBy: MostIssues,
-		Limit: limit,
-		Offset: offset,
+		SortBy:         MostIssues,
+		Limit:          limit,
+		Offset:         offset,
 	})
 }
 

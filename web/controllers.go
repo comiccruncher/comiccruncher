@@ -130,7 +130,7 @@ func (c *TrendingController) Marvel(ctx echo.Context) error {
 	if err != nil {
 		return err
 	}
-	results, err := c.svc.MarvelTrending(pageLimit + 1, (page - 1) * pageLimit)
+	results, err := c.svc.MarvelTrending(pageLimit+1, (page-1)*pageLimit)
 	if err != nil {
 		return err
 	}
@@ -143,7 +143,7 @@ func (c *TrendingController) DC(ctx echo.Context) error {
 	if err != nil {
 		return err
 	}
-	results, err := c.svc.DCTrending(pageLimit + 1, (page - 1) * pageLimit)
+	results, err := c.svc.DCTrending(pageLimit+1, (page-1)*pageLimit)
 	if err != nil {
 		return err
 	}
