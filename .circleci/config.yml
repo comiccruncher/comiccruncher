@@ -15,7 +15,7 @@ workflows:
             branches:
               only: /.*/
             tags:
-              ignore: /.*/
+              ignore: /^v.*/
       - deploy_tasks:
           requires:
             - test_and_build
