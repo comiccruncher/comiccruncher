@@ -12,11 +12,11 @@ import (
 // App is the struct for the web app with echo and the controllers.
 type App struct {
 	echo           *echo.Echo
-	searchCtrlr    SearchController
-	characterCtrlr CharacterController
-	statsCtrlr     StatsController
-	publisherCtrlr PublisherController
-	trendingCtrlr  TrendingController
+	searchCtrlr    *SearchController
+	characterCtrlr *CharacterController
+	statsCtrlr     *StatsController
+	publisherCtrlr *PublisherController
+	trendingCtrlr  *TrendingController
 }
 
 // MustRun runs the web application from the specified port. Logs and exits if there is an error.
@@ -57,8 +57,8 @@ func NewApp(
 	expandedSvc comic.ExpandedServicer,
 	searcher search.Searcher,
 	statsRepository comic.StatsRepository,
-	rankedSvc comic.RankedServicer) App {
-	return App{
+	rankedSvc comic.RankedServicer) *App {
+	return &App{
 		echo:           echo.New(),
 		statsCtrlr:     NewStatsController(statsRepository),
 		searchCtrlr:    NewSearchController(searcher),

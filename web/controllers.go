@@ -189,37 +189,37 @@ func listRanked(results []*comic.RankedCharacter) []interface{} {
 }
 
 // NewCharacterController creates a new character controller.
-func NewCharacterController(eSvc comic.ExpandedServicer, rSvc comic.RankedServicer) CharacterController {
-	return CharacterController{
+func NewCharacterController(eSvc comic.ExpandedServicer, rSvc comic.RankedServicer) *CharacterController {
+	return &CharacterController{
 		expandedSvc: eSvc,
 		rankedSvc:   rSvc,
 	}
 }
 
 // NewSearchController creates a new search controller.
-func NewSearchController(searcher search.Searcher) SearchController {
-	return SearchController{
+func NewSearchController(searcher search.Searcher) *SearchController {
+	return &SearchController{
 		searcher: searcher,
 	}
 }
 
 // NewStatsController creates a new stats controller.
-func NewStatsController(repository comic.StatsRepository) StatsController {
-	return StatsController{
+func NewStatsController(repository comic.StatsRepository) *StatsController {
+	return &StatsController{
 		statsRepository: repository,
 	}
 }
 
 // NewPublisherController creates a new publisher controller.
-func NewPublisherController(s comic.RankedServicer) PublisherController {
-	return PublisherController{
+func NewPublisherController(s comic.RankedServicer) *PublisherController {
+	return &PublisherController{
 		rankedSvc: s,
 	}
 }
 
 // NewTrendingController creates a new trending controller.
-func NewTrendingController(s comic.RankedServicer) TrendingController {
-	return TrendingController{
+func NewTrendingController(s comic.RankedServicer) *TrendingController {
+	return &TrendingController{
 		svc: s,
 	}
 }
