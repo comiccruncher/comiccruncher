@@ -83,6 +83,8 @@ jobs:
       - restore_cache:
           keys:
             - vendor-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
+      - restore_cache:
+          keys:
             - coverage-{{ .Branch }}-{{ .BuildNum }}-{{ .Revision }}-coverage.txt
       - run:
           name: Vet the files and report any errors.
