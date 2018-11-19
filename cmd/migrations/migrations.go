@@ -185,6 +185,12 @@ func main() {
 		if err := logResultIfError(tx.Exec(trendingSQL("mv_trending_characters_dc", 2))); err != nil {
 			return err
 		}
+		if err := logResultIfError(tx.Exec(fmt.Sprintf(`CREATE UNIQUE INDEX IF NOT EXISTS %[1]s_id_idx ON %[1]s(id);`, "mv_trending_characters_marvel"))); err != nil {
+			return err
+		}
+		if err := logResultIfError(tx.Exec(fmt.Sprintf(`CREATE UNIQUE INDEX IF NOT EXISTS %[1]s_id_idx ON %[1]s(id);`, "mv_trending_characters_dc"))); err != nil {
+			return err
+		}
 		return nil
 	}))
 
