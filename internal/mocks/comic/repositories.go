@@ -779,6 +779,32 @@ func (mr *MockPopularRepositoryMockRecorder) FindOneByAll(id interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FindOneByAll", reflect.TypeOf((*MockPopularRepository)(nil).FindOneByAll), id)
 }
 
+// MarvelTrending mocks base method
+func (m *MockPopularRepository) MarvelTrending(limit, offset int) ([]*comic.RankedCharacter, error) {
+	ret := m.ctrl.Call(m, "MarvelTrending", limit, offset)
+	ret0, _ := ret[0].([]*comic.RankedCharacter)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// MarvelTrending indicates an expected call of MarvelTrending
+func (mr *MockPopularRepositoryMockRecorder) MarvelTrending(limit, offset interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MarvelTrending", reflect.TypeOf((*MockPopularRepository)(nil).MarvelTrending), limit, offset)
+}
+
+// DCTrending mocks base method
+func (m *MockPopularRepository) DCTrending(limit, offset int) ([]*comic.RankedCharacter, error) {
+	ret := m.ctrl.Call(m, "DCTrending", limit, offset)
+	ret0, _ := ret[0].([]*comic.RankedCharacter)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DCTrending indicates an expected call of DCTrending
+func (mr *MockPopularRepositoryMockRecorder) DCTrending(limit, offset interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DCTrending", reflect.TypeOf((*MockPopularRepository)(nil).DCTrending), limit, offset)
+}
+
 // MockPopularRefresher is a mock of PopularRefresher interface
 type MockPopularRefresher struct {
 	ctrl     *gomock.Controller

@@ -119,6 +119,37 @@ func (c CharacterController) Characters(ctx echo.Context) error {
 	return JSONListViewOK(ctx, listRanked(results), pageLimit)
 }
 
+// TrendingController is the controller for trending characters.
+type TrendingController struct {
+	svc comic.RankedServicer
+}
+
+// Marvel gets the trending characters for Marvel.
+func (c *TrendingController) Marvel(ctx echo.Context) error {
+	page, err := parsePageNumber(ctx)
+	if err != nil {
+		return err
+	}
+	results, err := c.svc.MarvelTrending(pageLimit + 1, (page - 1) * pageLimit)
+	if err != nil {
+		return err
+	}
+	return JSONListViewOK(ctx, listRanked(results), pageLimit)
+}
+
+// DC gets the trending characters for DC.
+func (c *TrendingController) DC(ctx echo.Context) error {
+	page, err := parsePageNumber(ctx)
+	if err != nil {
+		return err
+	}
+	results, err := c.svc.DCTrending(pageLimit + 1, (page - 1) * pageLimit)
+	if err != nil {
+		return err
+	}
+	return JSONListViewOK(ctx, listRanked(results), pageLimit)
+}
+
 // Gets a popular criteria struct based on the context.
 func decodeCriteria(ctx echo.Context) (comic.PopularCriteria, error) {
 	page, err := parsePageNumber(ctx)
@@ -183,5 +214,12 @@ func NewStatsController(repository comic.StatsRepository) StatsController {
 func NewPublisherController(s comic.RankedServicer) PublisherController {
 	return PublisherController{
 		rankedSvc: s,
+	}
+}
+
+// NewTrendingController creates a new trending controller.
+func NewTrendingController(s comic.RankedServicer) TrendingController {
+	return TrendingController{
+		svc: s,
 	}
 }

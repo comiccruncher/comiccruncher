@@ -16,6 +16,7 @@ type App struct {
 	characterCtrlr CharacterController
 	statsCtrlr     StatsController
 	publisherCtrlr PublisherController
+	trendingCtrlr  TrendingController
 }
 
 // MustRun runs the web application from the specified port. Logs and exits if there is an error.
@@ -41,6 +42,10 @@ func (a App) MustRun(port string) {
 	a.echo.GET("/publishers/dc", a.publisherCtrlr.DC)
 	a.echo.GET("/publishers/marvel", a.publisherCtrlr.Marvel)
 
+	// trending
+	a.echo.GET("trending/marvel", a.trendingCtrlr.Marvel)
+	a.echo.GET("trending/dc", a.trendingCtrlr.DC)
+
 	// Start the server.
 	if err := a.echo.Start(":" + port); err != nil {
 		log.WEB().Fatal("error starting server", zap.Error(err))
@@ -59,5 +64,6 @@ func NewApp(
 		searchCtrlr:    NewSearchController(searcher),
 		characterCtrlr: NewCharacterController(expandedSvc, rankedSvc),
 		publisherCtrlr: NewPublisherController(rankedSvc),
+		trendingCtrlr:  NewTrendingController(rankedSvc),
 	}
 }

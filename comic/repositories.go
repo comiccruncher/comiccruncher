@@ -27,6 +27,10 @@ var (
 	DcMainView MaterializedView = "mv_ranked_characters_dc_main"
 	// MarvelMainView is the materialized view for Marvel characters with main appearances.
 	MarvelMainView MaterializedView = "mv_ranked_characters_marvel_main"
+	// MarvelTrendingView is the materialized view for trending Marvel characters for main appearances only.
+	MarvelTrendingView MaterializedView = "mv_trending_characters_marvel"
+	// DCTrendingView is the materialized view for trending DC characters for main appearances only.
+	DCTrendingView MaterializedView = "mv_trending_characters_dc"
 	// Sooo many. In hindsight I should have used something like MongoDB. ¯\_(ツ)_/¯
 )
 
@@ -121,6 +125,8 @@ type PopularRepository interface {
 	FindOneByDC(id CharacterID) (*RankedCharacter, error)
 	FindOneByMarvel(id CharacterID) (*RankedCharacter, error)
 	FindOneByAll(id CharacterID) (*RankedCharacter, error)
+	MarvelTrending(limit, offset int) ([]*RankedCharacter, error)
+	DCTrending(limit, offset int) ([]*RankedCharacter, error)
 }
 
 // PopularRefresher concurrently refreshes the materialized views.
@@ -863,6 +869,26 @@ func (r *PGPopularRepository) Marvel(cr PopularCriteria) ([]*RankedCharacter, er
 	return r.query(MarvelMainView, cr)
 }
 
+// MarvelTrending gets the trending characters for Marvel.
+func (r *PGPopularRepository) MarvelTrending(limit, offset int) ([]*RankedCharacter, error) {
+	return r.query(MarvelTrendingView, PopularCriteria{
+		AppearanceType: Main,
+		SortBy: MostIssues,
+		Limit: limit,
+		Offset: offset,
+	})
+}
+
+// DCTrending gets the trending characters for DC.
+func (r *PGPopularRepository) DCTrending(limit, offset int) ([]*RankedCharacter, error) {
+	return r.query(DCTrendingView, PopularCriteria{
+		AppearanceType: Main,
+		SortBy: MostIssues,
+		Limit: limit,
+		Offset: offset,
+	})
+}
+
 func (r *PGPopularRepository) findOneBy(id CharacterID, view MaterializedView) (*RankedCharacter, error) {
 	sql := fmt.Sprintf(`SELECT
 		average_per_year_rank as stats__average_rank,
@@ -919,6 +945,8 @@ func (r *PGPopularRepository) RefreshAll() error {
 		MainView,
 		AltView,
 		DcMainView,
+		MarvelMainView,
+		MarvelTrendingView,
 		MarvelMainView,
 	}
 	var wg sync.WaitGroup

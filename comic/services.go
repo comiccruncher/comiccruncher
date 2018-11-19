@@ -119,6 +119,8 @@ type RankedServicer interface {
 	AllPopular(cr PopularCriteria) ([]*RankedCharacter, error)
 	DCPopular(cr PopularCriteria) ([]*RankedCharacter, error)
 	MarvelPopular(cr PopularCriteria) ([]*RankedCharacter, error)
+	MarvelTrending(limit, offset int) ([]*RankedCharacter, error)
+	DCTrending(limit, offset int) ([]*RankedCharacter, error)
 }
 
 // ExpandedServicer is the interface for getting a character with expanded details.
@@ -222,6 +224,16 @@ func (s *RankedService) DCPopular(cr PopularCriteria) ([]*RankedCharacter, error
 // or average appearances per year.
 func (s *RankedService) MarvelPopular(cr PopularCriteria) ([]*RankedCharacter, error) {
 	return s.popRepo.Marvel(cr)
+}
+
+// MarvelTrending gets the trending characters for marvel.
+func (s *RankedService) MarvelTrending(limit, offset int) ([]*RankedCharacter, error) {
+	return s.popRepo.MarvelTrending(limit, offset)
+}
+
+// DCTrending gets the trending characters for marvel.
+func (s *RankedService) DCTrending(limit, offset int) ([]*RankedCharacter, error) {
+	return s.popRepo.DCTrending(limit, offset)
 }
 
 // PublisherService is the service for publishers.

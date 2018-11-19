@@ -492,6 +492,32 @@ func (mr *MockRankedServicerMockRecorder) MarvelPopular(cr interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MarvelPopular", reflect.TypeOf((*MockRankedServicer)(nil).MarvelPopular), cr)
 }
 
+// MarvelTrending mocks base method
+func (m *MockRankedServicer) MarvelTrending(limit, offset int) ([]*comic.RankedCharacter, error) {
+	ret := m.ctrl.Call(m, "MarvelTrending", limit, offset)
+	ret0, _ := ret[0].([]*comic.RankedCharacter)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// MarvelTrending indicates an expected call of MarvelTrending
+func (mr *MockRankedServicerMockRecorder) MarvelTrending(limit, offset interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "MarvelTrending", reflect.TypeOf((*MockRankedServicer)(nil).MarvelTrending), limit, offset)
+}
+
+// DCTrending mocks base method
+func (m *MockRankedServicer) DCTrending(limit, offset int) ([]*comic.RankedCharacter, error) {
+	ret := m.ctrl.Call(m, "DCTrending", limit, offset)
+	ret0, _ := ret[0].([]*comic.RankedCharacter)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// DCTrending indicates an expected call of DCTrending
+func (mr *MockRankedServicerMockRecorder) DCTrending(limit, offset interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DCTrending", reflect.TypeOf((*MockRankedServicer)(nil).DCTrending), limit, offset)
+}
+
 // MockExpandedServicer is a mock of ExpandedServicer interface
 type MockExpandedServicer struct {
 	ctrl     *gomock.Controller
