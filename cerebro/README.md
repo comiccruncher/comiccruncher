@@ -5,7 +5,6 @@ Cerebro is the application that finds characters, character sources, and charact
 ## CLI Commands
 
 - `cerebro import [resource]`: Imports external resources as local resources. Available resources: `characters`, `charactersources`, `characterissues`
-- `cerebro start characterissues`: Starts a long-running process that consumes messages from a queue and imports character issues. Essentially, this command consumes from a queue + imports characterissues. Send a `SIGINT`/`ctrl` + `c` to cleanly quit the process.
 
 ## What counts as an appearance
 

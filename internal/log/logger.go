@@ -37,8 +37,6 @@ const (
 	Migrations Name = "migrations"
 	// Comic is the logger for comic package stuff.
 	Comic Name = "comic"
-	// Messaging is the logger for messaging stuff.
-	Messaging Name = "messaging"
 )
 
 // Creates a new logger with a configuration based on the environment.
@@ -112,17 +110,7 @@ func MARVELIMPORTER() *zap.Logger {
 	return Logger(MarvelCharacterImporter)
 }
 
-// QUEUE is a method for getting the queue logger.
-func QUEUE() *zap.Logger {
-	return Logger(Queue)
-}
-
 // COMIC is a method for getting the comic logger.
 func COMIC() *zap.Logger {
 	return Logger(Comic)
-}
-
-// MESSAGING is a method for getting the messaging logger.
-func MESSAGING() *zap.Logger {
-	return Logger(Messaging)
 }
