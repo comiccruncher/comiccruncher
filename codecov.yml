@@ -28,13 +28,13 @@ comment:
   require_changes: yes
 
 ignore:
-  - "vendor"
-  - "bin"
-  - "cmd"
+  - "vendor/"
+  - "bin/"
+  - "cmd/"
   - ".circleci"
-  - ".github"
-  - "messaging"
+  - ".github/"
+  - "messaging/"
   - "internal/mocks"
-  - "build"
+  - "build/"
   - "cerebro/cmd"
   - "web/cmd"
