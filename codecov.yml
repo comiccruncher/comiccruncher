@@ -33,7 +33,6 @@ ignore:
   - "cmd/"
   - ".circleci"
   - ".github/"
-  - "messaging/"
   - "internal/mocks"
   - "build/"
   - "cerebro/cmd"
