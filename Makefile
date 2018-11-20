@@ -217,11 +217,6 @@ enqueue-characters:
 docker-import-characters:
 	${DOCKER_RUN} go run -race ${CEREBRO_CMD} import characters
 
-# Builds the binary for sending characters to the sync queue.
-.PHONY: build-queuecharacters
-build-enqueue:
-	go build -o bin/enqueue -v ./cmd/messaging/enqueue.go
-
 .PHONY: build-enqueue-xcompile
 build-enqueue-xcompile:
 	${DOCKER_RUN_XCOMPILE} make build-enqueue
@@ -241,7 +236,6 @@ mockgen:
 	mockgen -destination=internal/mocks/comic/repositories.go -source=comic/repositories.go
 	mockgen -destination=internal/mocks/comic/services.go -source=comic/services.go
 	mockgen -destination=internal/mocks/comic/cache.go -source=comic/cache.go
-	mockgen -destination=internal/mocks/messaging/messenger.go -source=messaging/messenger.go
 	mockgen -destination=internal/mocks/cerebro/characterissue.go -source=cerebro/characterissue.go
 	mockgen -destination=internal/mocks/search/service.go -source=search/service.go
 
@@ -308,15 +302,13 @@ remote-deploy-nginx: remote-upload-nginx
 
 remote-deploy-api1:
 	scp ./${WEBAPP_BIN} ${API_SERVER1}:~/${WEBAPP_TMP_BIN}
-	ssh ${API_SERVER1} "bash -s" < ./build/webapp.sh
+	ssh ${API_SERVER1} "nohup bin/webapp start -p 8001 | logger &"
 
 remote-deploy-api2:
 	scp ./${WEBAPP_BIN} ${API_SERVER2}:~/${WEBAPP_TMP_BIN}
-	ssh ${API_SERVER2} "bash -s" < ./build/webapp.sh
+	ssh ${API_SERVER2} "nohup bin/webapp start -p 8001 | logger &"
 
 remote-deploy-lb: remote-upload-nginx
 	ssh ${LB_SERVER} "nginx -s reload"
 
-remote-deploy-webapps:
-	make remote-deploy-api1 & make remote-deploy-api2 &
-	sleep 5 && make remote-deploy-lb
+remote-deploy-webapps: remote-deploy-api1 remote-deploy-api2 remote-deploy-lb
