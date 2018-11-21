@@ -2,11 +2,9 @@ package web
 
 import (
 	"github.com/aimeelaplant/comiccruncher/comic"
-	"github.com/aimeelaplant/comiccruncher/internal/log"
 	"github.com/aimeelaplant/comiccruncher/search"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
-	"go.uber.org/zap"
 )
 
 // App is the struct for the web app with echo and the controllers.
@@ -19,8 +17,8 @@ type App struct {
 	trendingCtrlr  *TrendingController
 }
 
-// MustRun runs the web application from the specified port. Logs and exits if there is an error.
-func (a App) MustRun(port string) {
+// Run runs the web application from the specified port. Logs and exits if there is an error.
+func (a App) Run(port string) error {
 	a.echo.Use(middleware.Recover())
 	a.echo.HTTPErrorHandler = ErrorHandler
 	a.echo.Use(middleware.CSRF())
@@ -47,9 +45,12 @@ func (a App) MustRun(port string) {
 	a.echo.GET("trending/dc", a.trendingCtrlr.DC)
 
 	// Start the server.
-	if err := a.echo.Start(":" + port); err != nil {
-		log.WEB().Fatal("error starting server", zap.Error(err))
-	}
+	return a.echo.Start(":" + port)
+}
+
+// Close closes the app server.
+func (a App) Close() error {
+	return a.echo.Close()
 }
 
 // NewApp creates a new app from the parameters.
