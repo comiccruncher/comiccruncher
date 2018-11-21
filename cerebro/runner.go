@@ -87,7 +87,7 @@ func NewImportRunner() (*ImportRunner, error) {
 		marvelImporter:          NewMarvelCharactersImporter(marvel.NewMarvelAPI(httpClient), container, s3Storage),
 		dcImporter:              NewDcCharactersImporter(dc.NewDcAPI(httpClient), container, s3Storage),
 		characterIssueImporter:  *NewCharacterIssueImporter(container, appearancesSyncer, externalSource, statsSyncer),
-		characterSourceImporter: *NewCharacterSourceImporter(httpClient, container, externalSource),
+		characterSourceImporter: *NewCharacterSourceImporter(container, externalSource),
 		pgContainer:             *container,
 	}, err
 }

@@ -59,6 +59,7 @@ func (s *AppearancesSyncer) Sync(slug CharacterSlug) (int, error) {
 // CharacterStatsSyncer is the interface for syncing characters.
 type CharacterStatsSyncer interface {
 	Sync(slug CharacterSlug) error
+	SyncAll(characters []*Character) <- chan CharacterSyncResult
 }
 
 // RedisHmSetter is a redis client for setting hash-sets.
@@ -94,7 +95,6 @@ func (s *RedisCharacterStatsSyncer) Sync(slug CharacterSlug) error {
 		if err := s.set(c, rc, rcm); err != nil {
 			return err
 		}
-		log.COMIC().Info("done syncing stats to redis", zap.String("character", c.Slug.Value()))
 	}
 	if c.Publisher.Slug == "dc" {
 		rcd, err := s.pr.FindOneByDC(c.ID)
@@ -106,10 +106,44 @@ func (s *RedisCharacterStatsSyncer) Sync(slug CharacterSlug) error {
 			return err
 		}
 		if err := s.set(c, rc, rcd); err != nil {
-			log.COMIC().Info("done syncing stats to redis", zap.String("character", c.Slug.Value()))
+			return err
 		}
 	}
 	return nil
+}
+
+// CharacterSyncResult is the result set for a synced character to redis and an error if any.
+type CharacterSyncResult struct {
+	Slug CharacterSlug
+	Error error
+}
+
+func (s *RedisCharacterStatsSyncer) syncConcurrent(slugs <-chan CharacterSlug, results chan<- CharacterSyncResult) {
+	for slug := range slugs {
+		results <- CharacterSyncResult{Slug: slug, Error: s.Sync(slug)}
+	}
+}
+
+// SyncAll syncs multiple characters to redis in goroutines.
+func (s *RedisCharacterStatsSyncer) SyncAll(characters []*Character) <-chan CharacterSyncResult {
+	slugLen := len(characters)
+	slugCh := make(chan CharacterSlug, slugLen)
+	defer close(slugCh)
+	resultCh := make(chan CharacterSyncResult, slugLen)
+	jobLimit := 50
+	// make sure we aren't firing off goroutines greater than the job limit.
+	if slugLen < jobLimit {
+		jobLimit = slugLen
+	}
+	for i := 0; i < jobLimit; i++ {
+		go s.syncConcurrent(slugCh, resultCh)
+	}
+	// send work over
+	for _, chrctr := range characters {
+		slugCh <- chrctr.Slug
+	}
+	// Return the results so caller can collect them.
+	return resultCh
 }
 
 func (s *RedisCharacterStatsSyncer) set(c *Character, allTime *RankedCharacter, main *RankedCharacter) error {

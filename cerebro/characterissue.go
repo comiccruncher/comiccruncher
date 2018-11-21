@@ -383,10 +383,16 @@ func (i *CharacterIssueImporter) MustImportAll(slugs []comic.CharacterSlug) erro
 	if err := i.refresher.RefreshAll(); err != nil {
 		return err
 	}
-	// Now sync each character to Redis.
+	// Now sync them all to redis
+	results := i.statsSyncer.SyncAll(characters)
 	for idx := 0; idx < len(characters); idx++ {
-		if err := i.statsSyncer.Sync(characters[idx].Slug); err != nil {
-			return err
+		res := <- results
+		err = res.Error
+		slug := res.Slug.Value()
+		if res.Error != nil {
+			i.logger.Error("error syncing character to redis", zap.Error(err), zap.String("character", slug))
+		} else {
+			i.logger.Info("synced character to redis", zap.String("character", slug))
 		}
 	}
 	return nil

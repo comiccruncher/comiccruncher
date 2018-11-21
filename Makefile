@@ -117,6 +117,12 @@ format:
 docker-vet:
 	${DOCKER_RUN} make vet
 
+# Test the files with any race conditions (unfortunately Alpine-based images don't work w/ race command...so
+# use this command locally :(
+.PHONY: test
+test:
+	go test -race -v $(shell go list ./... | grep -v ./cmd) -coverprofile=coverage.txt
+
 # Vet the files.
 .PHONY: vet
 vet:
@@ -238,6 +244,8 @@ mockgen:
 	mockgen -destination=internal/mocks/comic/cache.go -source=comic/cache.go
 	mockgen -destination=internal/mocks/cerebro/characterissue.go -source=cerebro/characterissue.go
 	mockgen -destination=internal/mocks/search/service.go -source=search/service.go
+	mockgen -destination=internal/mocks/storage/s3.go -source=storage/s3.go
+	mockgen -destination=internal/mocks/cerebro/utils.go -source=cerebro/utils.go
 
 # Generate mocks for testing.
 docker-mockgen:

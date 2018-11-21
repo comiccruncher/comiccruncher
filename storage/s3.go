@@ -26,10 +26,30 @@ type Storage interface {
 	UploadFromRemote(remoteURL string, remoteDir string) (UploadedImage, error)
 }
 
+// S3Client is the interface for interacting with S3-related stuff.
+type S3Client interface {
+	PutObject(input *s3.PutObjectInput) (*s3.PutObjectOutput, error)
+}
+
+// HttpClient is the interface for interacting with http calls.
+type HttpClient interface {
+	Get(url string) (resp *http.Response, err error)
+}
+
+// S3StorageOption sets optional parameters.
+type S3StorageOption func(*S3Storage)
+
+// NamingStrategy sets the naming strategy for the storage.
+func NamingStrategy(strategy FileNameStrategy) S3StorageOption {
+	return func(s *S3Storage) {
+		s.namingStrategy = strategy
+	}
+}
+
 // S3Storage is the Storage implementation for AWS S3.
 type S3Storage struct {
-	httpClient     *http.Client
-	s3             *s3.S3           // The s3 storage.
+	httpClient     HttpClient
+	s3             S3Client         // The s3 storage.
 	bucket         string           // The name of the S3 bucket.
 	namingStrategy FileNameStrategy // The naming strategy for uploading a file to S3.
 }
@@ -51,10 +71,12 @@ func (storage *S3Storage) UploadFromRemote(remoteFile string, remoteDir string) 
 		return uploadImage, fmt.Errorf("cannot parse url: %s", err)
 	}
 	res, err := storage.httpClient.Get(remoteFile)
+	if res.Body != nil {
+		defer res.Body.Close()
+	}
 	if err != nil {
 		return uploadImage, fmt.Errorf("error requesting the remote url: %s", err)
 	}
-	defer res.Body.Close()
 	if res.StatusCode != http.StatusOK && res.StatusCode != http.StatusNotModified {
 		return uploadImage, fmt.Errorf("got bad status code from remote url %s: %d", remoteFile, res.StatusCode)
 	}
@@ -116,13 +138,7 @@ func NewS3StorageFromEnv() (Storage, error) {
 	if err != nil {
 		return nil, err
 	}
-	s3Storage := S3Storage{
-		httpClient:     http.DefaultClient,
-		s3:             s3.New(ses),
-		bucket:         os.Getenv("CC_AWS_BUCKET"),
-		namingStrategy: Crc32TimeNamingStrategy(),
-	}
-	return &s3Storage, nil
+	return NewS3Storage(http.DefaultClient, s3.New(ses), os.Getenv("CC_AWS_BUCKET")), nil
 }
 
 // Crc32TimeNamingStrategy returns the crc32 encoded string of the unix time in nanoseconds plus the file extension
@@ -137,11 +153,15 @@ func Crc32TimeNamingStrategy() FileNameStrategy {
 }
 
 // NewS3Storage creates a new S3 storage implementation from params.
-func NewS3Storage(httpClient *http.Client, s3 *s3.S3, bucket string, strategy FileNameStrategy) Storage {
-	return &S3Storage{
+func NewS3Storage(httpClient HttpClient, s3 S3Client, bucket string, opts ...S3StorageOption) Storage {
+	s := &S3Storage{
 		httpClient:     httpClient,
 		s3:             s3,
 		bucket:         bucket,
-		namingStrategy: strategy,
+		namingStrategy: Crc32TimeNamingStrategy(),
 	}
+	for _, opt := range opts {
+		opt(s)
+	}
+	return s
 }

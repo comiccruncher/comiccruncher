@@ -7,14 +7,12 @@ import (
 	"github.com/aimeelaplant/comiccruncher/internal/stringutil"
 	"github.com/aimeelaplant/externalissuesource"
 	"go.uber.org/zap"
-	"net/http"
 	"strings"
 	"sync"
 )
 
 // CharacterSourceImporter is responsible for importing a characters' sources into a persistence layer.
 type CharacterSourceImporter struct {
-	httpClient     *http.Client
 	characterSvc   comic.CharacterServicer
 	externalSource externalissuesource.ExternalSource
 	logger         *zap.Logger
@@ -276,12 +274,10 @@ func ParseCharacterName(s string) string {
 
 // NewCharacterSourceImporter returns a new instance of the importer.
 func NewCharacterSourceImporter(
-	httpClient *http.Client,
 	container *comic.PGRepositoryContainer,
 	cbExternalSource externalissuesource.ExternalSource,
 ) *CharacterSourceImporter {
 	return &CharacterSourceImporter{
-		httpClient:     httpClient,
 		characterSvc:   comic.NewCharacterService(container),
 		externalSource: cbExternalSource,
 		logger:         log.CEREBRO(),

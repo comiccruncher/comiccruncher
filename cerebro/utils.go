@@ -16,6 +16,11 @@ const errClientTimeoutString = "Client.Timeout exceeded"
 // The default retry delay option.
 var retryDelay = retry.Delay(time.Duration(10 * time.Second))
 
+// HttpClient is an interface for handling HTTP calls.
+type HttpClient interface {
+	Get(url string) (resp *http.Response, err error)
+}
+
 // Retries the URL if a connection error is returned.
 // The returned string should be the requested url.
 func retryURL(f func() (string, error)) error {
