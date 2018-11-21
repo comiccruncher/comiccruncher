@@ -117,6 +117,12 @@ format:
 docker-vet:
 	${DOCKER_RUN} make vet
 
+# Test the files with any race conditions (unfortunately Alpine-based images don't work w/ race command...so
+# use this command locally :(
+.PHONY: test
+test:
+	go test -race -v $(shell go list ./... | grep -v ./cmd) -coverprofile=coverage.txt
+
 # Vet the files.
 .PHONY: vet
 vet:
