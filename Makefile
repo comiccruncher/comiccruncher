@@ -36,9 +36,16 @@ WEB_CMD = ./cmd/web/web.go
 COMIC_CMD = ./cmd/comic/comic.go
 
 # The username and location to the api server (that's also the tasks server for now).
-LB_SERVER = root@142.93.52.234
+LB_SERVER = aimee@142.93.52.234
 API_SERVER1 = aimee@68.183.132.127
 API_SERVER2 = aimee@198.199.91.173
+
+DOCKER_COMPOSE_NGINX = docker-compose -f ./deploy/nginx/docker-compose.yml
+DEPLOY_NGINX_COMMAND = ${DOCKER_COMPOSE_NGINX} up \
+	-d \
+	--build \
+	--remove-orphans \
+	--force-recreate
 
 # Creates a .netrc file for access to private Github repository for cerebro.
 .PHONY: netrc
@@ -319,12 +326,25 @@ remote-deploy-migrations: remote-upload-migrations remote-run-migrations
 # Uploads nginx config.
 .PHONY: remote-upload-nginx
 remote-upload-nginx:
-	scp ./build/deploy/nginx/nginx.conf ${LB_SERVER}:/etc/nginx/nginx.conf
+	scp -r ./build/deploy/nginx ${LB_SERVER}:~/deploy
 
-# Restarts nginx on server.
+# Uploads the reload.sh script.
+.PHONY: remote-upload-reload-script
+remote-upload-reload-script:
+	scp -r ./build/deploy/nginx/reload.sh ${LB_SERVER}:~/deploy/nginx/reload.sh
+
+.PHONY: remote-deploy-nginx-initial
+remote-deploy-nginx-initial: remote-upload-nginx
+	ssh ${LB_SERVER} "${DEPLOY_NGINX_COMMAND}"
+
+# Reloads nginx.
+.PHONY: docker-reload-nginx
+remote-reload-nginx:
+	ssh ${LB_SERVER} "sh ~/deploy/nginx/reload.sh"
+
+# Uploads script and restarts nginx on server.
 .PHONY: remote-deploy-nginx
-remote-deploy-nginx: remote-upload-nginx
-	ssh ${LB_SERVER} "systemctl restart nginx"
+remote-deploy-nginx: remote-upload-reload-script remote-reload-nginx
 
 remote-deploy-api1:
 	scp ./${WEBAPP_BIN} ${API_SERVER1}:~/${WEBAPP_TMP_BIN}
@@ -336,7 +356,6 @@ remote-deploy-api2:
 	ssh ${API_SERVER2} "mv ~/${WEBAPP_TMP_BIN} ./${WEBAPP_BIN}"
 	ssh ${API_SERVER2} "nohup bin/webapp start -p 8001 | logger &"
 
-remote-deploy-lb: remote-upload-nginx
-	ssh ${LB_SERVER} "nginx -s reload"
+remote-deploy-lb: remote-upload-nginx remote-reload-nginx
 
 remote-deploy-webapps: remote-deploy-api1 remote-deploy-api2 remote-deploy-lb
