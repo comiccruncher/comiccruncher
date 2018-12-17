@@ -1,9 +1,13 @@
 package comic_test
 
 import (
+	"errors"
 	"fmt"
 	"github.com/aimeelaplant/comiccruncher/comic"
+	"github.com/aimeelaplant/comiccruncher/internal/mocks/comic"
 	"github.com/go-pg/pg/orm"
+	"github.com/go-redis/redis"
+	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
@@ -477,4 +481,80 @@ func TestPGCharacterRepositoryTotal(t *testing.T) {
 func TestPGPopularRepositoryRefreshAll(t *testing.T) {
 	r := comic.NewPopularRefresher(testInstance)
 	assert.Nil(t, r.RefreshAll())
+}
+
+func TestRedisCharacterThumbRepositoryThumbnails(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	r := mock_comic.NewMockRedisClient(ctrl)
+	val := "small:;medium:medium.jpg;large:large.jpg-small:small2.jpg;medium:medium2.jpg;large:large2.jpg"
+	cmd := redis.NewStringResult(val, nil)
+	r.EXPECT().Get("test:profile:thumbnails").Return(cmd)
+	svc := comic.NewRedisCharacterThumbRepository(r)
+	thmbs, err := svc.Thumbnails(comic.CharacterSlug("test"))
+	assert.Nil(t, err)
+	assert.NotNil(t, thmbs)
+	img := thmbs.Image
+	vendorImg := thmbs.VendorImage
+	assert.NotNil(t, thmbs.Image)
+	assert.NotNil(t, thmbs.VendorImage)
+	assert.Equal(t, "small2.jpg", img.Small)
+	assert.Equal(t, "medium2.jpg", img.Medium)
+	assert.Equal(t, "large2.jpg", img.Large)
+	assert.Equal(t, "", vendorImg.Small)
+	assert.Equal(t, "medium.jpg", vendorImg.Medium)
+	assert.Equal(t, "large.jpg", vendorImg.Large)
+}
+
+func TestRedisCharacterThumbRepositoryThumbnailsNil(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	r := mock_comic.NewMockRedisClient(ctrl)
+	cmd := redis.NewStringResult("", redis.Nil)
+	r.EXPECT().Get("test:profile:thumbnails").Return(cmd)
+	svc := comic.NewRedisCharacterThumbRepository(r)
+	thmbs, err := svc.Thumbnails(comic.CharacterSlug("test"))
+	assert.Nil(t, err)
+	assert.Nil(t, thmbs)
+}
+
+func TestRedisCharacterThumbRepositoryThumbnailsError(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	r := mock_comic.NewMockRedisClient(ctrl)
+	val := "small:;medium:medium.jpg;large:large.jpg-small:small2.jpg;medium:medium2.jpg;large:large2.jpg"
+	cmd := redis.NewStringResult(val, errors.New("error from redis client"))
+	r.EXPECT().Get("test:profile:thumbnails").Return(cmd)
+	svc := comic.NewRedisCharacterThumbRepository(r)
+	thmbs, err := svc.Thumbnails(comic.CharacterSlug("test"))
+	assert.Nil(t, thmbs)
+	assert.Error(t, err)
+}
+
+func TestRedisCharacterThumbRepositoryAllThumbnails(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	r := mock_comic.NewMockRedisClient(ctrl)
+	cmd := redis.NewSliceCmd(nil)
+	r.EXPECT().MGet(gomock.Any()).Return(cmd)
+	svc := comic.NewRedisCharacterThumbRepository(r)
+	thmbs, err := svc.AllThumbnails(comic.CharacterSlug("test1"), comic.CharacterSlug("test2"))
+	assert.Nil(t, err)
+	assert.Len(t, thmbs, 2)
+}
+
+func TestNewRedisCharacterThumbRepository(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	r := mock_comic.NewMockRedisClient(ctrl)
+	ctr := comic.NewRedisCharacterThumbRepository(r)
+	assert.NotNil(t, ctr)
+}
+
+func TestNewRedisAppearancesPerYearRepository(t *testing.T) {
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	r := mock_comic.NewMockRedisClient(ctrl)
+	ctr := comic.NewRedisAppearancesPerYearRepository(r)
+	assert.NotNil(t, ctr)
 }

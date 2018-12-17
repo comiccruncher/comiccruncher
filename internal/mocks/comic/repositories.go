@@ -851,3 +851,56 @@ func (m *MockPopularRefresher) RefreshAll() error {
 func (mr *MockPopularRefresherMockRecorder) RefreshAll() *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RefreshAll", reflect.TypeOf((*MockPopularRefresher)(nil).RefreshAll))
 }
+
+// MockCharacterThumbRepository is a mock of CharacterThumbRepository interface
+type MockCharacterThumbRepository struct {
+	ctrl     *gomock.Controller
+	recorder *MockCharacterThumbRepositoryMockRecorder
+}
+
+// MockCharacterThumbRepositoryMockRecorder is the mock recorder for MockCharacterThumbRepository
+type MockCharacterThumbRepositoryMockRecorder struct {
+	mock *MockCharacterThumbRepository
+}
+
+// NewMockCharacterThumbRepository creates a new mock instance
+func NewMockCharacterThumbRepository(ctrl *gomock.Controller) *MockCharacterThumbRepository {
+	mock := &MockCharacterThumbRepository{ctrl: ctrl}
+	mock.recorder = &MockCharacterThumbRepositoryMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockCharacterThumbRepository) EXPECT() *MockCharacterThumbRepositoryMockRecorder {
+	return m.recorder
+}
+
+// AllThumbnails mocks base method
+func (m *MockCharacterThumbRepository) AllThumbnails(slugs ...comic.CharacterSlug) (map[comic.CharacterSlug]*comic.CharacterThumbnails, error) {
+	varargs := []interface{}{}
+	for _, a := range slugs {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "AllThumbnails", varargs...)
+	ret0, _ := ret[0].(map[comic.CharacterSlug]*comic.CharacterThumbnails)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// AllThumbnails indicates an expected call of AllThumbnails
+func (mr *MockCharacterThumbRepositoryMockRecorder) AllThumbnails(slugs ...interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AllThumbnails", reflect.TypeOf((*MockCharacterThumbRepository)(nil).AllThumbnails), slugs...)
+}
+
+// Thumbnails mocks base method
+func (m *MockCharacterThumbRepository) Thumbnails(slug comic.CharacterSlug) (*comic.CharacterThumbnails, error) {
+	ret := m.ctrl.Call(m, "Thumbnails", slug)
+	ret0, _ := ret[0].(*comic.CharacterThumbnails)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Thumbnails indicates an expected call of Thumbnails
+func (mr *MockCharacterThumbRepositoryMockRecorder) Thumbnails(slug interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Thumbnails", reflect.TypeOf((*MockCharacterThumbRepository)(nil).Thumbnails), slug)
+}

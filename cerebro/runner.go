@@ -82,7 +82,7 @@ func NewImportRunner() (*ImportRunner, error) {
 	appearancesSyncer := comic.NewAppearancesSyncer(container, redisRepository)
 	// Use the http client provided from the external source.
 	externalSource := externalissuesource.NewCbExternalSource(externalissuesource.NewHttpClient(), &externalissuesource.CbExternalSourceConfig{})
-	statsSyncer := comic.NewCharacterStatsSyncer(r, container.CharacterRepository(), comic.NewPGPopularRepository(db))
+	statsSyncer := comic.NewCharacterStatsSyncer(r, container.CharacterRepository(), comic.NewPGPopularRepository(db, comic.NewRedisCharacterThumbRepository(r)))
 	return &ImportRunner{
 		marvelImporter:          NewMarvelCharactersImporter(marvel.NewMarvelAPI(httpClient), container, s3Storage),
 		dcImporter:              NewDcCharactersImporter(dc.NewDcAPI(httpClient), container, s3Storage),

@@ -108,6 +108,9 @@ jobs:
       - run:
           name: Deploy cerebro.
           command: make remote-deploy-cerebro
+      - run:
+          name: Deploy comic.
+          command: make remote-deploy-comic
   deploy_webapps:
       machine: true
       steps:

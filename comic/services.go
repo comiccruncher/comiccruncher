@@ -2,6 +2,7 @@ package comic
 
 import (
 	"fmt"
+	"github.com/aimeelaplant/comiccruncher/imaging"
 	"strconv"
 	"time"
 )
@@ -128,20 +129,97 @@ type ExpandedServicer interface {
 	Character(slug CharacterSlug) (*ExpandedCharacter, error)
 }
 
+// CharacterThumbServicer is the interface for creating and getting thumbnails for a character.
+type CharacterThumbServicer interface {
+	Upload(c *Character) (*CharacterThumbnails, error)
+}
+
 // ExpandedService gets an expanded character.
 type ExpandedService struct {
 	cr  CharacterRepository
 	ar  AppearancesByYearsRepository
 	r   RedisClient
 	slr CharacterSyncLogRepository
+	ctr CharacterThumbRepository
 }
 
 // RankedService is the service for getting ranked and popular characters.
 type RankedService struct {
 	popRepo PopularRepository
-	cr      CharacterRepository
-	ar      AppearancesByYearsRepository
-	r       RedisClient
+}
+
+// CharacterThumbService is the service for creating and uploading thumbnails for characters.
+type CharacterThumbService struct {
+	r RedisClient
+	tu imaging.ThumbnailUploader
+}
+
+// Upload uploads thumbnails for the given character struct.
+func (cts *CharacterThumbService) Upload(c *Character) (*CharacterThumbnails, error) {
+	vendorKey := c.VendorImage
+	imageKey := c.Image
+	slug := c.Slug
+	thumbs := &CharacterThumbnails{
+		Slug: slug,
+		Image: &ThumbnailSizes{},
+		VendorImage: &ThumbnailSizes{},
+	}
+	opts := imaging.NewDefaultThumbnailOptions(
+		"images/characters/",
+		imaging.NewThumbnailSize(100, 100),
+		imaging.NewThumbnailSize(300, 300),
+		imaging.NewThumbnailSize(600, 0),
+	)
+	if vendorKey != "" {
+		sizes1, err := cts.makeThumbs(vendorKey, opts)
+		if err != nil {
+			return thumbs, err
+		}
+		thumbs.VendorImage = sizes1
+	}
+	if imageKey != "" {
+		sizes2, err := cts.makeThumbs(imageKey, opts)
+		if err != nil {
+			return thumbs, err
+		}
+		thumbs.Image = sizes2
+	}
+	vendorImg := thumbs.VendorImage
+	img := thumbs.Image
+	// the last `-` delimeter is for the regular image.
+	redisVal := fmt.Sprintf(
+		"small:%s;medium:%s;large:%s-small:%s;medium:%s;large:%s",
+		vendorImg.Small,
+		vendorImg.Medium,
+		vendorImg.Large,
+		img.Small,
+		img.Medium,
+		img.Large)
+	return thumbs, cts.r.Set(redisThumbnailKey(slug), redisVal, 0).Err()
+}
+
+func (cts *CharacterThumbService) makeThumbs(key string, opts *imaging.ThumbnailOptions) (*ThumbnailSizes, error) {
+	results, err := cts.tu.Generate(key, opts)
+	if err != nil {
+		return nil, err
+	}
+	sizes := &ThumbnailSizes{}
+	for _, result := range results {
+		width := int(result.Dimensions.Width)
+		pathname := result.Pathname
+		switch width {
+		case 100:
+			sizes.Small = pathname
+			break
+		case 300:
+			sizes.Medium = pathname
+			break
+		case 600:
+			sizes.Large = pathname
+			break
+		}
+	}
+	return sizes, nil
 }
 
 // Character gets an expanded character.
@@ -203,9 +281,14 @@ func (s *ExpandedService) Character(slug CharacterSlug) (*ExpandedCharacter, err
 	if err != nil {
 		return nil, err
 	}
+	thumbs, err := s.ctr.Thumbnails(slug)
+	if err != nil {
+		return nil, err
+	}
 	ec.Appearances = apps
 	ec.Character = c
 	ec.LastSyncs = sl
+	ec.Thumbnails = thumbs
 	return ec, nil
 }
 
@@ -553,16 +636,20 @@ func NewRankedService(repository PopularRepository) RankedServicer {
 }
 
 // NewExpandedService creates a new service for getting expanded details for a character
-func NewExpandedService(cr CharacterRepository, ar AppearancesByYearsRepository, rc RedisClient, slr CharacterSyncLogRepository) ExpandedServicer {
+func NewExpandedService(cr CharacterRepository, ar AppearancesByYearsRepository, rc RedisClient, slr CharacterSyncLogRepository, ctr CharacterThumbRepository) ExpandedServicer {
 	return &ExpandedService{
 		cr:  cr,
 		ar:  ar,
 		r:   rc,
 		slr: slr,
+		ctr: ctr,
 	}
 }
 
-func parseUint(s string) (uint, error) {
-	u, err := strconv.ParseUint(s, 10, 64)
-	return uint(u), err
+// NewCharacterThumbnailService creates a new thumbnail service.
+func NewCharacterThumbnailService(r RedisClient, tu imaging.ThumbnailUploader) CharacterThumbServicer {
+	return &CharacterThumbService{
+		r: r,
+		tu: tu,
+	}
 }

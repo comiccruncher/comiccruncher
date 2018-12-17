@@ -32,6 +32,8 @@ MIGRATIONS_CMD = ./cmd/migrations/migrations.go
 CEREBRO_CMD = ./cmd/cerebro/cerebro.go
 # Location of the web cmd.
 WEB_CMD = ./cmd/web/web.go
+# Location of comic cmd
+COMIC_CMD = ./cmd/comic/comic.go
 
 # The username and location to the api server (that's also the tasks server for now).
 LB_SERVER = root@142.93.52.234
@@ -215,17 +217,18 @@ start-characterissues:
 import-characters:
 	 ${GO_RUN_LOCAL} ${CEREBRO_CMD} import characters ${EXTRA_FLAGS}
 
-.PHONY: enqueue-characters
-enqueue-characters:
-	${GO_RUN_LOCAL} cmd/enqueue.go characters ${EXTRA_FLAGS}
+# Runs the program for generating thumbnails for characters.
+.PHONY: import-characters
+generate-thumbs:
+	 ${GO_RUN_LOCAL} ${COMIC_CMD} generate thumbs ${EXTRA_FLAGS}
 
 .PHONY: docker-import-characters
 docker-import-characters:
-	${DOCKER_RUN} go run -race ${CEREBRO_CMD} import characters
+	${DOCKER_RUN} go run ${CEREBRO_CMD} import characters
 
-.PHONY: build-enqueue-xcompile
-build-enqueue-xcompile:
-	${DOCKER_RUN_XCOMPILE} make build-enqueue
+.PHONY: docker-generate-thumbs
+docker-generate-thumbs:
+	${DOCKER_RUN} go run ${COMIC_CMD} generate thumbs ${EXTRA_FLAGS}
 
 # Runs the program to send characters to the sync queue.
 .PHONY: queue-characters
@@ -246,6 +249,7 @@ mockgen:
 	mockgen -destination=internal/mocks/search/service.go -source=search/service.go
 	mockgen -destination=internal/mocks/storage/s3.go -source=storage/s3.go
 	mockgen -destination=internal/mocks/cerebro/utils.go -source=cerebro/utils.go
+	mockgen -destination=internal/mocks/imaging/thumbnail.go -source=imaging/thumbnail.go
 
 # Generate mocks for testing.
 docker-mockgen:
@@ -271,9 +275,18 @@ build-cerebro:
 docker-build-cerebro-xcompile:
 	${DOCKER_RUN_XCOMPILE} make build-cerebro
 
+# Builds the comic commands.
+.PHONY: build-comic
+build-comic:
+	go build -o ./bin/comic -v ${COMIC_CMD}
+
+# Builds the comic commands inside the Docker container.
+docker-build-comic-xcompile:
+	${DOCKER_RUN_XCOMPILE} make build-comic
+
 # Builds all the app binaries in the Docker contaner.
 .PHONY: docker-build-xcompile
-docker-build-xcompile: docker-build-migrations-xcompile docker-build-cerebro-xcompile docker-build-webapp-xcompile
+docker-build-xcompile: docker-build-migrations-xcompile docker-build-cerebro-xcompile docker-build-webapp-xcompile docker-build-comic-xcompile
 
 # Uploads the cerebro binary to the remote server. Used for CircleCI.
 .PHONY: remote-upload-cerebro
@@ -283,6 +296,11 @@ remote-upload-cerebro:
 # Uploads the cerebro binary to the remote server. Used for CircleCI.
 .PHONY: remote-deploy-cerebro
 remote-deploy-cerebro: remote-upload-cerebro
+
+# Uploads the comic binary to the remote server.
+.PHONY: remote-deploy-comic
+remote-deploy-comic:
+	scp ./${COMIC_BIN} ${LB_SERVER}:/usr/local/bin
 
 # Uploads the migrations binary to the remote server. Used for CircleCI.
 .PHONY: remote-upload-migrations

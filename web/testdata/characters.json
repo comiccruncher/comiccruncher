@@ -28,6 +28,7 @@
         "average_issues_per_year": 2,
         "average_issues_per_year_rank": 1
       },
+      "thumbnails": null,
       "image": "https://d2jsu6fyd1g4ln.cloudfront.net/test.jpg",
       "vendor_image": "https://d2jsu6fyd1g4ln.cloudfront.net/test2.jpg"
     },
@@ -49,6 +50,7 @@
         "average_issues_per_year": 2,
         "average_issues_per_year_rank": 2
       },
+      "thumbnails": null,
       "image": "",
       "vendor_image": ""
     }

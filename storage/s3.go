@@ -10,7 +10,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 	"hash/crc32"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -23,12 +25,20 @@ import (
 
 // Storage defines the interface for uploading remote files to a remote directory.
 type Storage interface {
+	Download(key string) (*bytes.Reader, error)
 	UploadFromRemote(remoteURL string, remoteDir string) (UploadedImage, error)
+	UploadBytes(b *bytes.Buffer, remotePathName string) error
 }
 
 // S3Client is the interface for interacting with S3-related stuff.
 type S3Client interface {
+	GetObject(input *s3.GetObjectInput) (*s3.GetObjectOutput, error)
 	PutObject(input *s3.PutObjectInput) (*s3.PutObjectOutput, error)
+}
+
+// S3Downloader downloads files from s3.
+type S3Downloader interface {
+	Download(w io.WriterAt, input *s3.GetObjectInput, options ...func(*s3manager.Downloader)) (n int64, err error)
 }
 
 // HttpClient is the interface for interacting with http calls.
@@ -50,6 +60,7 @@ func NamingStrategy(strategy FileNameStrategy) S3StorageOption {
 type S3Storage struct {
 	httpClient     HttpClient
 	s3             S3Client         // The s3 storage.
+	s3Downloader   S3Downloader     // The s3 downloader.
 	bucket         string           // The name of the S3 bucket.
 	namingStrategy FileNameStrategy // The naming strategy for uploading a file to S3.
 }
@@ -61,6 +72,20 @@ type FileNameStrategy func(basename string) string
 type UploadedImage struct {
 	Pathname string
 	MD5Hash  string
+}
+
+// Download downloads the specified key and returns the bytes.
+func (storage *S3Storage) Download(key string) (*bytes.Reader, error) {
+	in := &s3.GetObjectInput{
+		Bucket: &storage.bucket,
+		Key: &key,
+	}
+	buf := aws.NewWriteAtBuffer(nil)
+	_, err := storage.s3Downloader.Download(buf, in)
+	if err != nil {
+		return nil, err
+	}
+	return bytes.NewReader(buf.Bytes()), nil
 }
 
 // UploadFromRemote uploads a file from a remote url. The remote file gets temporarily read in memory.
@@ -85,18 +110,20 @@ func (storage *S3Storage) UploadFromRemote(remoteFile string, remoteDir string) 
 		// Add a leading slash. :)
 		remoteDir = remoteDir + "/"
 	}
-	remotePathName := remoteDir + storage.namingStrategy(filepath.Base(u.Path))
 	// copy for later.
 	b, err := ioutil.ReadAll(res.Body)
-	nopCloser := ioutil.NopCloser(bytes.NewBuffer(b))
-	defer nopCloser.Close()
+	buf := bytes.NewBuffer(b)
+	if buf != nil {
+		defer ioutil.NopCloser(buf).Close()
+	}
 	if err != nil {
 		return uploadImage, err
 	}
-	if err := storage.uploadBytes(b, remotePathName); err != nil {
+	remotePathName := remoteDir + storage.namingStrategy(filepath.Base(u.Path))
+	if err := storage.UploadBytes(buf, remotePathName); err != nil {
 		return uploadImage, fmt.Errorf("could not upload: %s", err)
 	}
-	md5Hash, err := hashutil.MD5Hash(nopCloser)
+	md5Hash, err := hashutil.MD5Hash(buf)
 	if err != nil {
 		return uploadImage, err
 	}
@@ -105,17 +132,19 @@ func (storage *S3Storage) UploadFromRemote(remoteFile string, remoteDir string) 
 	return uploadImage, nil
 }
 
-func (storage *S3Storage) uploadBytes(b []byte, remotePathName string) error {
+// UploadBytes uploads an item as bytes with the specified name.
+func (storage *S3Storage) UploadBytes(b *bytes.Buffer, remotePathName string) error {
 	ctx := context.Background()
 	timeout := time.Duration(10 * time.Second) // 10 seconds
 	_, cancelFn := context.WithTimeout(ctx, timeout)
 	defer cancelFn()
+	byts := b.Bytes()
 	if _, err := storage.s3.PutObject(
 		&s3.PutObjectInput{
 			Bucket:        aws.String(storage.bucket),
-			Body:          bytes.NewReader(b),
-			ContentType:   aws.String(http.DetectContentType(b)),
-			ContentLength: aws.Int64(int64(len(b))),
+			Body:          bytes.NewReader(byts),
+			ContentType:   aws.String(http.DetectContentType(byts)),
+			ContentLength: aws.Int64(int64(b.Len())),
 			Key:           aws.String(remotePathName),
 			CacheControl:  aws.String("max-age=2592000"),
 		},
@@ -125,20 +154,25 @@ func (storage *S3Storage) uploadBytes(b []byte, remotePathName string) error {
 	return nil
 }
 
-// NewS3StorageFromEnv creates the new S3 storage implementation from env vars.
-func NewS3StorageFromEnv() (Storage, error) {
+// NewAwsSessionFromEnv creates a new aws session from environment variables.
+func NewAwsSessionFromEnv() (*session.Session, error) {
 	creds := credentials.Value{
 		AccessKeyID:     os.Getenv("CC_AWS_ACCESS_KEY_ID"),
 		SecretAccessKey: os.Getenv("CC_AWS_SECRET_ACCESS_KEY"),
 	}
-	ses, err := session.NewSession(&aws.Config{
+	return session.NewSession(&aws.Config{
 		Region:      aws.String(os.Getenv("CC_AWS_REGION")),
 		Credentials: credentials.NewStaticCredentialsFromCreds(creds),
 	})
+}
+
+// NewS3StorageFromEnv creates the new S3 storage implementation from env vars.
+func NewS3StorageFromEnv() (Storage, error) {
+	ses, err := NewAwsSessionFromEnv()
 	if err != nil {
 		return nil, err
 	}
-	return NewS3Storage(http.DefaultClient, s3.New(ses), os.Getenv("CC_AWS_BUCKET")), nil
+	return NewS3Storage(http.DefaultClient, s3.New(ses), s3manager.NewDownloader(ses), os.Getenv("CC_AWS_BUCKET")), nil
 }
 
 // Crc32TimeNamingStrategy returns the crc32 encoded string of the unix time in nanoseconds plus the file extension
@@ -153,11 +187,12 @@ func Crc32TimeNamingStrategy() FileNameStrategy {
 }
 
 // NewS3Storage creates a new S3 storage implementation from params.
-func NewS3Storage(httpClient HttpClient, s3 S3Client, bucket string, opts ...S3StorageOption) Storage {
+func NewS3Storage(httpClient HttpClient, s3 S3Client, s3Downloader S3Downloader, bucket string, opts ...S3StorageOption) Storage {
 	s := &S3Storage{
 		httpClient:     httpClient,
 		s3:             s3,
 		bucket:         bucket,
+		s3Downloader:   s3Downloader,
 		namingStrategy: Crc32TimeNamingStrategy(),
 	}
 	for _, opt := range opts {

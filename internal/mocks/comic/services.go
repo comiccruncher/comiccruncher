@@ -553,3 +553,39 @@ func (m *MockExpandedServicer) Character(slug comic.CharacterSlug) (*comic.Expan
 func (mr *MockExpandedServicerMockRecorder) Character(slug interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Character", reflect.TypeOf((*MockExpandedServicer)(nil).Character), slug)
 }
+
+// MockCharacterThumbServicer is a mock of CharacterThumbServicer interface
+type MockCharacterThumbServicer struct {
+	ctrl     *gomock.Controller
+	recorder *MockCharacterThumbServicerMockRecorder
+}
+
+// MockCharacterThumbServicerMockRecorder is the mock recorder for MockCharacterThumbServicer
+type MockCharacterThumbServicerMockRecorder struct {
+	mock *MockCharacterThumbServicer
+}
+
+// NewMockCharacterThumbServicer creates a new mock instance
+func NewMockCharacterThumbServicer(ctrl *gomock.Controller) *MockCharacterThumbServicer {
+	mock := &MockCharacterThumbServicer{ctrl: ctrl}
+	mock.recorder = &MockCharacterThumbServicerMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockCharacterThumbServicer) EXPECT() *MockCharacterThumbServicerMockRecorder {
+	return m.recorder
+}
+
+// Upload mocks base method
+func (m *MockCharacterThumbServicer) Upload(c *comic.Character) (*comic.CharacterThumbnails, error) {
+	ret := m.ctrl.Call(m, "Upload", c)
+	ret0, _ := ret[0].(*comic.CharacterThumbnails)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Upload indicates an expected call of Upload
+func (mr *MockCharacterThumbServicerMockRecorder) Upload(c interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Upload", reflect.TypeOf((*MockCharacterThumbServicer)(nil).Upload), c)
+}

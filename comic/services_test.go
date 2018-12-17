@@ -3,7 +3,9 @@ package comic_test
 import (
 	"fmt"
 	"github.com/aimeelaplant/comiccruncher/comic"
+	"github.com/aimeelaplant/comiccruncher/imaging"
 	"github.com/aimeelaplant/comiccruncher/internal/mocks/comic"
+	"github.com/aimeelaplant/comiccruncher/internal/mocks/imaging"
 	"github.com/go-redis/redis"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -73,9 +75,23 @@ func TestExpandedServiceCharacter(t *testing.T) {
 	}
 	slr := mock_comic.NewMockCharacterSyncLogRepository(ctrl)
 	slr.EXPECT().LastSyncs(gomock.Any()).Times(1).Return(sl, nil)
-
-	svc := comic.NewExpandedService(cr, ar, rc, slr)
-	ec, err := svc.Character(comic.CharacterSlug("emma-frost"))
+	slug := comic.CharacterSlug("emma-frost")
+	ctr := mock_comic.NewMockCharacterThumbRepository(ctrl)
+	ctr.EXPECT().Thumbnails(gomock.Any()).Return(&comic.CharacterThumbnails{
+		Slug: slug,
+		Image: &comic.ThumbnailSizes{
+			Small: "a",
+			Medium: "b",
+			Large: "c",
+		},
+		VendorImage: &comic.ThumbnailSizes{
+			Small: "d",
+			Medium: "e",
+			Large: "f",
+		},
+	}, nil)
+	svc := comic.NewExpandedService(cr, ar, rc, slr, ctr)
+	ec, err := svc.Character(slug)
 	at := ec.Stats[0]
 	m := ec.Stats[1]
 	assert.Nil(t, err)
@@ -96,6 +112,7 @@ func TestExpandedServiceCharacter(t *testing.T) {
 	assert.Equal(t, ec.LastSyncs[0].NumIssues, 10)
 	assert.Equal(t, ec.LastSyncs[0].SyncedAt, tm)
 	assert.Equal(t, ec.LastSyncs[0].CharacterID, comic.CharacterID(1))
+	assert.NotNil(t, ec.Thumbnails)
 }
 
 func TestExpandedServiceCharacterNoResult(t *testing.T) {
@@ -112,8 +129,8 @@ func TestExpandedServiceCharacterNoResult(t *testing.T) {
 	rc.EXPECT().HGetAll(gomock.Any()).Times(0).Return(cmd)
 	slr := mock_comic.NewMockCharacterSyncLogRepository(ctrl)
 	slr.EXPECT().LastSyncs(gomock.Any()).Times(0)
-
-	svc := comic.NewExpandedService(cr, ar, rc, slr)
+	ctr := mock_comic.NewMockCharacterThumbRepository(ctrl)
+	svc := comic.NewExpandedService(cr, ar, rc, slr, ctr)
 	ec, err := svc.Character(comic.CharacterSlug("emma-frost"))
 	assert.Nil(t, err)
 	assert.Nil(t, ec)
@@ -143,8 +160,10 @@ func TestExpandedServiceCharacterNoRedisResult(t *testing.T) {
 	rc.EXPECT().HGetAll(fmt.Sprintf("%s:stats", ch.Slug)).Times(1).Return(cmd)
 	slr := mock_comic.NewMockCharacterSyncLogRepository(ctrl)
 	slr.EXPECT().LastSyncs(gomock.Any()).Times(1).Return([]*comic.LastSync{}, nil)
+	ctr := mock_comic.NewMockCharacterThumbRepository(ctrl)
+	ctr.EXPECT().Thumbnails(gomock.Any()).Return(nil, nil)
 
-	svc := comic.NewExpandedService(cr, ar, rc, slr)
+	svc := comic.NewExpandedService(cr, ar, rc, slr, ctr)
 	ec, err := svc.Character(comic.CharacterSlug("emma-frost"))
 	assert.Nil(t, err)
 	assert.Len(t, ec.Appearances, 0)
@@ -173,4 +192,44 @@ func TestRankedServiceMarvelTrending(t *testing.T) {
 	results, err := svc.MarvelTrending(25, 0)
 	assert.Nil(t, err)
 	assert.Len(t, results, 0)
+}
+
+func TestCharacterThumbServiceUpload(t *testing.T) {
+	c := &comic.Character{
+		VendorImage: "myvendorimg.jpg",
+		Image: "myimage.jpg",
+		Slug: "test",
+	}
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+	size100 := imaging.NewThumbnailSize(100, 100)
+	size300 := imaging.NewThumbnailSize(300, 300)
+	size600 := imaging.NewThumbnailSize(600, 0)
+	r := mock_comic.NewMockRedisClient(ctrl)
+	r.EXPECT().Set(gomock.Any(), gomock.Any(), time.Duration(0)).Return(redis.NewStatusCmd()).Times(1)
+	th := mock_imaging.NewMockThumbnailUploader(ctrl)
+	th.EXPECT().Generate(c.VendorImage, gomock.Any()).Return([]*imaging.ThumbnailResult{
+		{Pathname: "a.jpg", Dimensions: size100},
+		{Pathname: "b.jpg", Dimensions: size300},
+		{Pathname: "c.jpg", Dimensions: size600},
+	}, nil)
+	th.EXPECT().Generate(c.Image, gomock.Any()).Return([]*imaging.ThumbnailResult{
+		{Pathname: "d.jpg", Dimensions: size100},
+		{Pathname: "e.jpg", Dimensions: size300},
+		{Pathname: "f.jpg", Dimensions: size600},
+	}, nil)
+	svc := comic.NewCharacterThumbnailService(r, th)
+	thmbs, err := svc.Upload(c)
+	assert.Nil(t, err)
+	assert.NotNil(t, thmbs)
+	vndrImg := thmbs.VendorImage
+	img := thmbs.Image
+	assert.NotNil(t, vndrImg)
+	assert.NotNil(t, img)
+	assert.Equal(t, "a.jpg", vndrImg.Small)
+	assert.NotEmpty(t, "b.jpg", vndrImg.Medium)
+	assert.NotEmpty(t, "c.jpg", vndrImg.Large)
+	assert.NotEmpty(t, "d.jpg", img.Small)
+	assert.NotEmpty(t, "e.jpg", img.Medium)
+	assert.NotEmpty(t, "f.jpg", img.Large)
 }

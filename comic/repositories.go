@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/aimeelaplant/comiccruncher/internal/log"
-	"github.com/aimeelaplant/comiccruncher/internal/stringutil"
 	"github.com/go-pg/pg"
 	"github.com/go-redis/redis"
 	"github.com/gosimple/slug"
@@ -135,9 +134,61 @@ type PopularRefresher interface {
 	RefreshAll() error
 }
 
+// CharacterThumbRepository is the repository for getting character thumbnails.
+type CharacterThumbRepository interface {
+	AllThumbnails(slugs ...CharacterSlug) (map[CharacterSlug]*CharacterThumbnails, error)
+	Thumbnails(slug CharacterSlug) (*CharacterThumbnails, error)
+}
+
+// RedisCharacterThumbRepository is for a redis repository for getting character thumbnails.
+type RedisCharacterThumbRepository struct {
+	r RedisClient
+}
+
+// Thumbnails gets the thumbnails for a character.
+func (ctr *RedisCharacterThumbRepository) Thumbnails(slug CharacterSlug) (*CharacterThumbnails, error) {
+	result, err := ctr.r.Get(redisThumbnailKey(slug)).Result()
+	if err == redis.Nil {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	thumbs := &CharacterThumbnails{}
+	err = parseRedisThumbnails(result, thumbs)
+	return thumbs, err
+}
+
+// AllThumbnails efficiently gets the thumbnails for many characters.
+func (ctr *RedisCharacterThumbRepository) AllThumbnails(slugs ...CharacterSlug) (map[CharacterSlug]*CharacterThumbnails, error) {
+	slcLen := len(slugs)
+	allKeys := make([]string, slcLen)
+	for i, s := range slugs {
+		allKeys[i] = redisThumbnailKey(s)
+	}
+	all, err := ctr.r.MGet(allKeys...).Result()
+	if err != nil {
+		return nil, err
+	}
+	allThumbs := make(map[CharacterSlug]*CharacterThumbnails, slcLen)
+	for i, s := range slugs {
+		thumb := &CharacterThumbnails{Slug: s,}
+		allThumbs[s] = thumb
+		if all != nil {
+			val := all[i]
+			if val != nil {
+				parseRedisThumbnails(val.(string), thumb)
+			}
+		}
+	}
+
+	return allThumbs, nil
+}
+
 // PGPopularRepository is the postgres implementation for the popular character repository.
 type PGPopularRepository struct {
-	db *pg.DB
+	db  *pg.DB
+	ctr CharacterThumbRepository
 }
 
 // PGAppearancesByYearsRepository is the postgres implementation for the appearances per year repository.
@@ -1018,26 +1069,21 @@ func (r *PGPopularRepository) query(table MaterializedView, cr PopularCriteria) 
 	if err != nil {
 		return nil, err
 	}
-	return characters, err
-}
-
-// parseYearlyAggregates parses the string value of the redis value into a yearly aggregate.
-func parseRedisYearlyAggregates(value string) []YearlyAggregate {
-	var yearlyAggregates []YearlyAggregate
-	// since we sore the appearances values in the form of `1948:1;1949:2;1950:3`, we need to parse out the values.
-	values := strings.Split(value, ";")
-	for _, val := range values {
-		idx := strings.Index(val, ":")
-		year := stringutil.MustAtoi(val[:idx])
-		count := stringutil.MustAtoi(val[idx+1:])
-		yearlyAggregates = append(yearlyAggregates, YearlyAggregate{Year: year, Count: count})
+	slugs := make([]CharacterSlug, len(characters))
+	for i, c := range characters {
+		slugs[i] = c.Slug
 	}
-	return yearlyAggregates
-}
-
-// Returns the redis key for appearances per year for a character and appearance type.
-func redisKey(key CharacterSlug, cat AppearanceType) string {
-	return fmt.Sprintf("%s:%s:%d", key, appearancesPerYearsKey, cat)
+	thumbs, err := r.ctr.AllThumbnails(slugs...)
+	if err != nil {
+		return characters, err
+	}
+	for _, c := range characters {
+		thumb := thumbs[c.Slug]
+		if thumb != nil && (thumb.VendorImage != nil || thumb.Image != nil) {
+			c.Thumbnails = thumbs[c.Slug]
+		}
+	}
+	return characters, err
 }
 
 // NewPGAppearancesPerYearRepository creates the new appearances by year repository for postgres.
@@ -1091,22 +1137,11 @@ func NewPGCharacterSyncLogRepository(db *pg.DB) CharacterSyncLogRepository {
 
 // NewPGPopularRepository creates the new popular characters repository for postgres
 // and the redis cache for appearances.
-func NewPGPopularRepository(db *pg.DB) PopularRepository {
+func NewPGPopularRepository(db *pg.DB, ctr CharacterThumbRepository) PopularRepository {
 	return &PGPopularRepository{
 		db: db,
+		ctr: ctr,
 	}
-}
-
-// NewRedisAppearancesMapRepository creates a new redis appearances map repository.
-func NewRedisAppearancesMapRepository(r RedisClient) AppearancesByYearsMapRepository {
-	return &RedisAppearancesByYearsRepository{
-		redisClient: r,
-	}
-}
-
-// NewAppearancesByYearsWriter creates a new writer for writing to the appearances by years cache.
-func NewAppearancesByYearsWriter(c RedisClient) AppearancesByYearsWriter {
-	return &RedisAppearancesByYearsRepository{redisClient: c}
 }
 
 // NewPopularRefresher creates a new refresher for refreshing the materialized views.
@@ -1114,4 +1149,9 @@ func NewPopularRefresher(db *pg.DB) PopularRefresher {
 	return &PGPopularRepository{
 		db: db,
 	}
+}
+
+// NewRedisCharacterThumbRepository creates a new redis character thumb repository.
+func NewRedisCharacterThumbRepository(r RedisClient) CharacterThumbRepository {
+	return &RedisCharacterThumbRepository{r: r}
 }
