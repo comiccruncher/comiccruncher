@@ -281,8 +281,8 @@ type RankedCharacter struct {
 	VendorImage       string         `json:"vendor_image"`
 	VendorURL         string         `json:"vendor_url"`
 	VendorDescription string         `json:"vendor_description"`
-	Stats             CharacterStats `json:"stats"`
 	Thumbnails        *CharacterThumbnails  `json:"thumbnails"`
+	Stats             CharacterStats `json:"stats"`
 }
 
 // LastSync represents the last sync for a character.
@@ -296,10 +296,10 @@ type LastSync struct {
 // their main appearances per publisher and the last sync for the character.
 type ExpandedCharacter struct {
 	*Character
+	Thumbnails  *CharacterThumbnails `json:"thumbnails"`
 	LastSyncs   []*LastSync          `json:"last_syncs"`
 	Stats       []CharacterStats     `json:"stats"`
 	Appearances []AppearancesByYears `json:"appearances"`
-	Thumbnails  *CharacterThumbnails `json:"thumbnails"`
 }
 
 // CharacterStatsCategory is the category types for character stats.
@@ -334,53 +334,43 @@ func NewCharacterStats(c CharacterStatsCategory, rank, issueCount, avgRank uint,
 
 // MarshalJSON overrides the marshaling of JSON with presentation for CDN urls.
 func (c *ExpandedCharacter) MarshalJSON() ([]byte, error) {
-	img := ""
 	if c.Image != "" {
-		img = fmt.Sprintf("%s/%s", cdnURL, c.Image)
+		c.Image = cdnURL + "/" + c.Image
 	}
-	vendorImg := ""
 	if c.VendorImage != "" {
-		vendorImg = fmt.Sprintf("%s/%s", cdnURL, c.VendorImage)
+		c.VendorImage = cdnURL + "/" + c.VendorImage
 	}
+	cdnUrlForThumbnails(c.Thumbnails)
 	type Alias Character
 	return json.Marshal(&struct {
 		*Alias
-		Image       string               `json:"image"`
-		VendorImage string               `json:"vendor_image"`
-		LastSyncs   []*LastSync          `json:"last_syncs"`
-		Stats       []CharacterStats     `json:"stats"`
 		Thumbnails  *CharacterThumbnails `json:"thumbnails"`
+		Stats       []CharacterStats     `json:"stats"`
+		LastSyncs   []*LastSync          `json:"last_syncs"`
 		Appearances []AppearancesByYears `json:"appearances"`
 	}{
 		Alias:       (*Alias)(c.Character),
-		Image:       img,
-		VendorImage: vendorImg,
-		LastSyncs:   c.LastSyncs,
-		Stats:       c.Stats,
 		Thumbnails:  c.Thumbnails,
+		Stats:       c.Stats,
+		LastSyncs:   c.LastSyncs,
 		Appearances: c.Appearances,
 	})
 }
 
 // MarshalJSON overrides the image and vendor image for the CDN url.
 func (c *RankedCharacter) MarshalJSON() ([]byte, error) {
-	strctImage := ""
 	if c.Image != "" {
-		strctImage = fmt.Sprintf("%s/%s", cdnURL, c.Image)
+		c.Image = cdnURL + "/" + c.Image
 	}
-	strctVendorImage := ""
 	if c.VendorImage != "" {
-		strctVendorImage = fmt.Sprintf("%s/%s", cdnURL, c.VendorImage)
+		c.VendorImage = cdnURL + "/" + c.VendorImage
 	}
+	cdnUrlForThumbnails(c.Thumbnails)
 	type Alias RankedCharacter
 	return json.Marshal(&struct {
 		*Alias
-		Image       string `json:"image"`
-		VendorImage string `json:"vendor_image"`
 	}{
 		Alias:       (*Alias)(c),
-		Image:       strctImage,
-		VendorImage: strctVendorImage,
 	})
 }
 
@@ -470,28 +460,6 @@ func (r AvgPerYearRank) Value() uint {
 	return uint(r)
 }
 
-// MarshalJSON overrides JSON marshaling for CDN url.
-func (c *Character) MarshalJSON() ([]byte, error) {
-	strctImage := ""
-	if c.Image != "" {
-		strctImage = fmt.Sprintf("%s/%s", cdnURL, c.Image)
-	}
-	strctVendorImage := ""
-	if c.VendorImage != "" {
-		strctVendorImage = fmt.Sprintf("%s/%s", cdnURL, c.VendorImage)
-	}
-	type Alias Character
-	return json.Marshal(&struct {
-		*Alias
-		Image       string `json:"image"`
-		VendorImage string `json:"vendor_image"`
-	}{
-		Alias:       (*Alias)(c),
-		Image:       strctImage,
-		VendorImage: strctVendorImage,
-	})
-}
-
 // NewCharacterSlugs creates character slugs from the specified `strs` string.
 func NewCharacterSlugs(strs ...string) []CharacterSlug {
 	slugs := make([]CharacterSlug, len(strs))
@@ -508,16 +476,6 @@ func NewCharacter(name string, publisherID PublisherID, vendorType VendorType, v
 		PublisherID: PublisherID(publisherID),
 		VendorType:  vendorType,
 		VendorID:    vendorID,
-	}
-}
-
-// NewCharacterSyncLog creates a new sync log object for syncing characters.
-func NewCharacterSyncLog(id CharacterID, status CharacterSyncLogStatus, syncedAt *time.Time) *CharacterSyncLog {
-	return &CharacterSyncLog{
-		CharacterID: id,
-		SyncType:    Characters,
-		SyncStatus:  status,
-		SyncedAt:    syncedAt,
 	}
 }
 
@@ -591,5 +549,24 @@ func NewAppearancesByYears(slug CharacterSlug, cat AppearanceType, aggs []Yearly
 		CharacterSlug: slug,
 		Category:      cat,
 		Aggregates:    aggs,
+	}
+}
+
+func cdnUrlForThumbnails(thumbs *CharacterThumbnails) {
+	if thumbs != nil {
+		if thumbs.VendorImage != nil {
+			cdnUrlForSizes(thumbs.VendorImage)
+		}
+		if thumbs.Image != nil {
+			cdnUrlForSizes(thumbs.Image)
+		}
+	}
+}
+
+func cdnUrlForSizes(sizes *ThumbnailSizes) {
+	if sizes != nil {
+		sizes.Small = cdnURL + "/" + sizes.Small
+		sizes.Medium = cdnURL + "/" + sizes.Medium
+		sizes.Large = cdnURL + "/" + sizes.Large
 	}
 }

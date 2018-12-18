@@ -18,19 +18,19 @@
       "name": "Test",
       "other_name": "",
       "description": "",
+      "image": "https://d2jsu6fyd1g4ln.cloudfront.net/test.jpg",
       "slug": "test",
+      "vendor_image": "https://d2jsu6fyd1g4ln.cloudfront.net/test2.jpg",
       "vendor_url": "",
       "vendor_description": "",
+      "thumbnails": null,
       "stats": {
         "category": "",
         "issue_count_rank": 1,
         "issue_count": 10,
         "average_issues_per_year": 2,
         "average_issues_per_year_rank": 1
-      },
-      "thumbnails": null,
-      "image": "https://d2jsu6fyd1g4ln.cloudfront.net/test.jpg",
-      "vendor_image": "https://d2jsu6fyd1g4ln.cloudfront.net/test2.jpg"
+      }
     },
     {
       "publisher": {
@@ -40,19 +40,19 @@
       "name": "Test2",
       "other_name": "",
       "description": "",
+      "image": "",
       "slug": "test2",
+      "vendor_image": "",
       "vendor_url": "",
       "vendor_description": "",
+      "thumbnails": null,
       "stats": {
         "category": "",
         "issue_count_rank": 2,
         "issue_count": 5,
         "average_issues_per_year": 2,
         "average_issues_per_year_rank": 2
-      },
-      "thumbnails": null,
-      "image": "",
-      "vendor_image": ""
+      }
     }
   ]
 }
