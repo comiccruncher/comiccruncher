@@ -25,6 +25,8 @@ WEBAPP_BIN = bin/webapp
 WEBAPP_TMP_BIN = bin/webapp1
 # The path to the cerebro bin.
 CEREBRO_BIN = bin/cerebro
+# The path to the comic bin.
+COMIC_BIN = bin/comic
 
 # Locaton of the migrations cmd.
 MIGRATIONS_CMD = ./cmd/migrations/migrations.go
@@ -301,7 +303,7 @@ docker-build-xcompile: docker-build-migrations-xcompile docker-build-cerebro-xco
 # Uploads the cerebro binary to the remote server. Used for CircleCI.
 .PHONY: remote-upload-cerebro
 remote-upload-cerebro:
-	scp ./${CEREBRO_BIN} ${LB_SERVER}:/usr/local/bin
+	scp ./${CEREBRO_BIN} ${LB_SERVER}:~/bin
 
 # Uploads the cerebro binary to the remote server. Used for CircleCI.
 .PHONY: remote-deploy-cerebro
@@ -310,12 +312,12 @@ remote-deploy-cerebro: remote-upload-cerebro
 # Uploads the comic binary to the remote server.
 .PHONY: remote-deploy-comic
 remote-deploy-comic:
-	scp ./${COMIC_BIN} ${LB_SERVER}:/usr/local/bin
+	scp ./${COMIC_BIN} ${LB_SERVER}:~/bin
 
 # Uploads the migrations binary to the remote server. Used for CircleCI.
 .PHONY: remote-upload-migrations
 remote-upload-migrations:
-	scp ./${MIGRATIONS_BIN} ${LB_SERVER}:/usr/local/bin
+	scp ./${MIGRATIONS_BIN} ${LB_SERVER}:~/bin
 
 # Runs migrations over the remote server. Used for CircleCI.
 .PHONY: remote-run-migrations
