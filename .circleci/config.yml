@@ -20,16 +20,12 @@ workflows:
             tags:
               ignore: /^v.*/
       - deploy_tasks:
-          requires:
-            - test_and_build
           filters:
             tags:
               only: /^v.*/
             branches:
               ignore: /.*/
       - deploy_webapps:
-          requires:
-            - test_and_build
           filters:
             tags:
               only: /^v.*/
