@@ -8,12 +8,11 @@ coverage:
   status:
     project:
       default:
-        target: 0
-        threshold: 100% # pass all pull requests for now.
+        threshold: 10
         only_pulls: true
     patch:
       default:
-        enabled: no
+        threshold: 10
 parsers:
   gcov:
     branch_detection:
@@ -37,3 +36,5 @@ ignore:
   - "build/"
   - "cerebro/cmd"
   - "web/cmd"
+  - "comic/cmd"
+
