@@ -100,7 +100,7 @@ jobs:
             -  bin-{{ .Revision }}
       - add_ssh_keys:
           fingerprints:
-            - "31:c6:46:c7:d8:8d:f4:2a:b5:ac:75:c0:4c:f0:b1:9d"
+            - "8f:f7:d9:2c:ee:0a:6c:86:c2:d9:55:3b:68:2a:ee:d8"
       - run:
           name: Deploy migrations.
           command: make remote-deploy-migrations
@@ -119,9 +119,7 @@ jobs:
             - bin-{{ .Revision }}
       - add_ssh_keys:
             fingerprints:
-              - "5f:70:a7:b4:80:40:0a:16:90:cf:a5:a6:af:aa:35:de"
-              - "48:9c:e0:fe:c9:3f:2f:40:1f:ba:d1:38:c9:ea:72:0a"
-              - "31:c6:46:c7:d8:8d:f4:2a:b5:ac:75:c0:4c:f0:b1:9d"
+              - "8f:f7:d9:2c:ee:0a:6c:86:c2:d9:55:3b:68:2a:ee:d8"
       - run:
             name: Deploy webapp.
             command: make remote-deploy-webapps
