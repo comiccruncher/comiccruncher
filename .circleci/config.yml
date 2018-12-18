@@ -9,6 +9,7 @@ workflows:
             tags:
               only: /.*/
       - vet_and_codecov:
+          context: comiccruncher
           requires:
             - test_and_build
           filters:
