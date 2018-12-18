@@ -104,6 +104,9 @@ docker-install: docker-up docker-dep-ensure
 # Install the Go dependencies.
 .PHONY: dep-ensure
 dep-ensure:
+	dep ensure
+
+.PHONY: dep-ensure-update
 	dep ensure -update
 
 # Install the Go dependencies in the Docker container.
