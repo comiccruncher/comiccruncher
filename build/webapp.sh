@@ -2,7 +2,7 @@
 
 # exec 1> >(logger -s -t $(basename $0)) 2>&1
 
-ps -ef | awk '/webapp/ {print $2}' | xargs kill -9 > /dev/null
+ps -ef | awk '/bin\/webapp/ {print $2}' | xargs kill -9
 
 mv ~/bin/webapp1 ~/bin/webapp
 
