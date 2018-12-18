@@ -9,6 +9,7 @@ workflows:
             tags:
               only: /.*/
       - vet_and_codecov:
+          context: comiccruncher
           requires:
             - test_and_build
           filters:
@@ -39,7 +40,7 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - vendor-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
+            - vendor-{{ checksum "Gopkg.lock" }}
       - run:
           name: Build the test container.
           command: make docker-up-test
@@ -50,7 +51,7 @@ jobs:
           name: Install the dependencies.
           command: make docker-dep-ensure
       - save_cache:
-          key: vendor-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
+          key: vendor-{{ checksum "Gopkg.lock" }}
           paths:
             - "vendor"
       - run:
@@ -63,9 +64,9 @@ jobs:
           name: Cleanup netrc
           command: rm .netrc
       - save_cache:
-          key: coverage-{{ .Branch }}-{{ .BuildNum }}-{{ .Revision }}-coverage.txt
+          key: coverage-{{ .Branch }}-{{ .Revision }}
           paths:
-            - "coverage.txt"
+            - "./coverage.txt"
       - run:
           name: Build the build container.
           command: make docker-up
@@ -82,10 +83,10 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - vendor-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
+            - vendor-{{ checksum "Gopkg.lock" }}
       - restore_cache:
           keys:
-            - coverage-{{ .Branch }}-{{ .BuildNum }}-{{ .Revision }}-coverage.txt
+            - coverage-{{ .Branch }}-{{ .Revision }}
       - run:
           name: Vet the files and report any errors.
           command: make docker-vet
@@ -108,6 +109,9 @@ jobs:
       - run:
           name: Deploy cerebro.
           command: make remote-deploy-cerebro
+      - run:
+          name: Deploy comic.
+          command: make remote-deploy-comic
   deploy_webapps:
       machine: true
       steps:

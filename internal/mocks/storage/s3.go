@@ -5,9 +5,12 @@
 package mock_storage
 
 import (
+	bytes "bytes"
 	storage "github.com/aimeelaplant/comiccruncher/storage"
 	s3 "github.com/aws/aws-sdk-go/service/s3"
+	s3manager "github.com/aws/aws-sdk-go/service/s3/s3manager"
 	gomock "github.com/golang/mock/gomock"
+	io "io"
 	http "net/http"
 	reflect "reflect"
 )
@@ -35,6 +38,19 @@ func (m *MockStorage) EXPECT() *MockStorageMockRecorder {
 	return m.recorder
 }
 
+// Download mocks base method
+func (m *MockStorage) Download(key string) (*bytes.Reader, error) {
+	ret := m.ctrl.Call(m, "Download", key)
+	ret0, _ := ret[0].(*bytes.Reader)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Download indicates an expected call of Download
+func (mr *MockStorageMockRecorder) Download(key interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Download", reflect.TypeOf((*MockStorage)(nil).Download), key)
+}
+
 // UploadFromRemote mocks base method
 func (m *MockStorage) UploadFromRemote(remoteURL, remoteDir string) (storage.UploadedImage, error) {
 	ret := m.ctrl.Call(m, "UploadFromRemote", remoteURL, remoteDir)
@@ -46,6 +62,18 @@ func (m *MockStorage) UploadFromRemote(remoteURL, remoteDir string) (storage.Upl
 // UploadFromRemote indicates an expected call of UploadFromRemote
 func (mr *MockStorageMockRecorder) UploadFromRemote(remoteURL, remoteDir interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UploadFromRemote", reflect.TypeOf((*MockStorage)(nil).UploadFromRemote), remoteURL, remoteDir)
+}
+
+// UploadBytes mocks base method
+func (m *MockStorage) UploadBytes(b *bytes.Buffer, remotePathName string) error {
+	ret := m.ctrl.Call(m, "UploadBytes", b, remotePathName)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UploadBytes indicates an expected call of UploadBytes
+func (mr *MockStorageMockRecorder) UploadBytes(b, remotePathName interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UploadBytes", reflect.TypeOf((*MockStorage)(nil).UploadBytes), b, remotePathName)
 }
 
 // MockS3Client is a mock of S3Client interface
@@ -71,6 +99,19 @@ func (m *MockS3Client) EXPECT() *MockS3ClientMockRecorder {
 	return m.recorder
 }
 
+// GetObject mocks base method
+func (m *MockS3Client) GetObject(input *s3.GetObjectInput) (*s3.GetObjectOutput, error) {
+	ret := m.ctrl.Call(m, "GetObject", input)
+	ret0, _ := ret[0].(*s3.GetObjectOutput)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetObject indicates an expected call of GetObject
+func (mr *MockS3ClientMockRecorder) GetObject(input interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetObject", reflect.TypeOf((*MockS3Client)(nil).GetObject), input)
+}
+
 // PutObject mocks base method
 func (m *MockS3Client) PutObject(input *s3.PutObjectInput) (*s3.PutObjectOutput, error) {
 	ret := m.ctrl.Call(m, "PutObject", input)
@@ -84,31 +125,72 @@ func (mr *MockS3ClientMockRecorder) PutObject(input interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PutObject", reflect.TypeOf((*MockS3Client)(nil).PutObject), input)
 }
 
-// MockHttpClient is a mock of HttpClient interface
-type MockHttpClient struct {
+// MockS3Downloader is a mock of S3Downloader interface
+type MockS3Downloader struct {
 	ctrl     *gomock.Controller
-	recorder *MockHttpClientMockRecorder
+	recorder *MockS3DownloaderMockRecorder
 }
 
-// MockHttpClientMockRecorder is the mock recorder for MockHttpClient
-type MockHttpClientMockRecorder struct {
-	mock *MockHttpClient
+// MockS3DownloaderMockRecorder is the mock recorder for MockS3Downloader
+type MockS3DownloaderMockRecorder struct {
+	mock *MockS3Downloader
 }
 
-// NewMockHttpClient creates a new mock instance
-func NewMockHttpClient(ctrl *gomock.Controller) *MockHttpClient {
-	mock := &MockHttpClient{ctrl: ctrl}
-	mock.recorder = &MockHttpClientMockRecorder{mock}
+// NewMockS3Downloader creates a new mock instance
+func NewMockS3Downloader(ctrl *gomock.Controller) *MockS3Downloader {
+	mock := &MockS3Downloader{ctrl: ctrl}
+	mock.recorder = &MockS3DownloaderMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockHttpClient) EXPECT() *MockHttpClientMockRecorder {
+func (m *MockS3Downloader) EXPECT() *MockS3DownloaderMockRecorder {
+	return m.recorder
+}
+
+// Download mocks base method
+func (m *MockS3Downloader) Download(w io.WriterAt, input *s3.GetObjectInput, options ...func(*s3manager.Downloader)) (int64, error) {
+	varargs := []interface{}{w, input}
+	for _, a := range options {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "Download", varargs...)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Download indicates an expected call of Download
+func (mr *MockS3DownloaderMockRecorder) Download(w, input interface{}, options ...interface{}) *gomock.Call {
+	varargs := append([]interface{}{w, input}, options...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Download", reflect.TypeOf((*MockS3Downloader)(nil).Download), varargs...)
+}
+
+// MockHTTPClient is a mock of HTTPClient interface
+type MockHTTPClient struct {
+	ctrl     *gomock.Controller
+	recorder *MockHTTPClientMockRecorder
+}
+
+// MockHTTPClientMockRecorder is the mock recorder for MockHTTPClient
+type MockHTTPClientMockRecorder struct {
+	mock *MockHTTPClient
+}
+
+// NewMockHTTPClient creates a new mock instance
+func NewMockHTTPClient(ctrl *gomock.Controller) *MockHTTPClient {
+	mock := &MockHTTPClient{ctrl: ctrl}
+	mock.recorder = &MockHTTPClientMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockHTTPClient) EXPECT() *MockHTTPClientMockRecorder {
 	return m.recorder
 }
 
 // Get mocks base method
-func (m *MockHttpClient) Get(url string) (*http.Response, error) {
+func (m *MockHTTPClient) Get(url string) (*http.Response, error) {
 	ret := m.ctrl.Call(m, "Get", url)
 	ret0, _ := ret[0].(*http.Response)
 	ret1, _ := ret[1].(error)
@@ -116,6 +198,6 @@ func (m *MockHttpClient) Get(url string) (*http.Response, error) {
 }
 
 // Get indicates an expected call of Get
-func (mr *MockHttpClientMockRecorder) Get(url interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockHttpClient)(nil).Get), url)
+func (mr *MockHTTPClientMockRecorder) Get(url interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Get", reflect.TypeOf((*MockHTTPClient)(nil).Get), url)
 }

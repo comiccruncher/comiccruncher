@@ -37,6 +37,8 @@ const (
 	Migrations Name = "migrations"
 	// Comic is the logger for comic package stuff.
 	Comic Name = "comic"
+	// Imaging is the logger for imaging.
+	Imaging Name = "imaging"
 )
 
 // Creates a new logger with a configuration based on the environment.
@@ -113,4 +115,9 @@ func MARVELIMPORTER() *zap.Logger {
 // COMIC is a method for getting the comic logger.
 func COMIC() *zap.Logger {
 	return Logger(Comic)
+}
+
+// IMAGING is a method for getting the imaging logger.
+func IMAGING() *zap.Logger {
+	return Logger(Imaging)
 }

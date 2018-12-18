@@ -245,6 +245,19 @@ type CharacterIssue struct {
 	UpdatedAt      time.Time      `sql:",notnull,default:NOW()" json:"-"`
 }
 
+// ThumbnailSizes represents the sizes of thumbnails.
+type ThumbnailSizes struct {
+	Small  string	`json:"small"`
+	Medium string	`json:"medium"`
+	Large  string	`json:"large"`
+}
+// CharacterThumbnails represents thumbnails for a character.
+type CharacterThumbnails struct {
+	Slug        CharacterSlug `json:"slug"`
+	Image       *ThumbnailSizes `json:"image"`
+	VendorImage *ThumbnailSizes `json:"vendor_image"`
+}
+
 // Stats represents general stats about the db.
 type Stats struct {
 	TotalCharacters  int `json:"total_characters"`
@@ -269,6 +282,7 @@ type RankedCharacter struct {
 	VendorURL         string         `json:"vendor_url"`
 	VendorDescription string         `json:"vendor_description"`
 	Stats             CharacterStats `json:"stats"`
+	Thumbnails        *CharacterThumbnails  `json:"thumbnails"`
 }
 
 // LastSync represents the last sync for a character.
@@ -285,6 +299,7 @@ type ExpandedCharacter struct {
 	LastSyncs   []*LastSync          `json:"last_syncs"`
 	Stats       []CharacterStats     `json:"stats"`
 	Appearances []AppearancesByYears `json:"appearances"`
+	Thumbnails  *CharacterThumbnails `json:"thumbnails"`
 }
 
 // CharacterStatsCategory is the category types for character stats.
@@ -334,6 +349,7 @@ func (c *ExpandedCharacter) MarshalJSON() ([]byte, error) {
 		VendorImage string               `json:"vendor_image"`
 		LastSyncs   []*LastSync          `json:"last_syncs"`
 		Stats       []CharacterStats     `json:"stats"`
+		Thumbnails  *CharacterThumbnails `json:"thumbnails"`
 		Appearances []AppearancesByYears `json:"appearances"`
 	}{
 		Alias:       (*Alias)(c.Character),
@@ -341,6 +357,7 @@ func (c *ExpandedCharacter) MarshalJSON() ([]byte, error) {
 		VendorImage: vendorImg,
 		LastSyncs:   c.LastSyncs,
 		Stats:       c.Stats,
+		Thumbnails:  c.Thumbnails,
 		Appearances: c.Appearances,
 	})
 }

@@ -23,10 +23,11 @@ var startCmd = &cobra.Command{
 		redis := rediscache.Instance()
 		container := comic.NewPGRepositoryContainer(instance)
 		apps := comic.NewRedisAppearancesPerYearRepository(redis)
-		expandedSvc := comic.NewExpandedService(container.CharacterRepository(), apps, redis, container.CharacterSyncLogRepository())
+		ctr := comic.NewRedisCharacterThumbRepository(redis)
+		expandedSvc := comic.NewExpandedService(container.CharacterRepository(), apps, redis, container.CharacterSyncLogRepository(), ctr)
 		searchSvc := search.NewSearchService(instance)
 		statsRepository := comic.NewPGStatsRepository(instance)
-		rankedSvc := comic.NewRankedService(comic.NewPGPopularRepository(instance))
+		rankedSvc := comic.NewRankedService(comic.NewPGPopularRepository(instance, comic.NewRedisCharacterThumbRepository(redis)))
 		app := web.NewApp(expandedSvc, searchSvc, statsRepository, rankedSvc)
 		port := cmd.Flag("port")
 		if err = app.Run(port.Value.String()); err != nil {

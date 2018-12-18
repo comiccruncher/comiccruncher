@@ -32,11 +32,20 @@ MIGRATIONS_CMD = ./cmd/migrations/migrations.go
 CEREBRO_CMD = ./cmd/cerebro/cerebro.go
 # Location of the web cmd.
 WEB_CMD = ./cmd/web/web.go
+# Location of comic cmd
+COMIC_CMD = ./cmd/comic/comic.go
 
 # The username and location to the api server (that's also the tasks server for now).
-LB_SERVER = root@142.93.52.234
+LB_SERVER = aimee@142.93.52.234
 API_SERVER1 = aimee@68.183.132.127
 API_SERVER2 = aimee@198.199.91.173
+
+DOCKER_COMPOSE_NGINX = docker-compose -f ./deploy/nginx/docker-compose.yml
+DEPLOY_NGINX_COMMAND = ${DOCKER_COMPOSE_NGINX} up \
+	-d \
+	--build \
+	--remove-orphans \
+	--force-recreate
 
 # Creates a .netrc file for access to private Github repository for cerebro.
 .PHONY: netrc
@@ -95,6 +104,9 @@ docker-install: docker-up docker-dep-ensure
 # Install the Go dependencies.
 .PHONY: dep-ensure
 dep-ensure:
+	dep ensure
+
+.PHONY: dep-ensure-update
 	dep ensure -update
 
 # Install the Go dependencies in the Docker container.
@@ -215,17 +227,18 @@ start-characterissues:
 import-characters:
 	 ${GO_RUN_LOCAL} ${CEREBRO_CMD} import characters ${EXTRA_FLAGS}
 
-.PHONY: enqueue-characters
-enqueue-characters:
-	${GO_RUN_LOCAL} cmd/enqueue.go characters ${EXTRA_FLAGS}
+# Runs the program for generating thumbnails for characters.
+.PHONY: import-characters
+generate-thumbs:
+	 ${GO_RUN_LOCAL} ${COMIC_CMD} generate thumbs ${EXTRA_FLAGS}
 
 .PHONY: docker-import-characters
 docker-import-characters:
-	${DOCKER_RUN} go run -race ${CEREBRO_CMD} import characters
+	${DOCKER_RUN} go run ${CEREBRO_CMD} import characters
 
-.PHONY: build-enqueue-xcompile
-build-enqueue-xcompile:
-	${DOCKER_RUN_XCOMPILE} make build-enqueue
+.PHONY: docker-generate-thumbs
+docker-generate-thumbs:
+	${DOCKER_RUN} go run ${COMIC_CMD} generate thumbs ${EXTRA_FLAGS}
 
 # Runs the program to send characters to the sync queue.
 .PHONY: queue-characters
@@ -246,6 +259,7 @@ mockgen:
 	mockgen -destination=internal/mocks/search/service.go -source=search/service.go
 	mockgen -destination=internal/mocks/storage/s3.go -source=storage/s3.go
 	mockgen -destination=internal/mocks/cerebro/utils.go -source=cerebro/utils.go
+	mockgen -destination=internal/mocks/imaging/thumbnail.go -source=imaging/thumbnail.go
 
 # Generate mocks for testing.
 docker-mockgen:
@@ -271,9 +285,18 @@ build-cerebro:
 docker-build-cerebro-xcompile:
 	${DOCKER_RUN_XCOMPILE} make build-cerebro
 
+# Builds the comic commands.
+.PHONY: build-comic
+build-comic:
+	go build -o ./bin/comic -v ${COMIC_CMD}
+
+# Builds the comic commands inside the Docker container.
+docker-build-comic-xcompile:
+	${DOCKER_RUN_XCOMPILE} make build-comic
+
 # Builds all the app binaries in the Docker contaner.
 .PHONY: docker-build-xcompile
-docker-build-xcompile: docker-build-migrations-xcompile docker-build-cerebro-xcompile docker-build-webapp-xcompile
+docker-build-xcompile: docker-build-migrations-xcompile docker-build-cerebro-xcompile docker-build-webapp-xcompile docker-build-comic-xcompile
 
 # Uploads the cerebro binary to the remote server. Used for CircleCI.
 .PHONY: remote-upload-cerebro
@@ -283,6 +306,11 @@ remote-upload-cerebro:
 # Uploads the cerebro binary to the remote server. Used for CircleCI.
 .PHONY: remote-deploy-cerebro
 remote-deploy-cerebro: remote-upload-cerebro
+
+# Uploads the comic binary to the remote server.
+.PHONY: remote-deploy-comic
+remote-deploy-comic:
+	scp ./${COMIC_BIN} ${LB_SERVER}:/usr/local/bin
 
 # Uploads the migrations binary to the remote server. Used for CircleCI.
 .PHONY: remote-upload-migrations
@@ -301,22 +329,36 @@ remote-deploy-migrations: remote-upload-migrations remote-run-migrations
 # Uploads nginx config.
 .PHONY: remote-upload-nginx
 remote-upload-nginx:
-	scp ./build/deploy/nginx/nginx.conf ${LB_SERVER}:/etc/nginx/nginx.conf
+	scp -r ./build/deploy/nginx ${LB_SERVER}:~/deploy
 
-# Restarts nginx on server.
+# Uploads the reload.sh script.
+.PHONY: remote-upload-reload-script
+remote-upload-reload-script:
+	scp -r ./build/deploy/nginx/reload.sh ${LB_SERVER}:~/deploy/nginx/reload.sh
+
+.PHONY: remote-deploy-nginx-initial
+remote-deploy-nginx-initial: remote-upload-nginx
+	ssh ${LB_SERVER} "${DEPLOY_NGINX_COMMAND}"
+
+# Reloads nginx.
+.PHONY: docker-reload-nginx
+remote-reload-nginx:
+	ssh ${LB_SERVER} "sh ~/deploy/nginx/reload.sh"
+
+# Uploads script and restarts nginx on server.
 .PHONY: remote-deploy-nginx
-remote-deploy-nginx: remote-upload-nginx
-	ssh ${LB_SERVER} "systemctl restart nginx"
+remote-deploy-nginx: remote-upload-reload-script remote-reload-nginx
 
 remote-deploy-api1:
 	scp ./${WEBAPP_BIN} ${API_SERVER1}:~/${WEBAPP_TMP_BIN}
+	ssh ${API_SERVER1} "mv ~/${WEBAPP_TMP_BIN} ./${WEBAPP_BIN}"
 	ssh ${API_SERVER1} "nohup bin/webapp start -p 8001 | logger &"
 
 remote-deploy-api2:
 	scp ./${WEBAPP_BIN} ${API_SERVER2}:~/${WEBAPP_TMP_BIN}
+	ssh ${API_SERVER2} "mv ~/${WEBAPP_TMP_BIN} ./${WEBAPP_BIN}"
 	ssh ${API_SERVER2} "nohup bin/webapp start -p 8001 | logger &"
 
-remote-deploy-lb: remote-upload-nginx
-	ssh ${LB_SERVER} "nginx -s reload"
+remote-deploy-lb: remote-upload-nginx remote-reload-nginx
 
 remote-deploy-webapps: remote-deploy-api1 remote-deploy-api2 remote-deploy-lb

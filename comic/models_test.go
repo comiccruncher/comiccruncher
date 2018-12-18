@@ -75,7 +75,7 @@ func TestExpandedCharacterMarshalJSON(t *testing.T) {
 	}
 	b, err := ec.MarshalJSON()
 	assert.Nil(t, err)
-	s := `{"publisher":{"name":"","slug":""},"name":"emma frost","other_name":"","description":"","slug":"emma-frost","vendor_url":"https://example.com","vendor_description":"","image":"","vendor_image":"","last_syncs":null,"stats":[{"category":"all_time","issue_count_rank":1,"issue_count":1,"average_issues_per_year":1,"average_issues_per_year_rank":1}],"appearances":[{"slug":"emma-frost","category":"main","aggregates":[{"year":1900,"count":10}]}]}`
+	s := `{"publisher":{"name":"","slug":""},"name":"emma frost","other_name":"","description":"","slug":"emma-frost","vendor_url":"https://example.com","vendor_description":"","image":"","vendor_image":"","last_syncs":null,"stats":[{"category":"all_time","issue_count_rank":1,"issue_count":1,"average_issues_per_year":1,"average_issues_per_year_rank":1}],"thumbnails":null,"appearances":[{"slug":"emma-frost","category":"main","aggregates":[{"year":1900,"count":10}]}]}`
 	assert.Equal(t, s, string(b))
 }
 
@@ -98,6 +98,6 @@ func TestRankedCharacterMarshalJSON(t *testing.T) {
 	}
 	b, err := rc.MarshalJSON()
 	assert.Nil(t, err)
-	expected := `{"publisher":{"name":"","slug":""},"name":"emma frost","other_name":"","description":"test","slug":"emma-frost","vendor_url":"","vendor_description":"","stats":{"category":"all_time","issue_count_rank":1,"issue_count":1,"average_issues_per_year":1,"average_issues_per_year_rank":1},"image":"https://d2jsu6fyd1g4ln.cloudfront.net/test","vendor_image":"https://d2jsu6fyd1g4ln.cloudfront.net/test1"}`
+	expected := `{"publisher":{"name":"","slug":""},"name":"emma frost","other_name":"","description":"test","slug":"emma-frost","vendor_url":"","vendor_description":"","stats":{"category":"all_time","issue_count_rank":1,"issue_count":1,"average_issues_per_year":1,"average_issues_per_year_rank":1},"thumbnails":null,"image":"https://d2jsu6fyd1g4ln.cloudfront.net/test","vendor_image":"https://d2jsu6fyd1g4ln.cloudfront.net/test1"}`
 	assert.Equal(t, expected, string(b))
 }

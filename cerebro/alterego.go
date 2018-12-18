@@ -16,7 +16,7 @@ import (
 
 // AlterEgoIdentifier is the struct for identifying an alter ego.
 type AlterEgoIdentifier struct {
-	httpClient   HttpClient
+	httpClient   HTTPClient
 	characterSvc comic.CharacterServicer
 }
 
@@ -157,7 +157,7 @@ func (i *AlterEgoImporter) Import(slugs []comic.CharacterSlug) error {
 }
 
 // NewAlterEgoImporter creates a new alter ego importer.
-func NewAlterEgoImporter(h HttpClient, svc comic.CharacterServicer) *AlterEgoImporter {
+func NewAlterEgoImporter(h HTTPClient, svc comic.CharacterServicer) *AlterEgoImporter {
 	return &AlterEgoImporter{
 		identifier: AlterEgoIdentifier{
 			httpClient:   h,
@@ -168,7 +168,7 @@ func NewAlterEgoImporter(h HttpClient, svc comic.CharacterServicer) *AlterEgoImp
 }
 
 // NewAlterEgoIdentifier creates a new identifier.
-func NewAlterEgoIdentifier(h HttpClient, svc comic.CharacterServicer) *AlterEgoIdentifier{
+func NewAlterEgoIdentifier(h HTTPClient, svc comic.CharacterServicer) *AlterEgoIdentifier{
 	return &AlterEgoIdentifier{
 		httpClient: h,
 		characterSvc: svc,
