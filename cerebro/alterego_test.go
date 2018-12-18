@@ -52,7 +52,7 @@ func TestAlterEgoIdentifier_Name_For_DC(t *testing.T) {
 func TestNewAlterEgoIdentifier(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	h := mock_cerebro.NewMockHttpClient(ctrl)
+	h := mock_cerebro.NewMockHTTPClient(ctrl)
 	svc := mock_comic.NewMockCharacterServicer(ctrl)
 	i := cerebro.NewAlterEgoIdentifier(h, svc)
 	assert.NotNil(t, i)
@@ -61,7 +61,7 @@ func TestNewAlterEgoIdentifier(t *testing.T) {
 func TestNewAlterEgoImporter(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
-	h := mock_cerebro.NewMockHttpClient(ctrl)
+	h := mock_cerebro.NewMockHTTPClient(ctrl)
 	svc := mock_comic.NewMockCharacterServicer(ctrl)
 	i := cerebro.NewAlterEgoImporter(h, svc)
 	assert.NotNil(t, i)

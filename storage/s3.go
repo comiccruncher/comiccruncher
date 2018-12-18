@@ -41,8 +41,8 @@ type S3Downloader interface {
 	Download(w io.WriterAt, input *s3.GetObjectInput, options ...func(*s3manager.Downloader)) (n int64, err error)
 }
 
-// HttpClient is the interface for interacting with http calls.
-type HttpClient interface {
+// HTTPClient is the interface for interacting with http calls.
+type HTTPClient interface {
 	Get(url string) (resp *http.Response, err error)
 }
 
@@ -58,7 +58,7 @@ func NamingStrategy(strategy FileNameStrategy) S3StorageOption {
 
 // S3Storage is the Storage implementation for AWS S3.
 type S3Storage struct {
-	httpClient     HttpClient
+	httpClient     HTTPClient
 	s3             S3Client         // The s3 storage.
 	s3Downloader   S3Downloader     // The s3 downloader.
 	bucket         string           // The name of the S3 bucket.
@@ -187,7 +187,7 @@ func Crc32TimeNamingStrategy() FileNameStrategy {
 }
 
 // NewS3Storage creates a new S3 storage implementation from params.
-func NewS3Storage(httpClient HttpClient, s3 S3Client, s3Downloader S3Downloader, bucket string, opts ...S3StorageOption) Storage {
+func NewS3Storage(httpClient HTTPClient, s3 S3Client, s3Downloader S3Downloader, bucket string, opts ...S3StorageOption) Storage {
 	s := &S3Storage{
 		httpClient:     httpClient,
 		s3:             s3,

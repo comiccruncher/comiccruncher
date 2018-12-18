@@ -117,6 +117,7 @@ func COMIC() *zap.Logger {
 	return Logger(Comic)
 }
 
+// IMAGING is a method for getting the imaging logger.
 func IMAGING() *zap.Logger {
 	return Logger(Imaging)
 }

@@ -17,7 +17,7 @@ func TestNewS3Storage(t *testing.T) {
 	c := gomock.NewController(t)
 	defer c.Finish()
 
-	h := mock_storage.NewMockHttpClient(c)
+	h := mock_storage.NewMockHTTPClient(c)
 	h.EXPECT().Get(gomock.Any()).Times(0)
 	s3 := mock_storage.NewMockS3Client(c)
 	s3.EXPECT().PutObject(gomock.Any()).Times(0)
@@ -33,7 +33,7 @@ func TestS3StorageUploadFromRemote(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	h := mock_storage.NewMockHttpClient(c)
+	h := mock_storage.NewMockHTTPClient(c)
 	h.EXPECT().Get(gomock.Any()).Times(1).Return(&http.Response{
 		Status:     "OK",
 		StatusCode: http.StatusOK,
@@ -55,7 +55,7 @@ func TestS3StorageUploadFromRemoteFailsRemoteCall(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	h := mock_storage.NewMockHttpClient(c)
+	h := mock_storage.NewMockHTTPClient(c)
 	h.EXPECT().Get(gomock.Any()).Times(1).Return(&http.Response{
 		Status:     "OK",
 		StatusCode: http.StatusOK,
@@ -71,7 +71,7 @@ func TestS3StorageUploadFromRemoteFailsRemoteCall(t *testing.T) {
 func TestS3StorageUploadFromRemoteFailsS3Call(t *testing.T) {
 	c := gomock.NewController(t)
 	defer c.Finish()
-	h := mock_storage.NewMockHttpClient(c)
+	h := mock_storage.NewMockHTTPClient(c)
 	h.EXPECT().Get(gomock.Any()).Times(1).Return(&http.Response{
 		StatusCode: http.StatusBadGateway,
 	}, nil)

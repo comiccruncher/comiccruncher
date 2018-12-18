@@ -15,7 +15,7 @@ func parseRedisThumbnails(s string, th *CharacterThumbnails) error {
 	}
 	splVendorImg, splImg := strings.Split(imgs[0], ";"), strings.Split(imgs[1], ";")
 	if len(splImg) != 3 || len(splVendorImg) != 3 {
-		return errors.New(fmt.Sprintf("error parsing either strings: %v ; %v", splImg, splVendorImg))
+		return fmt.Errorf("error parsing either strings: %v ; %v", splImg, splVendorImg)
 	}
 	s, m, l := strings.Split(splImg[0], ":")[1], strings.Split(splImg[1], ":")[1], strings.Split(splImg[2], ":")[1]
 	vs, vm, vl := strings.Split(splVendorImg[0], ":")[1], strings.Split(splVendorImg[1], ":")[1], strings.Split(splVendorImg[2], ":")[1]
