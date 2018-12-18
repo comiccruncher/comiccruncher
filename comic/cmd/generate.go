@@ -36,8 +36,11 @@ var generateThumbsCmd = &cobra.Command{
 		}
 		for _, c := range characters {
 			_, err = thmbr.Upload(c)
+			slug := c.Slug.Value()
 			if err != nil {
-				log.COMIC().Error("error uploading thumbnails for character", zap.String("character", c.Slug.Value()), zap.Error(err))
+				log.COMIC().Error("error uploading thumbnails for character", zap.String("character", slug), zap.Error(err))
+			} else {
+				log.COMIC().Info("done uploading thumbnails for character", zap.String("character", slug))
 			}
 		}
 		log.COMIC().Info("done generating thumbnails")
