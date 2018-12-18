@@ -39,7 +39,7 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - vendor-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
+            - vendor-{{ checksum "Gopkg.lock" }}
       - run:
           name: Build the test container.
           command: make docker-up-test
@@ -50,7 +50,7 @@ jobs:
           name: Install the dependencies.
           command: make docker-dep-ensure
       - save_cache:
-          key: vendor-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
+          key: vendor-{{ checksum "Gopkg.lock" }}
           paths:
             - "vendor"
       - run:
@@ -65,7 +65,7 @@ jobs:
       - save_cache:
           key: coverage-{{ .Branch }}-{{ .BuildNum }}-{{ .Revision }}-coverage.txt
           paths:
-            - "coverage.txt"
+            - "./coverage.txt"
       - run:
           name: Build the build container.
           command: make docker-up
@@ -82,7 +82,7 @@ jobs:
       - checkout
       - restore_cache:
           keys:
-            - vendor-{{ .Branch }}-{{ checksum "Gopkg.lock" }}
+            - vendor-{{ checksum "Gopkg.lock" }}
       - restore_cache:
           keys:
             - coverage-{{ .Branch }}-{{ .BuildNum }}-{{ .Revision }}-coverage.txt
