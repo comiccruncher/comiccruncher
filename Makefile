@@ -353,13 +353,11 @@ remote-deploy-nginx: remote-upload-reload-script remote-reload-nginx
 
 remote-deploy-api1:
 	scp ./${WEBAPP_BIN} ${API_SERVER1}:~/${WEBAPP_TMP_BIN}
-	ssh ${API_SERVER1} "mv ~/${WEBAPP_TMP_BIN} ./${WEBAPP_BIN}"
-	ssh ${API_SERVER1} "nohup bin/webapp start -p 8001 | logger &"
+	ssh ${API_SERVER1} "bash -s" < ./build/webapp.sh &
 
 remote-deploy-api2:
 	scp ./${WEBAPP_BIN} ${API_SERVER2}:~/${WEBAPP_TMP_BIN}
-	ssh ${API_SERVER2} "mv ~/${WEBAPP_TMP_BIN} ./${WEBAPP_BIN}"
-	ssh ${API_SERVER2} "nohup bin/webapp start -p 8001 | logger &"
+	ssh ${API_SERVER2} "bash -s" < ./build/webapp.sh &
 
 remote-deploy-lb: remote-upload-nginx remote-reload-nginx
 
