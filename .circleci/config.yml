@@ -5,6 +5,9 @@ workflows:
     jobs:
       - test_and_build:
           context: comiccruncher
+          filters:
+            tags:
+              only: /.*/
       - vet_and_codecov:
           context: comiccruncher
           requires:
