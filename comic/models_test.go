@@ -101,16 +101,3 @@ func TestRankedCharacterMarshalJSON(t *testing.T) {
 	expected := `{"publisher":{"name":"","slug":""},"name":"emma frost","other_name":"","description":"test","image":"https://d2jsu6fyd1g4ln.cloudfront.net/test","slug":"emma-frost","vendor_image":"https://d2jsu6fyd1g4ln.cloudfront.net/test1","vendor_url":"","vendor_description":"","thumbnails":null,"stats":{"category":"all_time","issue_count_rank":1,"issue_count":1,"average_issues_per_year":1,"average_issues_per_year_rank":1}}`
 	assert.Equal(t, expected, string(b))
 }
-
-func TestCharacterMarshalJSON(t *testing.T) {
-	c := &comic.Character{
-		VendorImage: "test.jpg",
-		Image: "a.jpg",
-	}
-	v, err := c.MarshalJSON()
-
-	expected := `{"publisher":{"name":"","slug":""},"name":"","other_name":"","description":"","image":"https://d2jsu6fyd1g4ln.cloudfront.net/a.jpg","slug":"","vendor_image":"https://d2jsu6fyd1g4ln.cloudfront.net/test.jpg","vendor_url":"","vendor_description":""}`
-
-	assert.Nil(t, err)
-	assert.Equal(t, expected, string(v))
-}

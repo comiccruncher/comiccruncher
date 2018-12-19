@@ -28,7 +28,7 @@ var startCmd = &cobra.Command{
 		searchSvc := search.NewSearchService(instance)
 		statsRepository := comic.NewPGStatsRepository(instance)
 		rankedSvc := comic.NewRankedService(comic.NewPGPopularRepository(instance, comic.NewRedisCharacterThumbRepository(redis)))
-		app := web.NewApp(expandedSvc, searchSvc, statsRepository, rankedSvc)
+		app := web.NewApp(expandedSvc, searchSvc, statsRepository, rankedSvc, ctr)
 		port := cmd.Flag("port")
 		if err = app.Run(port.Value.String()); err != nil {
 			log.WEB().Fatal("error starting web service. closed it.", zap.Error(err), zap.Error(app.Close()))
