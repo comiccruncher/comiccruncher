@@ -17,10 +17,10 @@ type Character struct {
 // MarshalJSON overrides JSON marshaling for presentation.
 func (c *Character) MarshalJSON() ([]byte, error) {
 	if c.Character.Image != "" {
-		c.Character.Image = "https://d2jsu6fyd1g4ln.cloudfront.net" + "/" + c.Character.Image
+		c.Character.Image = cdnURL + "/" + c.Character.Image
 	}
 	if c.Character.VendorImage != "" {
-		c.Character.VendorImage = "https://d2jsu6fyd1g4ln.cloudfront.net" + "/" + c.Character.VendorImage
+		c.Character.VendorImage = cdnURL + "/" + c.Character.VendorImage
 	}
 	cdnUrlForThumbnails(c.CharacterThumbnails)
 	if c.CharacterThumbnails.Image == nil && c.CharacterThumbnails.VendorImage == nil {
