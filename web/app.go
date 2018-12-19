@@ -25,8 +25,13 @@ func (a App) Run(port string) error {
 	// TODO: This is temporary until the site is ready.
 	a.echo.Use(RequireAuthentication)
 	a.echo.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		// TODO: allow appropriate access-control-allow-origin
 		AllowHeaders: []string{"application/json"},
+	}))
+	a.echo.Use(middleware.SecureWithConfig(middleware.SecureConfig{
+		XSSProtection: "1; mode=block",
+		ContentTypeNosniff: "nosniff",
+		XFrameOptions: "SAMEORIGIN",
+		HSTSMaxAge: 31536000,
 	}))
 
 	// Stats
