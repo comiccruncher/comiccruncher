@@ -16,27 +16,31 @@ type Character struct {
 
 // MarshalJSON overrides JSON marshaling for presentation.
 func (c *Character) MarshalJSON() ([]byte, error) {
-	if c.Character.Image != "" {
-		c.Character.Image = cdnURL + "/" + c.Character.Image
+	ch := c.Character
+	if ch.Image != "" {
+		ch.Image = cdnURL + "/" + ch.Image
 	}
-	if c.Character.VendorImage != "" {
-		c.Character.VendorImage = cdnURL + "/" + c.Character.VendorImage
+	if ch.VendorImage != "" {
+		ch.VendorImage = cdnURL + "/" + ch.VendorImage
 	}
-	cdnUrlForThumbnails(c.CharacterThumbnails)
-	if c.CharacterThumbnails.Image == nil && c.CharacterThumbnails.VendorImage == nil {
-		c.CharacterThumbnails = nil
+	thumbs := c.CharacterThumbnails
+	cdnUrlForThumbnails(thumbs)
+	if thumbs.Image == nil && thumbs.VendorImage == nil {
+		thumbs = nil
 	}
 	type Alias Character
 	return json.Marshal(&struct {
 		*Alias
+		Slug string `json:"slug"`
 		Image string `json:"image"`
 		VendorImage string `json:"vendor_image"`
 		Thumbnails *comic.CharacterThumbnails `json:"thumbnails"`
 	}{
 		Alias:       (*Alias)(c),
-		Image: c.Character.Image,
-		VendorImage: c.Character.VendorImage,
-		Thumbnails: c.CharacterThumbnails,
+		Slug: ch.Slug.Value(),
+		Image: ch.Image,
+		VendorImage: ch.VendorImage,
+		Thumbnails: thumbs,
 	})
 }
 
