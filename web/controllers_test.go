@@ -53,7 +53,12 @@ func TestSearchControllerSearchCharactersNotEmptyQuery(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 
-	searchCtrl := web.NewSearchController(mockSearch)
+	ctr := mock_comic.NewMockCharacterThumbRepository(ctrl)
+	ctr.EXPECT().AllThumbnails(gomock.Any()).Return(map[comic.CharacterSlug]*comic.CharacterThumbnails{
+		comic.CharacterSlug("emma-frost"): {Slug: "emma-frost"},
+	}, nil)
+
+	searchCtrl := web.NewSearchController(mockSearch, ctr)
 	err := searchCtrl.SearchCharacters(c)
 
 	assert.Nil(t, err)
@@ -70,8 +75,9 @@ func TestSearchControllerSearchCharactersEmptyQuery(t *testing.T) {
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
 	header := c.Response().Header()
+	ctr := mock_comic.NewMockCharacterThumbRepository(ctrl)
 
-	searchCtrl := web.NewSearchController(mockSearch)
+	searchCtrl := web.NewSearchController(mockSearch, ctr)
 	err := searchCtrl.SearchCharacters(c)
 
 	assert.Nil(t, err)
@@ -88,8 +94,9 @@ func TestSearchControllerSearchCharactersError(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/search?query=emma-frost", nil)
 	rec := httptest.NewRecorder()
 	c := e.NewContext(req, rec)
+	ctr := mock_comic.NewMockCharacterThumbRepository(ctrl)
 
-	searchCtrl := web.NewSearchController(mockSearch)
+	searchCtrl := web.NewSearchController(mockSearch, ctr)
 	err := searchCtrl.SearchCharacters(c)
 
 	assert.Error(t, err)

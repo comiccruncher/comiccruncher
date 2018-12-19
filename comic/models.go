@@ -333,6 +333,7 @@ func NewCharacterStats(c CharacterStatsCategory, rank, issueCount, avgRank uint,
 }
 
 // MarshalJSON overrides the marshaling of JSON with presentation for CDN urls.
+// TODO: Move marshaling stuff to presentation.
 func (c *ExpandedCharacter) MarshalJSON() ([]byte, error) {
 	if c.Image != "" {
 		c.Image = cdnURL + "/" + c.Image
@@ -358,6 +359,7 @@ func (c *ExpandedCharacter) MarshalJSON() ([]byte, error) {
 }
 
 // MarshalJSON overrides the image and vendor image for the CDN url.
+// TODO: Move marshaling stuff to presentation.
 func (c *RankedCharacter) MarshalJSON() ([]byte, error) {
 	if c.Image != "" {
 		c.Image = cdnURL + "/" + c.Image
@@ -367,22 +369,6 @@ func (c *RankedCharacter) MarshalJSON() ([]byte, error) {
 	}
 	cdnUrlForThumbnails(c.Thumbnails)
 	type Alias RankedCharacter
-	return json.Marshal(&struct {
-		*Alias
-	}{
-		Alias:       (*Alias)(c),
-	})
-}
-
-// MarshalJSON overrides JSON marshaling for CDN url.
-func (c *Character) MarshalJSON() ([]byte, error) {
-	if c.Image != "" {
-		c.Image = cdnURL + "/" + c.Image
-	}
-	if c.VendorImage != "" {
-		c.VendorImage = cdnURL + "/" + c.VendorImage
-	}
-	type Alias Character
 	return json.Marshal(&struct {
 		*Alias
 	}{
@@ -402,6 +388,7 @@ func (u AppearanceType) HasAll(flags AppearanceType) bool {
 }
 
 // MarshalJSON returns the JSON string representation.
+// TODO: Move marshaling stuff to presentation.
 func (u AppearanceType) MarshalJSON() ([]byte, error) {
 	return json.Marshal(categoryToString[u])
 }

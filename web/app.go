@@ -58,11 +58,12 @@ func NewApp(
 	expandedSvc comic.ExpandedServicer,
 	searcher search.Searcher,
 	statsRepository comic.StatsRepository,
-	rankedSvc comic.RankedServicer) *App {
+	rankedSvc comic.RankedServicer,
+	ctr comic.CharacterThumbRepository) *App {
 	return &App{
 		echo:           echo.New(),
 		statsCtrlr:     NewStatsController(statsRepository),
-		searchCtrlr:    NewSearchController(searcher),
+		searchCtrlr:    NewSearchController(searcher, ctr),
 		characterCtrlr: NewCharacterController(expandedSvc, rankedSvc),
 		publisherCtrlr: NewPublisherController(rankedSvc),
 		trendingCtrlr:  NewTrendingController(rankedSvc),

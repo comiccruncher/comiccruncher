@@ -36,6 +36,7 @@ func (c StatsController) Stats(ctx echo.Context) error {
 // SearchController is the controller for search.
 type SearchController struct {
 	searcher search.Searcher
+	ctr       comic.CharacterThumbRepository
 }
 
 // SearchCharacters searches characters with the `query` parameter.
@@ -50,8 +51,18 @@ func (c SearchController) SearchCharacters(ctx echo.Context) error {
 		}
 	}
 	var data = make([]interface{}, len(results))
-	for i, v := range results {
-		data[i] = v
+	if len(results) > 0 {
+		slugs := make([]comic.CharacterSlug, len(results))
+		for i, ch := range results {
+			slugs[i] = ch.Slug
+		}
+		thumbs, err := c.ctr.AllThumbnails(slugs...)
+		if err != nil {
+			return err
+		}
+		for i, v := range results {
+			data[i] = NewCharacter(v, thumbs[v.Slug])
+		}
 	}
 	return JSONListViewOK(ctx, data, 5)
 }
@@ -197,9 +208,10 @@ func NewCharacterController(eSvc comic.ExpandedServicer, rSvc comic.RankedServic
 }
 
 // NewSearchController creates a new search controller.
-func NewSearchController(searcher search.Searcher) *SearchController {
+func NewSearchController(searcher search.Searcher, ctr comic.CharacterThumbRepository) *SearchController {
 	return &SearchController{
 		searcher: searcher,
+		ctr: ctr,
 	}
 }
 
