@@ -374,6 +374,22 @@ func (c *RankedCharacter) MarshalJSON() ([]byte, error) {
 	})
 }
 
+// MarshalJSON overrides JSON marshaling for CDN url.
+func (c *Character) MarshalJSON() ([]byte, error) {
+	if c.Image != "" {
+		c.Image = cdnURL + "/" + c.Image
+	}
+	if c.VendorImage != "" {
+		c.VendorImage = cdnURL + "/" + c.VendorImage
+	}
+	type Alias Character
+	return json.Marshal(&struct {
+		*Alias
+	}{
+		Alias:       (*Alias)(c),
+	})
+}
+
 // HasAny checks that the category has any of the given flags.
 func (u AppearanceType) HasAny(flags AppearanceType) bool {
 	return u&flags > 0
