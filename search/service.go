@@ -40,7 +40,7 @@ func (s *Service) Characters(name string, limit, offset int) ([]*comic.Character
 }
 
 // NewSearchService creates the new search service implementation.
-func NewSearchService(db *pg.DB) Searcher {
+func NewSearchService(db *pg.DB) *Service {
 	return &Service{
 		db: db,
 	}

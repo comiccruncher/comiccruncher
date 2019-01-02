@@ -353,7 +353,7 @@ func vendorType(ec ExternalCharacter) (comic.VendorType, error) {
 func NewMarvelCharactersImporter(
 	marvelAPI *marvel.API,
 	container *comic.PGRepositoryContainer,
-	storage storage.Storage) CharacterImporter {
+	storage storage.Storage) *MarvelCharactersImporter {
 	imp := &importer{
 		publisherSvc: comic.NewPublisherService(container),
 		characterSvc: comic.NewCharacterService(container),
@@ -370,7 +370,7 @@ func NewMarvelCharactersImporter(
 func NewDcCharactersImporter(
 	dcAPI *dc.API,
 	container *comic.PGRepositoryContainer,
-	storage storage.Storage) CharacterImporter {
+	storage storage.Storage) *DcCharactersImporter {
 	imp := &importer{
 		publisherSvc: comic.NewPublisherService(container),
 		characterSvc: comic.NewCharacterService(container),

@@ -1099,45 +1099,45 @@ func NewRedisAppearancesPerYearRepository(client RedisClient) *RedisAppearancesB
 }
 
 // NewPGStatsRepository creates a new stats repository for the postgres implementation.
-func NewPGStatsRepository(db *pg.DB) StatsRepository {
+func NewPGStatsRepository(db *pg.DB) *PGStatsRepository {
 	return &PGStatsRepository{db: db}
 }
 
 // NewPGCharacterIssueRepository creates the new character issue repository for the postgres implementation.
-func NewPGCharacterIssueRepository(db *pg.DB) CharacterIssueRepository {
+func NewPGCharacterIssueRepository(db *pg.DB) *PGCharacterIssueRepository {
 	return &PGCharacterIssueRepository{db: db}
 }
 
 // NewPGCharacterSourceRepository creates the new character source repository for the postgres implementation.
-func NewPGCharacterSourceRepository(db *pg.DB) CharacterSourceRepository {
+func NewPGCharacterSourceRepository(db *pg.DB) *PGCharacterSourceRepository {
 	return &PGCharacterSourceRepository{
 		db: db,
 	}
 }
 
 // NewPGPublisherRepository creates a new publisher repository for the postgres implementation.
-func NewPGPublisherRepository(db *pg.DB) PublisherRepository {
+func NewPGPublisherRepository(db *pg.DB) *PGPublisherRepository {
 	return &PGPublisherRepository{db: db}
 }
 
 // NewPGIssueRepository creates a new issue repository for the postgres implementation.
-func NewPGIssueRepository(db *pg.DB) IssueRepository {
+func NewPGIssueRepository(db *pg.DB) *PGIssueRepository {
 	return &PGIssueRepository{db: db}
 }
 
 // NewPGCharacterRepository creates the new character repository.
-func NewPGCharacterRepository(db *pg.DB) CharacterRepository {
+func NewPGCharacterRepository(db *pg.DB) *PGCharacterRepository {
 	return &PGCharacterRepository{db: db}
 }
 
 // NewPGCharacterSyncLogRepository creates the new character sync log repository.
-func NewPGCharacterSyncLogRepository(db *pg.DB) CharacterSyncLogRepository {
+func NewPGCharacterSyncLogRepository(db *pg.DB) *PGCharacterSyncLogRepository {
 	return &PGCharacterSyncLogRepository{db: db}
 }
 
 // NewPGPopularRepository creates the new popular characters repository for postgres
 // and the redis cache for appearances.
-func NewPGPopularRepository(db *pg.DB, ctr CharacterThumbRepository) PopularRepository {
+func NewPGPopularRepository(db *pg.DB, ctr CharacterThumbRepository) *PGPopularRepository {
 	return &PGPopularRepository{
 		db: db,
 		ctr: ctr,
@@ -1145,13 +1145,13 @@ func NewPGPopularRepository(db *pg.DB, ctr CharacterThumbRepository) PopularRepo
 }
 
 // NewPopularRefresher creates a new refresher for refreshing the materialized views.
-func NewPopularRefresher(db *pg.DB) PopularRefresher {
+func NewPopularRefresher(db *pg.DB) *PGPopularRepository {
 	return &PGPopularRepository{
 		db: db,
 	}
 }
 
 // NewRedisCharacterThumbRepository creates a new redis character thumb repository.
-func NewRedisCharacterThumbRepository(r RedisClient) CharacterThumbRepository {
+func NewRedisCharacterThumbRepository(r RedisClient) *RedisCharacterThumbRepository {
 	return &RedisCharacterThumbRepository{r: r}
 }

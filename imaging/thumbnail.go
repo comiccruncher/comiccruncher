@@ -113,12 +113,12 @@ func closeReader(r io.Reader) {
 }
 
 // NewInMemoryThumbnailer returns a new image thumbnailer.
-func NewInMemoryThumbnailer() Thumbnailer {
+func NewInMemoryThumbnailer() *InMemoryThumbnailer {
 	return &InMemoryThumbnailer{}
 }
 
 // NewS3ThumbnailUploader creates a new s3 thumbnail uploader.
-func NewS3ThumbnailUploader(s storage.Storage, thumbnailer Thumbnailer) ThumbnailUploader {
+func NewS3ThumbnailUploader(s storage.Storage, thumbnailer Thumbnailer) *S3ThumbnailUploader {
 	return &S3ThumbnailUploader{
 		s: s,
 		thumbnailer: thumbnailer,
