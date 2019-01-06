@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/aimeelaplant/comiccruncher/auth"
 	"github.com/aimeelaplant/comiccruncher/comic"
 	"github.com/aimeelaplant/comiccruncher/internal/log"
 	"github.com/aimeelaplant/comiccruncher/internal/pgo"
@@ -28,6 +29,34 @@ var (
 		"mv_ranked_characters_dc_main": {
 			comic.Main: 2,
 		},
+	}
+	tables = []interface{}{
+		&comic.Publisher{},
+		&comic.Character{},
+		&comic.CharacterSource{},
+		&comic.CharacterSyncLog{},
+		&comic.Issue{},
+		&comic.CharacterIssue{},
+		&auth.Token{},
+	}
+	updatedAtTriggers = []string{
+		"publishers",
+		"characters",
+		"character_sources",
+		"character_sync_logs",
+		"issues",
+		"character_issues",
+		"tokens",
+	}
+	opts = &orm.CreateTableOptions{
+		IfNotExists:   true,
+		FKConstraints: true,
+	}
+	execs = []string{
+		trendingSQL("mv_trending_characters_marvel", 1),
+		trendingSQL("mv_trending_characters_dc", 2),
+		fmt.Sprintf(`CREATE UNIQUE INDEX IF NOT EXISTS %[1]s_id_idx ON %[1]s(id);`, "mv_trending_characters_marvel"),
+		fmt.Sprintf(`CREATE UNIQUE INDEX IF NOT EXISTS %[1]s_id_idx ON %[1]s(id);`, "mv_trending_characters_dc"),
 	}
 )
 
@@ -98,38 +127,15 @@ func main() {
 				return err
 			}
 		}
-		opts := &orm.CreateTableOptions{
-			IfNotExists:   true,
-			FKConstraints: true,
+		// create tables
+		for _, table := range tables {
+			if err := logIfError(tx.CreateTable(table, opts)); err != nil {
+				return err
+			}
 		}
-		if err := logIfError(tx.CreateTable(&comic.Publisher{}, opts)); err != nil {
-			return err
-		}
-		if err := logIfError(tx.CreateTable(&comic.Character{}, opts)); err != nil {
-			return err
-		}
-		if err := logIfError(tx.CreateTable(&comic.CharacterSource{}, opts)); err != nil {
-			return err
-		}
-		if err := logIfError(tx.CreateTable(&comic.CharacterSyncLog{}, opts)); err != nil {
-			return err
-		}
-		if err := logIfError(tx.CreateTable(&comic.Issue{}, opts)); err != nil {
-			return err
-		}
-		if err := logIfError(tx.CreateTable(&comic.CharacterIssue{}, opts)); err != nil {
-			return err
-		}
-		updatedAtTriggers := []string{
-			updatedAtTrigger("publishers"),
-			updatedAtTrigger("characters"),
-			updatedAtTrigger("character_sources"),
-			updatedAtTrigger("character_sync_logs"),
-			updatedAtTrigger("issues"),
-			updatedAtTrigger("character_issues"),
-		}
+		// create triggers
 		for _, t := range updatedAtTriggers {
-			if err := logResultIfError(tx.Exec(t)); err != nil {
+			if err := logResultIfError(tx.Exec(updatedAtTrigger(t))); err != nil {
 				return err
 			}
 		}
@@ -178,18 +184,11 @@ func main() {
 				}
 			}
 		}
-		// trending views
-		if err := logResultIfError(tx.Exec(trendingSQL("mv_trending_characters_marvel", 1))); err != nil {
-			return err
-		}
-		if err := logResultIfError(tx.Exec(trendingSQL("mv_trending_characters_dc", 2))); err != nil {
-			return err
-		}
-		if err := logResultIfError(tx.Exec(fmt.Sprintf(`CREATE UNIQUE INDEX IF NOT EXISTS %[1]s_id_idx ON %[1]s(id);`, "mv_trending_characters_marvel"))); err != nil {
-			return err
-		}
-		if err := logResultIfError(tx.Exec(fmt.Sprintf(`CREATE UNIQUE INDEX IF NOT EXISTS %[1]s_id_idx ON %[1]s(id);`, "mv_trending_characters_dc"))); err != nil {
-			return err
+		// trending views / other execs
+		for _, exec := range execs {
+			if err := logResultIfError(tx.Exec(exec)); err != nil {
+				return err
+			}
 		}
 		return nil
 	}))
