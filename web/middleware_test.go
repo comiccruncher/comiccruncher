@@ -22,13 +22,13 @@ func TestErrorHandler(t *testing.T) {
 	req = httptest.NewRequest(http.MethodGet, "/", nil)
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
-	web.ErrorHandler(web.ErrInvalidPageParameter, c)
+	web.ErrorHandler(web.InvalidPageErr, c)
 	assert.Equal(t, http.StatusBadRequest, c.Response().Status)
 
 	req = httptest.NewRequest(http.MethodGet, "/", nil)
 	rec = httptest.NewRecorder()
 	c = e.NewContext(req, rec)
-	web.ErrorHandler(web.ErrNotFound, c)
+	web.ErrorHandler(web.NewNotFoundError("Not found"), c)
 	assert.Equal(t, http.StatusNotFound, c.Response().Status)
 
 	req = httptest.NewRequest(http.MethodGet, "/", nil)
