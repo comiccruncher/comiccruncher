@@ -5,6 +5,7 @@
 package mock_auth
 
 import (
+	auth "github.com/aimeelaplant/comiccruncher/auth"
 	orm "github.com/go-pg/pg/orm"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
@@ -47,4 +48,39 @@ func (m *MockORM) Model(model ...interface{}) *orm.Query {
 // Model indicates an expected call of Model
 func (mr *MockORMMockRecorder) Model(model ...interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Model", reflect.TypeOf((*MockORM)(nil).Model), model...)
+}
+
+// MockTokenRepository is a mock of TokenRepository interface
+type MockTokenRepository struct {
+	ctrl     *gomock.Controller
+	recorder *MockTokenRepositoryMockRecorder
+}
+
+// MockTokenRepositoryMockRecorder is the mock recorder for MockTokenRepository
+type MockTokenRepositoryMockRecorder struct {
+	mock *MockTokenRepository
+}
+
+// NewMockTokenRepository creates a new mock instance
+func NewMockTokenRepository(ctrl *gomock.Controller) *MockTokenRepository {
+	mock := &MockTokenRepository{ctrl: ctrl}
+	mock.recorder = &MockTokenRepositoryMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockTokenRepository) EXPECT() *MockTokenRepositoryMockRecorder {
+	return m.recorder
+}
+
+// Create mocks base method
+func (m *MockTokenRepository) Create(t *auth.Token) error {
+	ret := m.ctrl.Call(m, "Create", t)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Create indicates an expected call of Create
+func (mr *MockTokenRepositoryMockRecorder) Create(t interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockTokenRepository)(nil).Create), t)
 }
