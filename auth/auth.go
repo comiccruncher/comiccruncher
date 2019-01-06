@@ -20,6 +20,11 @@ type Token struct  {
 	UpdatedAt   time.Time  `sql:",notnull,default:NOW()" json:"-"`
 }
 
+// TokenRepository is the interface for token repos.
+type TokenRepository interface {
+	Create(t *Token) error
+}
+
 // PGTokenRepository is the token repository.
 type PGTokenRepository struct {
 	db ORM
