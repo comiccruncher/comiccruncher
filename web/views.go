@@ -33,7 +33,7 @@ func JSONDetailViewOK(ctx echo.Context, data interface{}) error {
 func JSONListViewOK(ctx echo.Context, data []interface{}, itemsPerPage int) error {
 	pagination, err := CreatePagination(ctx, data, itemsPerPage)
 	if err != nil {
-		return ErrInvalidPageParameter
+		return err
 	}
 	if len(data) > itemsPerPage {
 		return ctx.JSONPretty(http.StatusOK, NewListViewOK(data[:len(data)-1], pagination), "  ")
