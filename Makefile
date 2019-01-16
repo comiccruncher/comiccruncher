@@ -262,6 +262,7 @@ mockgen:
 	mockgen -destination=internal/mocks/storage/s3.go -source=storage/s3.go
 	mockgen -destination=internal/mocks/cerebro/utils.go -source=cerebro/utils.go
 	mockgen -destination=internal/mocks/imaging/thumbnail.go -source=imaging/thumbnail.go
+	mockgen -destination=internal/mocks/auth/auth.go -source=auth/auth.go
 
 # Generate mocks for testing.
 docker-mockgen:

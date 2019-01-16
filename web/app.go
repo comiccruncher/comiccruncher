@@ -1,6 +1,7 @@
 package web
 
 import (
+	"github.com/aimeelaplant/comiccruncher/auth"
 	"github.com/aimeelaplant/comiccruncher/comic"
 	"github.com/aimeelaplant/comiccruncher/search"
 	"github.com/labstack/echo"
@@ -15,42 +16,60 @@ type App struct {
 	statsCtrlr     *StatsController
 	publisherCtrlr *PublisherController
 	trendingCtrlr  *TrendingController
+	authCtrlr      *AuthController
 }
 
 // Run runs the web application from the specified port. Logs and exits if there is an error.
 func (a App) Run(port string) error {
-	a.echo.Use(middleware.Recover())
-	a.echo.HTTPErrorHandler = ErrorHandler
-	a.echo.Use(middleware.CSRF())
-	// TODO: This is temporary until the site is ready.
-	a.echo.Use(RequireAuthentication)
-	a.echo.Use(middleware.CORSWithConfig(middleware.CORSConfig{
-		AllowHeaders: []string{"application/json"},
+	e := a.echo
+	e.Use(middleware.Recover())
+	e.HTTPErrorHandler = ErrorHandler
+
+	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
+		AllowHeaders: []string{
+			echo.HeaderOrigin,
+			echo.HeaderContentType,
+			echo.HeaderAccept,
+			echo.HeaderAuthorization,
+			"X-VISITOR-ID",
+		},
+		AllowCredentials: true,
 	}))
-	a.echo.Use(middleware.SecureWithConfig(middleware.SecureConfig{
+	e.Use(middleware.SecureWithConfig(middleware.SecureConfig{
 		XSSProtection: "1; mode=block",
 		ContentTypeNosniff: "nosniff",
 		XFrameOptions: "SAMEORIGIN",
 		HSTSMaxAge: 31536000,
 	}))
+	// Auth
+	e.POST("/authenticate", a.authCtrlr.Authenticate)
+
+	jwtMiddleware := NewDefaultJWTMiddleware()
 
 	// Stats
-	a.echo.GET("/stats", a.statsCtrlr.Stats)
+	e.GET("/stats", a.statsCtrlr.Stats, jwtMiddleware)
+
 	// Search
-	a.echo.GET("/search/characters", a.searchCtrlr.SearchCharacters)
+	s := e.Group("/search", jwtMiddleware)
+	s.GET("/characters", a.searchCtrlr.SearchCharacters)
+
 	// Characters
-	a.echo.GET("/characters", a.characterCtrlr.Characters)
-	a.echo.GET("/characters/:slug", a.characterCtrlr.Character)
+	c := e.Group("/characters", jwtMiddleware)
+	c.GET("", a.characterCtrlr.Characters)
+	c.GET("/:slug", a.characterCtrlr.Character)
+
 	// Publishers
-	a.echo.GET("/publishers/dc", a.publisherCtrlr.DC)
-	a.echo.GET("/publishers/marvel", a.publisherCtrlr.Marvel)
+	p := e.Group("/publishers", jwtMiddleware)
+	p.GET("/dc", a.publisherCtrlr.DC)
+	p.GET("/marvel", a.publisherCtrlr.Marvel)
 
 	// trending
-	a.echo.GET("trending/marvel", a.trendingCtrlr.Marvel)
-	a.echo.GET("trending/dc", a.trendingCtrlr.DC)
+	t := e.Group("/trending", jwtMiddleware)
+	t.GET("/marvel", a.trendingCtrlr.Marvel)
+	t.GET("/dc", a.trendingCtrlr.DC)
 
 	// Start the server.
-	return a.echo.Start(":" + port)
+	return e.Start(":" + port)
 }
 
 // Close closes the app server.
@@ -64,7 +83,8 @@ func NewApp(
 	searcher search.Searcher,
 	statsRepository comic.StatsRepository,
 	rankedSvc comic.RankedServicer,
-	ctr comic.CharacterThumbRepository) *App {
+	ctr comic.CharacterThumbRepository,
+	tr auth.TokenRepository) *App {
 	return &App{
 		echo:           echo.New(),
 		statsCtrlr:     NewStatsController(statsRepository),
@@ -72,5 +92,6 @@ func NewApp(
 		characterCtrlr: NewCharacterController(expandedSvc, rankedSvc),
 		publisherCtrlr: NewPublisherController(rankedSvc),
 		trendingCtrlr:  NewTrendingController(rankedSvc),
+		authCtrlr:      NewDefaultAuthController(tr),
 	}
 }

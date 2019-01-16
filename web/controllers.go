@@ -1,23 +1,21 @@
 package web
 
 import (
-	"errors"
+	a "github.com/aimeelaplant/comiccruncher/auth"
 	"github.com/aimeelaplant/comiccruncher/comic"
+	"github.com/aimeelaplant/comiccruncher/internal/log"
 	"github.com/aimeelaplant/comiccruncher/search"
+	"github.com/dgrijalva/jwt-go"
+	"github.com/google/uuid"
 	"github.com/labstack/echo"
+	"go.uber.org/zap"
+	"net/http"
+	"os"
+	"time"
 )
 
 // Pagination limit.
 const pageLimit = 24
-
-var (
-	// ErrInvalidPageParameter is for when an invalid page parameter is received.
-	ErrInvalidPageParameter = errors.New("invalid page parameter")
-	// ErrInternalServerError is for when something bad happens internally.
-	ErrInternalServerError = errors.New("internal server error")
-	// ErrNotFound is for when something can't be found.
-	ErrNotFound = errors.New("page cannot be found")
-)
 
 // StatsController is the controller for stats about comic cruncher.
 type StatsController struct {
@@ -112,7 +110,7 @@ func (c CharacterController) Character(ctx echo.Context) error {
 		return err
 	}
 	if character == nil {
-		return ErrNotFound
+		return NewNotFoundError("The character could not be found.")
 	}
 	return JSONDetailViewOK(ctx, character)
 }
@@ -199,6 +197,60 @@ func listRanked(results []*comic.RankedCharacter) []interface{} {
 	return data
 }
 
+// AuthController is the struct for granting tokens.
+type AuthController struct {
+	secretKey string
+	secretSigningKey string
+	tr a.TokenRepository
+}
+
+// Authenticate is for generating JWT tokens from an authenticated service.
+func (c *AuthController) Authenticate(ctx echo.Context) error {
+	auth, err := parseAuthorizationBearer(ctx.Request().Header)
+	if err != nil {
+		return err
+	}
+	if auth == "" || auth != c.secretKey {
+		return echo.ErrUnauthorized
+	}
+	token := jwt.New(jwt.SigningMethodHS256)
+	claims := token.Claims.(jwt.MapClaims)
+	id := uuid.New().String()
+	created := time.Now()
+	// no exp. this is just to track visitors.
+	// claims["exp"] = created.Add(time.Hour * 168).Unix()
+	claims["public"] = true
+	claims["jti"] = id
+	t, err := token.SignedString([]byte(c.secretSigningKey))
+	if err != nil {
+		return err
+	}
+	to := a.NewToken(t, id)
+	to.CreatedAt = created
+	go func() {
+		if err = c.tr.Create(to); err != nil {
+			log.WEB().Error("error creating token", zap.Error(err))
+		}
+	}()
+	return JSONDetailView(ctx, map[string]string{
+		"token": t,
+	}, http.StatusCreated)
+}
+
+// NewDefaultAuthController creates a new default auth controller from environment vars.
+func NewDefaultAuthController(tr a.TokenRepository) *AuthController {
+	return NewAuthController(os.Getenv("CC_JWT_AUTH_SECRET"), os.Getenv("CC_JWT_SIGNING_SECRET"), tr)
+}
+
+// NewAuthController creates a new authentication controller.
+func NewAuthController(secretKey string, secretSigningKey string, tr a.TokenRepository) *AuthController {
+	return &AuthController{
+		secretKey: secretKey,
+		secretSigningKey: secretSigningKey,
+		tr: tr,
+	}
+}
+
 // NewCharacterController creates a new character controller.
 func NewCharacterController(eSvc comic.ExpandedServicer, rSvc comic.RankedServicer) *CharacterController {
 	return &CharacterController{
@@ -234,4 +286,14 @@ func NewTrendingController(s comic.RankedServicer) *TrendingController {
 	return &TrendingController{
 		svc: s,
 	}
+}
+
+// NewNotFoundError creates a new HTTP error for a 404 status.
+func NewNotFoundError(message string) *echo.HTTPError {
+	return echo.NewHTTPError(http.StatusNotFound, message)
+}
+
+// NewBadRequestError creates a new HTTP error for a 304 status.
+func NewBadRequestError(message string) *echo.HTTPError {
+	return echo.NewHTTPError(http.StatusBadRequest, message)
 }

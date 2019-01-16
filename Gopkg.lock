@@ -146,6 +146,14 @@
   version = "v1.2.0"
 
 [[projects]]
+  digest = "1:236d7e1bdb50d8f68559af37dbcf9d142d56b431c9b2176d41e2a009b664cda8"
+  name = "github.com/google/uuid"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "9b3b1e0f5f99ae461456d768e7d301a7acdaa2d8"
+  version = "v1.1.0"
+
+[[projects]]
   digest = "1:e1aa8e520787bfd8623c7df394352be3183ef207039cfb513ba40dc00c82fa6d"
   name = "github.com/gosimple/slug"
   packages = ["."]
@@ -382,11 +390,13 @@
     "github.com/aws/aws-sdk-go/aws/session",
     "github.com/aws/aws-sdk-go/service/s3",
     "github.com/aws/aws-sdk-go/service/s3/s3manager",
+    "github.com/dgrijalva/jwt-go",
     "github.com/disintegration/imaging",
     "github.com/go-pg/pg",
     "github.com/go-pg/pg/orm",
     "github.com/go-redis/redis",
     "github.com/golang/mock/gomock",
+    "github.com/google/uuid",
     "github.com/gosimple/slug",
     "github.com/labstack/echo",
     "github.com/labstack/echo/middleware",
