@@ -73,7 +73,8 @@ func TestJWTMiddlewareWithConfigNoHeader(t *testing.T) {
 func TestJWTMiddlewareWithConfigWithHeader(t *testing.T) {
 	m := web.JWTMiddlewareWithConfig(web.NewJWTConfigFromEnvironment())
 	req := httptest.NewRequest(http.MethodGet, "/", nil)
-	req.Header.Set("Authorization", "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI3Y2FjYjEwNS00MGI1LTQzNDYtYmU4Yi05MTA4YjI5ZjM2MTIiLCJwdWJsaWMiOnRydWV9.FrJnXLLZIp8qdtB8mc_kcTVvjhrZ5k-9Px4pfDRYv8o")
+	// test token
+	req.Header.Set("Authorization", "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJhOTIzYjg4MC0yNWIwLTQ5ZjMtODhjMC1kNjI5NDM4YzFjYjIiLCJwdWJsaWMiOnRydWV9.zLhVMc0fsOQIt2EehDr0aN1BJjsvw5BHgXZkwXaWSfQ")
 	rec := httptest.NewRecorder()
 	e := echo.New()
 	ctx := e.NewContext(req, rec)
