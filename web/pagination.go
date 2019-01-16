@@ -6,6 +6,8 @@ import (
 	"strconv"
 )
 
+var InvalidPageErr = NewBadRequestError("Invalid page parameter")
+
 // Page represents a page number and link.
 type Page struct {
 	Number int    `json:"number"`
@@ -35,13 +37,13 @@ func CreatePagination(ctx echo.Context, data []interface{}, itemsPerPage int) (*
 		pagination.CurrentPage = fullPath(ctx.Request().URL.EscapedPath(), ctx.QueryString())
 		pagination.PreviousPage, err = previousPage(ctx)
 		if err != nil {
-			return nil, ErrInvalidPageParameter
+			return nil, InvalidPageErr
 		}
 	}
 	if len(data) > itemsPerPage {
 		pagination.NextPage, err = nextPage(ctx)
 		if err != nil {
-			return nil, ErrInvalidPageParameter
+			return nil, InvalidPageErr
 		}
 	}
 	return pagination, nil
@@ -99,7 +101,7 @@ func parsePageNumber(ctx echo.Context) (int, error) {
 	}
 	pageNum, err := strconv.Atoi(page)
 	if err != nil {
-		return 0, ErrInvalidPageParameter
+		return 0, InvalidPageErr
 	}
 	return pageNum, nil
 }

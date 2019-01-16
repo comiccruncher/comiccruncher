@@ -56,6 +56,7 @@ type IssueServicer interface {
 }
 
 // CharacterServicer is the service interface for characters.
+// TODO: This interface is huge and not idiomatic Go...fix later.
 type CharacterServicer interface {
 	// Creates a character
 	Create(character *Character) error
@@ -593,14 +594,14 @@ func (s *CharacterService) ListAppearances(slug CharacterSlug) ([]AppearancesByY
 }
 
 // NewPublisherService creates a new publisher service
-func NewPublisherService(container *PGRepositoryContainer) PublisherServicer {
+func NewPublisherService(container *PGRepositoryContainer) *PublisherService {
 	return &PublisherService{
 		repository: container.PublisherRepository(),
 	}
 }
 
 // NewCharacterService creates a new character service but with the appearances by years coming from postgres.
-func NewCharacterService(container *PGRepositoryContainer) CharacterServicer {
+func NewCharacterService(container *PGRepositoryContainer) *CharacterService {
 	return &CharacterService{
 		repository:            container.CharacterRepository(),
 		issueRepository:       container.CharacterIssueRepository(),
@@ -610,33 +611,22 @@ func NewCharacterService(container *PGRepositoryContainer) CharacterServicer {
 	}
 }
 
-// NewCharacterServiceWithCache creates a new character service but with the appearances by years coming from the Redis cache.
-func NewCharacterServiceWithCache(container *PGRepositoryContainer, redis RedisClient) CharacterServicer {
-	return &CharacterService{
-		repository:            container.CharacterRepository(),
-		issueRepository:       container.CharacterIssueRepository(),
-		sourceRepository:      container.CharacterSourceRepository(),
-		syncLogRepository:     container.CharacterSyncLogRepository(),
-		appearancesRepository: NewRedisAppearancesPerYearRepository(redis),
-	}
-}
-
 // NewIssueService creates a new issue service from the repository container.
-func NewIssueService(container *PGRepositoryContainer) IssueServicer {
+func NewIssueService(container *PGRepositoryContainer) *IssueService {
 	return &IssueService{
 		repository: container.IssueRepository(),
 	}
 }
 
 // NewRankedService creates a new service for ranked characters.
-func NewRankedService(repository PopularRepository) RankedServicer {
+func NewRankedService(repository PopularRepository) *RankedService {
 	return &RankedService{
 		popRepo: repository,
 	}
 }
 
 // NewExpandedService creates a new service for getting expanded details for a character
-func NewExpandedService(cr CharacterRepository, ar AppearancesByYearsRepository, rc RedisClient, slr CharacterSyncLogRepository, ctr CharacterThumbRepository) ExpandedServicer {
+func NewExpandedService(cr CharacterRepository, ar AppearancesByYearsRepository, rc RedisClient, slr CharacterSyncLogRepository, ctr CharacterThumbRepository) *ExpandedService {
 	return &ExpandedService{
 		cr:  cr,
 		ar:  ar,
@@ -647,7 +637,7 @@ func NewExpandedService(cr CharacterRepository, ar AppearancesByYearsRepository,
 }
 
 // NewCharacterThumbnailService creates a new thumbnail service.
-func NewCharacterThumbnailService(r RedisClient, tu imaging.ThumbnailUploader) CharacterThumbServicer {
+func NewCharacterThumbnailService(r RedisClient, tu imaging.ThumbnailUploader) *CharacterThumbService {
 	return &CharacterThumbService{
 		r: r,
 		tu: tu,

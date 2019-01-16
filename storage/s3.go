@@ -167,7 +167,7 @@ func NewAwsSessionFromEnv() (*session.Session, error) {
 }
 
 // NewS3StorageFromEnv creates the new S3 storage implementation from env vars.
-func NewS3StorageFromEnv() (Storage, error) {
+func NewS3StorageFromEnv() (*S3Storage, error) {
 	ses, err := NewAwsSessionFromEnv()
 	if err != nil {
 		return nil, err
@@ -187,7 +187,7 @@ func Crc32TimeNamingStrategy() FileNameStrategy {
 }
 
 // NewS3Storage creates a new S3 storage implementation from params.
-func NewS3Storage(httpClient HTTPClient, s3 S3Client, s3Downloader S3Downloader, bucket string, opts ...S3StorageOption) Storage {
+func NewS3Storage(httpClient HTTPClient, s3 S3Client, s3Downloader S3Downloader, bucket string, opts ...S3StorageOption) *S3Storage {
 	s := &S3Storage{
 		httpClient:     httpClient,
 		s3:             s3,

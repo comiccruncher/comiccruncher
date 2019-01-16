@@ -489,7 +489,7 @@ func NewCharacterIssueImporter(
 }
 
 // NewCharacterCBExtractor creates a new character CB vendor extractor from the params.
-func NewCharacterCBExtractor(externalSource externalissuesource.ExternalSource) CharacterVendorExtractor {
+func NewCharacterCBExtractor(externalSource externalissuesource.ExternalSource) *CharacterCBExtractor {
 	return &CharacterCBExtractor{
 		src:    externalSource,
 		logger: log.CEREBRO(),

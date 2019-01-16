@@ -72,6 +72,14 @@ func TestJSONListViewOK(t *testing.T) {
 	assert.Equal(t, b2, b)
 }
 
+func TestNewDetailView(t *testing.T) {
+	data := comic.Character{}
+	view := web.NewDetailView(data, http.StatusNotModified)
+	assert.NotNil(t, view)
+	assert.Equal(t, http.StatusNotModified, view.StatusCode)
+	assert.Equal(t, data, view.Data)
+}
+
 func TestNewDetailViewOK(t *testing.T) {
 	data := comic.Character{}
 	view := web.NewDetailViewOK(data)

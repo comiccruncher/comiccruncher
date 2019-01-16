@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"github.com/aimeelaplant/comiccruncher/auth"
 	"github.com/aimeelaplant/comiccruncher/comic"
 	"github.com/aimeelaplant/comiccruncher/internal/log"
 	"github.com/aimeelaplant/comiccruncher/internal/pgo"
@@ -28,7 +29,8 @@ var startCmd = &cobra.Command{
 		searchSvc := search.NewSearchService(instance)
 		statsRepository := comic.NewPGStatsRepository(instance)
 		rankedSvc := comic.NewRankedService(comic.NewPGPopularRepository(instance, comic.NewRedisCharacterThumbRepository(redis)))
-		app := web.NewApp(expandedSvc, searchSvc, statsRepository, rankedSvc, ctr)
+		tr := auth.NewPGTokenRepository(instance)
+		app := web.NewApp(expandedSvc, searchSvc, statsRepository, rankedSvc, ctr, tr)
 		port := cmd.Flag("port")
 		if err = app.Run(port.Value.String()); err != nil {
 			log.WEB().Fatal("error starting web service. closed it.", zap.Error(err), zap.Error(app.Close()))

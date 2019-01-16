@@ -1,16 +1,42 @@
 package web
 
 import (
+	"errors"
 	"github.com/aimeelaplant/comiccruncher/internal/log"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
 	"go.uber.org/zap"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 )
 
-// RequireAuthentication is a cheap, temporary authentication middleware for handling requests.
-func RequireAuthentication(next echo.HandlerFunc) echo.HandlerFunc {
+var (
+	// ErrInternalServerError is for when something bad happens internally.
+	ErrInternalServerError = errors.New("internal server error")
+)
+
+// JWTConfig is a struct for configuration.
+type JWTConfig struct {
+	SecretSigningKey string
+}
+
+// JWTMiddlewareWithConfig creates a new middleware func from the specified configuration.
+func JWTMiddlewareWithConfig(config JWTConfig) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func (c echo.Context) error {
+			_, err := validateToken(c.Request(), config.SecretSigningKey)
+			if err != nil {
+				return err
+			}
+			return next(c)
+		}
+	}
+}
+
+// RequireCheapAuthentication is a cheap, temporary authentication middleware for handling requests.
+func RequireCheapAuthentication(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		if os.Getenv("CC_ENVIRONMENT") == "development" {
 			return next(ctx)
@@ -28,26 +54,28 @@ func ErrorHandler(err error, ctx echo.Context) {
 	if err == nil {
 		return
 	}
-	errInvalidPageStr, errNotFoundStr, echo404 := ErrInvalidPageParameter.Error(),
-		ErrNotFound.Error(),
-		echo.ErrNotFound.Error()
-	var response error
-	switch err.Error() {
-	case errInvalidPageStr:
-		response = NewJSONErrorView(ctx, errInvalidPageStr, http.StatusBadRequest)
-		break
-	case errNotFoundStr, echo404:
-		response = NewJSONErrorView(ctx, errNotFoundStr, http.StatusNotFound)
-		break
-	default: // for ErrInternalServerError or anything else...
-		// we want to log these types
+	echoErr, ok := err.(*echo.HTTPError)
+	if !ok {
 		logContext(err, ctx)
-		response = NewJSONErrorView(ctx, ErrInternalServerError.Error(), http.StatusInternalServerError)
-		break
+		NewJSONErrorView(ctx, ErrInternalServerError.Error(), http.StatusInternalServerError)
+		return
 	}
-	if response != nil {
-		log.WEB().Panic("error setting response", zap.Error(err))
+	if echoErr.Code != http.StatusNotFound && echoErr.Code != http.StatusBadRequest {
+		logContext(err, ctx)
 	}
+	NewJSONErrorView(ctx, echoErr.Message.(string), echoErr.Code)
+}
+
+// NewJWTConfigFromEnvironment creates a new configuration struct from environment variables.
+func NewJWTConfigFromEnvironment() JWTConfig {
+	return JWTConfig{
+		SecretSigningKey: os.Getenv("CC_JWT_SIGNING_SECRET"),
+	}
+}
+
+// NewDefaultJWTMiddleware creates the default JWT middleware with the default config.
+func NewDefaultJWTMiddleware() echo.MiddlewareFunc {
+	return JWTMiddlewareWithConfig(NewJWTConfigFromEnvironment())
 }
 
 // logContext logs the error and context from the request.
@@ -57,7 +85,46 @@ func logContext(err error, ctx echo.Context) {
 		zap.Error(err),
 		zap.Time("time", time.Now()),
 		zap.String("Method", req.Method),
+		zap.String("URL", req.URL.String()),
+		zap.String("Host", req.Host),
 		zap.String("RemoteAddr", req.RemoteAddr),
 		zap.String("RealIP", ctx.RealIP()),
-		zap.String("URL", req.URL.String()))
+		zap.String("User Agent", req.UserAgent()),
+		zap.String("Referer", req.Referer()),
+		zap.String("Form", req.Form.Encode()),
+		zap.String("Authorization", req.Header.Get("Authorization")),
+	)
+}
+
+func validateToken(req *http.Request, secret string) (map[string]interface{}, error) {
+	val, err := parseAuthorizationBearer(req.Header)
+	if err != nil {
+		return nil, err
+	}
+	token, err := jwt.Parse(val, func (token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, errors.New("unexpected signing method")
+		}
+		return []byte(secret), nil
+	})
+	if err != nil {
+		log.WEB().Error("error parsing token", zap.Error(err))
+		return nil, echo.ErrUnauthorized
+	}
+	if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		return claims, nil
+	}
+	return nil, echo.ErrUnauthorized
+}
+
+func parseAuthorizationBearer(h http.Header) (string, error) {
+	val := h.Get("Authorization")
+	if val == "" {
+		return "", echo.ErrUnauthorized
+	}
+	tokenString := strings.SplitAfter(val, "Bearer ")
+	if len(tokenString) < 2 {
+		return "", echo.ErrUnauthorized
+	}
+	return tokenString[1], nil
 }

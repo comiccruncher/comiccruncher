@@ -24,16 +24,21 @@ type ListView struct {
 	Data []interface{} `json:"data"`
 }
 
-// JSONDetailViewOK returns a detail view.
+// JSONDetailViewOK returns a detail view for 200 responses.
 func JSONDetailViewOK(ctx echo.Context, data interface{}) error {
-	return ctx.JSONPretty(http.StatusOK, NewDetailViewOK(data), "  ")
+	return JSONDetailView(ctx, data, http.StatusOK)
+}
+
+// JSONDetailView returns a detail view.
+func JSONDetailView(ctx echo.Context, data interface{}, statusCode int) error {
+	return ctx.JSONPretty(statusCode, NewDetailView(data, statusCode), "  ")
 }
 
 // JSONListViewOK returns a list view.
 func JSONListViewOK(ctx echo.Context, data []interface{}, itemsPerPage int) error {
 	pagination, err := CreatePagination(ctx, data, itemsPerPage)
 	if err != nil {
-		return ErrInvalidPageParameter
+		return err
 	}
 	if len(data) > itemsPerPage {
 		return ctx.JSONPretty(http.StatusOK, NewListViewOK(data[:len(data)-1], pagination), "  ")
@@ -48,7 +53,12 @@ func NewJSONErrorView(ctx echo.Context, err string, statusCode int) error {
 
 // NewDetailViewOK returns a new detail view with a 200.
 func NewDetailViewOK(data interface{}) DetailView {
-	return DetailView{Meta: Meta{StatusCode: http.StatusOK}, Data: data}
+	return NewDetailView(data, http.StatusOK)
+}
+
+// NewDetailViewOK returns a new detail view with a 200.
+func NewDetailView(data interface{}, statusCode int) DetailView {
+	return DetailView{Meta: Meta{StatusCode: statusCode}, Data: data}
 }
 
 // NewListViewOK returns a new list view with 200.

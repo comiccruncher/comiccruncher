@@ -163,7 +163,7 @@ func (s *RedisCharacterStatsSyncer) set(c *Character, allTime *RankedCharacter, 
 }
 
 // NewAppearancesSyncer returns a new appearances syncer
-func NewAppearancesSyncer(r *PGRepositoryContainer, w *RedisAppearancesByYearsRepository) Syncer {
+func NewAppearancesSyncer(r *PGRepositoryContainer, w *RedisAppearancesByYearsRepository) *AppearancesSyncer {
 	return &AppearancesSyncer{
 		reader: r.AppearancesByYearsRepository(),
 		writer: w,
@@ -171,7 +171,7 @@ func NewAppearancesSyncer(r *PGRepositoryContainer, w *RedisAppearancesByYearsRe
 }
 
 // NewAppearancesSyncerRW returns a new appearances syncer with the reader and writer for the cache.
-func NewAppearancesSyncerRW(r AppearancesByYearsRepository, w AppearancesByYearsWriter) Syncer {
+func NewAppearancesSyncerRW(r AppearancesByYearsRepository, w AppearancesByYearsWriter) *AppearancesSyncer {
 	return &AppearancesSyncer{
 		reader: r,
 		writer: w,
@@ -179,7 +179,7 @@ func NewAppearancesSyncerRW(r AppearancesByYearsRepository, w AppearancesByYears
 }
 
 // NewCharacterStatsSyncer returns a new character stats syncer with dependencies.
-func NewCharacterStatsSyncer(r RedisClient, cr CharacterRepository, pr PopularRepository) CharacterStatsSyncer {
+func NewCharacterStatsSyncer(r RedisClient, cr CharacterRepository, pr PopularRepository) *RedisCharacterStatsSyncer {
 	return &RedisCharacterStatsSyncer{
 		r:  r,
 		cr: cr,

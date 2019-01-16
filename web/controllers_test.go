@@ -178,9 +178,8 @@ func TestCharacterControllerCharacterNotFound(t *testing.T) {
 
 	rankedSvc := mock_comic.NewMockRankedServicer(ctrl)
 	characterCtrl := web.NewCharacterController(expandedSvc, rankedSvc)
-	err := characterCtrl.Character(c)
-
-	assert.Equal(t, web.ErrNotFound.Error(), err.Error())
+	err := characterCtrl.Character(c).(*echo.HTTPError)
+	assert.Equal(t, http.StatusNotFound, err.Code)
 }
 
 func TestCharacterControllerCharacters(t *testing.T) {
