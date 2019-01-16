@@ -24,3 +24,4 @@ services:
       - "CC_CDN_URL=https://d2jsu6fyd1g4ln.cloudfront.net"
       - "CC_JWT_AUTH_SECRET=test1"
       - "CC_JWT_SIGNING_SECRET=test2"
+      - "CC_AUTH_TOKEN=test"

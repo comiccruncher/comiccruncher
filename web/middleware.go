@@ -21,6 +21,7 @@ var (
 type JWTConfig struct {
 	SecretSigningKey string
 }
+
 // JWTMiddlewareWithConfig creates a new middleware func from the specified configuration.
 func JWTMiddlewareWithConfig(config JWTConfig) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
@@ -31,6 +32,20 @@ func JWTMiddlewareWithConfig(config JWTConfig) echo.MiddlewareFunc {
 			}
 			return next(c)
 		}
+	}
+}
+
+// RequireCheapAuthentication is a cheap, temporary authentication middleware for handling requests.
+func RequireCheapAuthentication(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		if os.Getenv("CC_ENVIRONMENT") == "development" {
+			return next(ctx)
+		}
+		token := ctx.QueryParam("key")
+		if token != "" && token == os.Getenv("CC_AUTH_TOKEN") {
+			return next(ctx)
+		}
+		return NewJSONErrorView(ctx, "Invalid credentials", http.StatusUnauthorized)
 	}
 }
 

@@ -41,30 +41,32 @@ func (a App) Run(port string) error {
 		XFrameOptions: "SAMEORIGIN",
 		HSTSMaxAge: 31536000,
 	}))
-	// Auth
-	e.POST("/authenticate", a.authCtrlr.Authenticate)
+	// Temporary until site is ready.
+	e.Use(RequireCheapAuthentication)
 
-	jwtMiddleware := NewDefaultJWTMiddleware()
+	// TODO: Use when ready.
+	// e.POST("/authenticate", a.authCtrlr.Authenticate)
+	//jwtMiddleware := NewDefaultJWTMiddleware()
 
 	// Stats
-	e.GET("/stats", a.statsCtrlr.Stats, jwtMiddleware)
+	e.GET("/stats", a.statsCtrlr.Stats)
 
 	// Search
-	s := e.Group("/search", jwtMiddleware)
+	s := e.Group("/search")
 	s.GET("/characters", a.searchCtrlr.SearchCharacters)
 
 	// Characters
-	c := e.Group("/characters", jwtMiddleware)
+	c := e.Group("/characters")
 	c.GET("", a.characterCtrlr.Characters)
 	c.GET("/:slug", a.characterCtrlr.Character)
 
 	// Publishers
-	p := e.Group("/publishers", jwtMiddleware)
+	p := e.Group("/publishers")
 	p.GET("/dc", a.publisherCtrlr.DC)
 	p.GET("/marvel", a.publisherCtrlr.Marvel)
 
 	// trending
-	t := e.Group("/trending", jwtMiddleware)
+	t := e.Group("/trending")
 	t.GET("/marvel", a.trendingCtrlr.Marvel)
 	t.GET("/dc", a.trendingCtrlr.DC)
 
