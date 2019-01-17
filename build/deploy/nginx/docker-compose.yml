@@ -1,9 +1,8 @@
 version: "3.2"
 services:
   letsencrypt:
+    container_name: api_letsencrypt
     restart: always
-    depends_on:
-      - log
     image: linuxserver/letsencrypt
     environment:
       - EMAIL=aimee@aimeelaplant.com
@@ -19,11 +18,11 @@ services:
       - ./config:/config
       - letsencrypt:/etc/letsencrypt
   nginx:
+    container_name: api_nginx
     restart: always
     image: nginx:1.15-alpine
     depends_on:
     - letsencrypt
-    - log
     ports:
       - "80:80"
       - "443:443"
@@ -33,14 +32,22 @@ services:
     logging:
       options:
         tag: "{{.Name}}/{{.ID}}"
-  log:
+  datadog:
+    container_name: datadog
     restart: always
-    image: gliderlabs/logspout
-    command: syslog+tls://${CC_LOG_LOCATION}
+    image: datadog/agent:6.8.3
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-    logging:
-      options:
-        tag: "{{.Name}}/{{.ID}}"
+      - /proc/:/host/proc/:ro
+      - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
+    environment:
+      DD_API_KEY: "${CC_DD_API_KEY}"
+      DD_LOGS_ENABLED: "true"
+      DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL: "true"
+      DD_AC_EXCLUDE: "name:datadog"
+      DD_ENABLE_PAYLOADS_EVENTS: "false"
+      DD_ENABLE_PAYLOADS_SERIES: "false"
+      DD_ENABLE_PAYLOADS_SERVICE_CHECKS: "false"
+      DD_ENABLE_PAYLOADS_SKETCHES: "false"
 volumes:
   letsencrypt:
