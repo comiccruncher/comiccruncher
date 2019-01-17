@@ -1,6 +1,7 @@
 package web
 
 import (
+	"context"
 	"github.com/aimeelaplant/comiccruncher/auth"
 	"github.com/aimeelaplant/comiccruncher/comic"
 	"github.com/aimeelaplant/comiccruncher/search"
@@ -75,8 +76,13 @@ func (a App) Run(port string) error {
 }
 
 // Close closes the app server.
-func (a App) Close() error {
+func (a *App) Close() error {
 	return a.echo.Close()
+}
+
+// Shutdown gracefully shuts down the application.
+func (a *App) Shutdown(ctx context.Context) error {
+	return a.echo.Shutdown(ctx)
 }
 
 // NewApp creates a new app from the parameters.

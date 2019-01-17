@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"context"
 	"github.com/aimeelaplant/comiccruncher/auth"
 	"github.com/aimeelaplant/comiccruncher/comic"
 	"github.com/aimeelaplant/comiccruncher/internal/log"
@@ -10,6 +11,9 @@ import (
 	"github.com/aimeelaplant/comiccruncher/web"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
+	"os"
+	"os/signal"
+	"time"
 )
 
 // The start command.
@@ -19,7 +23,7 @@ var startCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		instance, err := pgo.Instance()
 		if err != nil {
-			log.WEB().Fatal("cannot instantiate database connection", zap.Error(err))
+			log.WEB().Fatal("cannot instantiate database", zap.Error(err))
 		}
 		redis := rediscache.Instance()
 		container := comic.NewPGRepositoryContainer(instance)
@@ -32,8 +36,20 @@ var startCmd = &cobra.Command{
 		tr := auth.NewPGTokenRepository(instance)
 		app := web.NewApp(expandedSvc, searchSvc, statsRepository, rankedSvc, ctr, tr)
 		port := cmd.Flag("port")
-		if err = app.Run(port.Value.String()); err != nil {
-			log.WEB().Fatal("error starting web service. closed it.", zap.Error(err), zap.Error(app.Close()))
+
+		go func() {
+			if appErr := app.Run(port.Value.String()); appErr != nil {
+				log.WEB().Info("Shut down web service.", zap.Error(appErr))
+			}
+		}()
+
+		quit := make(chan os.Signal)
+		signal.Notify(quit, os.Interrupt)
+		<- quit
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		if shutErr := app.Shutdown(ctx); err != nil {
+			log.WEB().Fatal("error shutting down service", zap.Error(shutErr))
 		}
 	},
 }
