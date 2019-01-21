@@ -42,12 +42,7 @@ LB_SERVER = aimee@142.93.52.234
 API_SERVER1 = aimee@68.183.132.127
 API_SERVER2 = aimee@198.199.91.173
 
-DOCKER_COMPOSE_NGINX = docker-compose -f ./deploy/nginx/docker-compose.yml
-DEPLOY_NGINX_COMMAND = ${DOCKER_COMPOSE_NGINX} up \
-	-d \
-	--build \
-	--remove-orphans \
-	--force-recreate
+DEPLOY_NGINX_COMMAND = docker-compose up -d --build
 
 # Creates a .netrc file for access to private Github repository for cerebro.
 .PHONY: netrc
@@ -190,7 +185,13 @@ docker-build-webapp-xcompile:
 # Builds the webapp binary.
 .PHONY: build-webapp
 build-webapp:
-	 go build -o ./bin/webapp ${WEB_CMD}
+	 go build -o ./build/deploy/api/bin ${WEB_CMD}
+
+docker-docker-build-webapp:
+	docker build ./build/deploy/api -t comiccruncher/api:latest
+
+docker-docker-tag-webapp:
+	docker push comiccruncher/api:latest
 
 # Run the web application.
 .PHONY: web
@@ -241,11 +242,6 @@ docker-import-characters:
 .PHONY: docker-generate-thumbs
 docker-generate-thumbs:
 	${DOCKER_RUN} go run ${COMIC_CMD} generate thumbs ${EXTRA_FLAGS}
-
-# Runs the program to send characters to the sync queue.
-.PHONY: queue-characters
-docker-queue-characters:
-	${DOCKER_RUN} go run cmd/queuecharacters.go
 
 .PHONY: queue-characters
 queue-characters:
@@ -332,12 +328,12 @@ remote-deploy-migrations: remote-upload-migrations remote-run-migrations
 # Uploads nginx config.
 .PHONY: remote-upload-nginx
 remote-upload-nginx:
-	scp -r ./build/deploy/nginx ${LB_SERVER}:~/deploy
+	scp -r ./build/deploy/nginx/* ${LB_SERVER}:~/
 
 # Uploads the reload.sh script.
 .PHONY: remote-upload-reload-script
 remote-upload-reload-script:
-	scp -r ./build/deploy/nginx/reload.sh ${LB_SERVER}:~/deploy/nginx/reload.sh
+	scp -r ./build/deploy/nginx/reload.sh ${LB_SERVER}:~/reload.sh
 
 .PHONY: remote-deploy-nginx-initial
 remote-deploy-nginx-initial: remote-upload-nginx
@@ -346,19 +342,21 @@ remote-deploy-nginx-initial: remote-upload-nginx
 # Reloads nginx.
 .PHONY: docker-reload-nginx
 remote-reload-nginx:
-	ssh ${LB_SERVER} "sh ~/deploy/nginx/reload.sh"
+	ssh ${LB_SERVER} "sh reload.sh"
 
 # Uploads script and restarts nginx on server.
 .PHONY: remote-deploy-nginx
 remote-deploy-nginx: remote-upload-reload-script remote-reload-nginx
 
+remote-deploy-api:
+	scp ./build/deploy/api/docker-compose.yml ./build/deploy/api/telegraf.conf ${API_SERVER}:~/
+	ssh ${API_SERVER} "docker-compose up -d --build"
+
 remote-deploy-api1:
-	scp ./${WEBAPP_BIN} ${API_SERVER1}:~/${WEBAPP_TMP_BIN}
-	ssh ${API_SERVER1} "bash -s" < ./build/webapp.sh &
+	API_SERVER=${API_SERVER1} make remote-deploy-api
 
 remote-deploy-api2:
-	scp ./${WEBAPP_BIN} ${API_SERVER2}:~/${WEBAPP_TMP_BIN}
-	ssh ${API_SERVER2} "bash -s" < ./build/webapp.sh &
+	API_SERVER=${API_SERVER2} make remote-deploy-api
 
 remote-deploy-lb: remote-upload-nginx remote-reload-nginx
 

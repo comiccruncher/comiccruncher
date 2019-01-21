@@ -1,27 +1,32 @@
-version: "3.2"
+version: "3.4"
 services:
-  nginx:
-    container_name: nginx
-    restart: always
-    image: nginx:1.15-alpine
+  api:
+    container_name: api
+    image: comiccruncher/api:latest
     ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf
-      # Mount file from host.
-      - ./letsencrypt:/etc/letsencrypt
-    networks:
-      nginx:
-        ipv4_address: 172.25.0.101
+      - "8001:8001"
+    environment:
+      - "CC_CDN_URL=${CC_CDN_URL}"
+      - "CC_ENVIRONMENT=${CC_ENVIRONMENT:-production}"
+      - "CC_REDIS_HOST=${CC_REDIS_HOST}"
+      - "CC_REDIS_PORT=${CC_REDIS_PORT}"
+      - "CC_REDIS_PASSWORD=${CC_REDIS_PASSWORD}"
+      - "CC_POSTGRES_HOST=${CC_POSTGRES_HOST}"
+      - "CC_POSTGRES_PORT=${CC_POSTGRES_PORT}"
+      - "CC_POSTGRES_DB=${CC_POSTGRES_DB}"
+      - "CC_POSTGRES_USER=${CC_POSTGRES_USER}"
+      - "CC_POSTGRES_PASSWORD=${CC_POSTGRES_PASSWORD}"
+      - "CC_AUTH_TOKEN=${CC_AUTH_TOKEN}"
+      - "CC_JWT_SIGNING_SECRET=${CC_JWT_SIGNING_SECRET:-default}"
+      - "CC_JWT_AUTH_SECRET=${CC_JWT_AUTH_SECRET:-default}"
     logging:
       options:
         max-size: "25M"
         max-file: "3"
   datadog:
-    container_name: datadog
     depends_on:
-      - nginx
+      - api
+    container_name: datadog
     restart: always
     image: datadog/agent:6.8.3
     volumes:
@@ -32,7 +37,7 @@ services:
       DD_API_KEY: "${CC_DD_API_KEY}"
       DD_LOGS_ENABLED: "true"
       DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL: "true"
-      DD_AC_EXCLUDE: "name:datadog name:api_telegraf"
+      DD_AC_EXCLUDE: "name:datadog name:telegraf"
       DD_ENABLE_PAYLOADS_EVENTS: "false"
       DD_ENABLE_PAYLOADS_SERIES: "false"
       DD_ENABLE_PAYLOADS_SERVICE_CHECKS: "false"
@@ -42,24 +47,15 @@ services:
         max-size: "25M"
         max-file: "3"
   telegraf:
+    depends_on:
+      - api
     container_name: telegraf
     restart: always
-    depends_on:
-      - nginx
     image: telegraf:1.9-alpine
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./telegraf.conf:/etc/telegraf/telegraf.conf:ro
-    networks:
-      nginx:
-        ipv4_address: 172.25.0.102
     logging:
       options:
         max-size: "25M"
         max-file: "3"
-networks:
-  nginx:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 172.25.0.0/24
