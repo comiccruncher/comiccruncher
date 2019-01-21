@@ -190,7 +190,7 @@ build-webapp:
 docker-docker-build-webapp:
 	docker build ./build/deploy/api -t comiccruncher/api:latest
 
-docker-docker-tag-webapp:
+docker-docker-push-webapp:
 	docker push comiccruncher/api:latest
 
 # Run the web application.
