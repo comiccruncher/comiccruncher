@@ -39,7 +39,7 @@ var startCmd = &cobra.Command{
 
 		go func() {
 			if appErr := app.Run(port.Value.String()); appErr != nil {
-				log.WEB().Info("Shut down web service.", zap.Error(appErr))
+				log.WEB().Info("Shutting down web service...")
 			}
 		}()
 
@@ -48,10 +48,21 @@ var startCmd = &cobra.Command{
 		<- quit
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
+
 		if shutErr := app.Shutdown(ctx); err != nil {
 			log.WEB().Fatal("error shutting down service", zap.Error(shutErr))
 		}
+		handleError(redis.Close(), "redis")
+		handleError(instance.Close(), "database")
+		log.WEB().Info("Gracefully shut down web service.")
 	},
+}
+
+func handleError(err error, client string) {
+	if err != nil {
+		log.WEB().Error("error closing connection", zap.String("client", client),  zap.Error(err))
+	}
+	log.WEB().Info("closed connection", zap.String("client", client))
 }
 
 // Init scripts.
