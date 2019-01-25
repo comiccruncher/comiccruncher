@@ -22,6 +22,7 @@ services:
     container_name: datadog
     depends_on:
       - nginx
+      - telegraf
     restart: always
     image: datadog/agent:6.8.3
     volumes:
@@ -32,7 +33,7 @@ services:
       DD_API_KEY: "${CC_DD_API_KEY}"
       DD_LOGS_ENABLED: "true"
       DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL: "true"
-      DD_AC_EXCLUDE: "name:datadog name:api_telegraf"
+      DD_AC_EXCLUDE: "name:datadog name:telegraf"
       DD_ENABLE_PAYLOADS_EVENTS: "false"
       DD_ENABLE_PAYLOADS_SERIES: "false"
       DD_ENABLE_PAYLOADS_SERVICE_CHECKS: "false"
@@ -57,6 +58,8 @@ services:
       options:
         max-size: "25M"
         max-file: "3"
+    environment:
+      HOSTNAME: "${HOSTNAME}"
 networks:
   nginx:
     driver: bridge

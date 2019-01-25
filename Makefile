@@ -42,8 +42,6 @@ LB_SERVER = aimee@142.93.52.234
 API_SERVER1 = aimee@68.183.132.127
 API_SERVER2 = aimee@198.199.91.173
 
-DEPLOY_NGINX_COMMAND = docker-compose up -d --build
-
 # Creates a .netrc file for access to private Github repository for cerebro.
 .PHONY: netrc
 netrc:
@@ -337,7 +335,7 @@ remote-upload-reload-script:
 
 .PHONY: remote-deploy-nginx-initial
 remote-deploy-nginx-initial: remote-upload-nginx
-	ssh ${LB_SERVER} "${DEPLOY_NGINX_COMMAND}"
+	ssh ${LB_SERVER} "sh deploy.sh"
 
 # Reloads nginx.
 .PHONY: docker-reload-nginx
@@ -349,8 +347,8 @@ remote-reload-nginx:
 remote-deploy-nginx: remote-upload-reload-script remote-reload-nginx
 
 remote-deploy-api:
-	scp ./build/deploy/api/docker-compose.yml ./build/deploy/api/telegraf.conf ${API_SERVER}:~/
-	ssh ${API_SERVER} "docker-compose up -d --build"
+	scp ./build/deploy/api/docker-compose.yml ./build/deploy/api/telegraf.conf ./build/deploy/api/deploy.sh ${API_SERVER}:~/
+	ssh ${API_SERVER} "sh deploy.sh"
 
 remote-deploy-api1:
 	API_SERVER=${API_SERVER1} make remote-deploy-api

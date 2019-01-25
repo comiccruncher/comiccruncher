@@ -26,6 +26,7 @@ services:
   datadog:
     depends_on:
       - api
+      - telegraf
     container_name: datadog
     restart: always
     image: datadog/agent:6.8.3
@@ -59,3 +60,5 @@ services:
       options:
         max-size: "25M"
         max-file: "3"
+    environment:
+      HOSTNAME: "${HOSTNAME}"
