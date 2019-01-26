@@ -112,14 +112,11 @@ func TestCharacterControllerCharacter(t *testing.T) {
 	defer ctrl.Finish()
 
 	aggs := []comic.YearlyAggregate{
-		{Year: 2016, Count: 5},
-		{Year: 2017, Count: 10},
-	}
-	apps := []comic.AppearancesByYears{
-		comic.NewAppearancesByYears("test", comic.Main, aggs),
-		comic.NewAppearancesByYears("test", comic.Alternate, aggs),
+		{Year: 2016, Main: 5, Alternate: 1},
+		{Year: 2017, Main: 10, Alternate: 0},
 	}
 
+	apps := comic.NewAppearancesByYears("test", aggs)
 	expandedSvc := mock_comic.NewMockExpandedServicer(ctrl)
 	stats := comic.CharacterStats{
 		Category:    "all-time",

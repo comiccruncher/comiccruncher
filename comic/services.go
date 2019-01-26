@@ -110,10 +110,6 @@ type CharacterServicer interface {
 	CreateSyncLog(syncLog *CharacterSyncLog) error
 	// UpdateSyncLog updates a sync log
 	UpdateSyncLog(syncLog *CharacterSyncLog) error
-	// BothAppearances gets the combined appearances for main + alternate
-	BothAppearances(slug CharacterSlug) (AppearancesByYears, error)
-	// ListAppearances gets main and alternate appearances as lists (so not combined)
-	ListAppearances(slug CharacterSlug) ([]AppearancesByYears, error)
 }
 
 // RankedServicer is the interface for getting ranked and popular characters.
@@ -581,16 +577,6 @@ func (s *CharacterService) CharactersByPublisher(slugs []PublisherSlug, filterSo
 		Limit:             limit,
 		Offset:            offset,
 	})
-}
-
-// BothAppearances lists the combination of main + alt appearances in one struct.
-func (s *CharacterService) BothAppearances(slug CharacterSlug) (AppearancesByYears, error) {
-	return s.appearancesRepository.Both(slug)
-}
-
-// ListAppearances lists both main and alternate appearances.
-func (s *CharacterService) ListAppearances(slug CharacterSlug) ([]AppearancesByYears, error) {
-	return s.appearancesRepository.List(slug)
 }
 
 // NewPublisherService creates a new publisher service

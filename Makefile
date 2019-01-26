@@ -248,6 +248,7 @@ queue-characters:
 # Generate mocks for testing.
 .PHONY: mockgen
 mockgen:
+	mockgen -destination=internal/mocks/comic/sync.go -source=comic/sync.go
 	mockgen -destination=internal/mocks/comic/repositories.go -source=comic/repositories.go
 	mockgen -destination=internal/mocks/comic/services.go -source=comic/services.go
 	mockgen -destination=internal/mocks/comic/cache.go -source=comic/cache.go

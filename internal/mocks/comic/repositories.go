@@ -511,95 +511,17 @@ func (m *MockAppearancesByYearsRepository) EXPECT() *MockAppearancesByYearsRepos
 	return m.recorder
 }
 
-// Both mocks base method
-func (m *MockAppearancesByYearsRepository) Both(slug comic.CharacterSlug) (comic.AppearancesByYears, error) {
-	ret := m.ctrl.Call(m, "Both", slug)
-	ret0, _ := ret[0].(comic.AppearancesByYears)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Both indicates an expected call of Both
-func (mr *MockAppearancesByYearsRepositoryMockRecorder) Both(slug interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Both", reflect.TypeOf((*MockAppearancesByYearsRepository)(nil).Both), slug)
-}
-
-// Main mocks base method
-func (m *MockAppearancesByYearsRepository) Main(slug comic.CharacterSlug) (comic.AppearancesByYears, error) {
-	ret := m.ctrl.Call(m, "Main", slug)
-	ret0, _ := ret[0].(comic.AppearancesByYears)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Main indicates an expected call of Main
-func (mr *MockAppearancesByYearsRepositoryMockRecorder) Main(slug interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Main", reflect.TypeOf((*MockAppearancesByYearsRepository)(nil).Main), slug)
-}
-
-// Alternate mocks base method
-func (m *MockAppearancesByYearsRepository) Alternate(slug comic.CharacterSlug) (comic.AppearancesByYears, error) {
-	ret := m.ctrl.Call(m, "Alternate", slug)
-	ret0, _ := ret[0].(comic.AppearancesByYears)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// Alternate indicates an expected call of Alternate
-func (mr *MockAppearancesByYearsRepositoryMockRecorder) Alternate(slug interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Alternate", reflect.TypeOf((*MockAppearancesByYearsRepository)(nil).Alternate), slug)
-}
-
 // List mocks base method
-func (m *MockAppearancesByYearsRepository) List(slugs ...comic.CharacterSlug) ([]comic.AppearancesByYears, error) {
-	varargs := []interface{}{}
-	for _, a := range slugs {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "List", varargs...)
-	ret0, _ := ret[0].([]comic.AppearancesByYears)
+func (m *MockAppearancesByYearsRepository) List(slugs comic.CharacterSlug) (comic.AppearancesByYears, error) {
+	ret := m.ctrl.Call(m, "List", slugs)
+	ret0, _ := ret[0].(comic.AppearancesByYears)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // List indicates an expected call of List
-func (mr *MockAppearancesByYearsRepositoryMockRecorder) List(slugs ...interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockAppearancesByYearsRepository)(nil).List), slugs...)
-}
-
-// MockAppearancesByYearsWriter is a mock of AppearancesByYearsWriter interface
-type MockAppearancesByYearsWriter struct {
-	ctrl     *gomock.Controller
-	recorder *MockAppearancesByYearsWriterMockRecorder
-}
-
-// MockAppearancesByYearsWriterMockRecorder is the mock recorder for MockAppearancesByYearsWriter
-type MockAppearancesByYearsWriterMockRecorder struct {
-	mock *MockAppearancesByYearsWriter
-}
-
-// NewMockAppearancesByYearsWriter creates a new mock instance
-func NewMockAppearancesByYearsWriter(ctrl *gomock.Controller) *MockAppearancesByYearsWriter {
-	mock := &MockAppearancesByYearsWriter{ctrl: ctrl}
-	mock.recorder = &MockAppearancesByYearsWriterMockRecorder{mock}
-	return mock
-}
-
-// EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockAppearancesByYearsWriter) EXPECT() *MockAppearancesByYearsWriterMockRecorder {
-	return m.recorder
-}
-
-// Set mocks base method
-func (m *MockAppearancesByYearsWriter) Set(apps comic.AppearancesByYears) error {
-	ret := m.ctrl.Call(m, "Set", apps)
-	ret0, _ := ret[0].(error)
-	return ret0
-}
-
-// Set indicates an expected call of Set
-func (mr *MockAppearancesByYearsWriterMockRecorder) Set(apps interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Set", reflect.TypeOf((*MockAppearancesByYearsWriter)(nil).Set), apps)
+func (mr *MockAppearancesByYearsRepositoryMockRecorder) List(slugs interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "List", reflect.TypeOf((*MockAppearancesByYearsRepository)(nil).List), slugs)
 }
 
 // MockAppearancesByYearsMapRepository is a mock of AppearancesByYearsMapRepository interface

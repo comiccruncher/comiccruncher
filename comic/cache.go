@@ -1,7 +1,6 @@
 package comic
 
 import (
-	"fmt"
 	"github.com/go-redis/redis"
 	"time"
 )
@@ -13,11 +12,6 @@ type RedisClient interface {
 	Set(key string, value interface{}, expiration time.Duration) *redis.StatusCmd
 	HMSet(key string, fields map[string]interface{}) *redis.StatusCmd
 	HGetAll(key string) *redis.StringStringMapCmd
-}
-
-// Returns the redis key for appearances per year for a character and appearance type.
-func redisKey(key CharacterSlug, cat AppearanceType) string {
-	return fmt.Sprintf("%s:%s:%d", key, appearancesPerYearsKey, cat)
 }
 
 // redisThumbnailKey returns the key for character profile thumbnails.
