@@ -1,6 +1,9 @@
 version: "3.4"
 services:
   api:
+    depends_on:
+      - filebeat
+      - telegraf
     container_name: api
     image: comiccruncher/api:latest
     ports:
@@ -23,33 +26,10 @@ services:
       options:
         max-size: "25M"
         max-file: "3"
-  datadog:
-    depends_on:
-      - api
-      - telegraf
-    container_name: datadog
-    restart: always
-    image: datadog/agent:6.8.3
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - /proc/:/host/proc/:ro
-      - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
-    environment:
-      DD_API_KEY: "${CC_DD_API_KEY}"
-      DD_LOGS_ENABLED: "true"
-      DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL: "true"
-      DD_AC_EXCLUDE: "name:datadog name:telegraf"
-      DD_ENABLE_PAYLOADS_EVENTS: "false"
-      DD_ENABLE_PAYLOADS_SERIES: "false"
-      DD_ENABLE_PAYLOADS_SERVICE_CHECKS: "false"
-      DD_ENABLE_PAYLOADS_SKETCHES: "false"
-    logging:
-      options:
-        max-size: "25M"
-        max-file: "3"
+    labels:
+      - "co.elastic.logs/fileset.stdout=access"
+      - "co.elastic.logs/fileset.stderr=error"
   telegraf:
-    depends_on:
-      - api
     container_name: telegraf
     restart: always
     image: telegraf:1.9-alpine
@@ -62,3 +42,29 @@ services:
         max-file: "3"
     environment:
       HOSTNAME: "${HOSTNAME}"
+  filebeat:
+    command: ["--strict.perms=false"]
+    restart: always
+    user: root
+    container_name: filebeat
+    image: docker.elastic.co/beats/filebeat:6.5.4
+    volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+    - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    - filebeat:/usr/share/filebeat/data
+    - ./filebeat.yml:/usr/share/filebeat/filebeat.yml
+    logging:
+      options:
+        max-size: "25M"
+        max-file: "3"
+    environment:
+      CC_ENVIRONMENT: "${CC_ENVIRONMENT:-production}"
+      HOSTNAME: "${HOSTNAME}"
+      ELASTIC_HOST: "10.136.103.144:9200"
+      ELASTIC_USER: "${CC_ELASTIC_USER}"
+      ELASTIC_PASSWORD: "${CC_ELASTIC_PASSWORD}"
+      KIBANA_HOST: "${CC_KIBANA_HOST}"
+      KIBANA_USER: "${CC_KIBANA_USER}"
+      KIBANA_PASSWORD: "${CC_KIBANA_PASSWORD}"
+volumes:
+  filebeat:

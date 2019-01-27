@@ -348,7 +348,7 @@ remote-reload-nginx:
 remote-deploy-nginx: remote-upload-reload-script remote-reload-nginx
 
 remote-deploy-api:
-	scp ./build/deploy/api/docker-compose.yml ./build/deploy/api/telegraf.conf ./build/deploy/api/deploy.sh ${API_SERVER}:~/
+	scp ./build/deploy/api/* ${API_SERVER}:~/
 	ssh ${API_SERVER} "sh deploy.sh"
 
 remote-deploy-api1:

@@ -1,6 +1,26 @@
 version: "3.2"
 services:
+  certbot:
+    restart: always
+    container_name: certbot
+    image: certbot/dns-route53:v0.30.0
+    entrypoint: >
+      sh -c "certbot certonly -n --dns-route53 --agree-tos --email aimee@aimeelaplant.com -d api.comiccruncher.com &&
+      trap exit TERM; while :; do certbot renew; sleep 24h & wait $${!}; done;"
+    environment:
+      - "AWS_ACCESS_KEY_ID=${AWS_SSL_ACCESS_KEY_ID}"
+      - "AWS_SECRET_ACCESS_KEY=${AWS_SSL_SECRET_ACCESS_KEY}"
+    volumes:
+      - letsencrypt:/etc/letsencrypt
+    logging:
+      options:
+        max-size: "25M"
+        max-file: "3"
   nginx:
+    depends_on:
+      - certbot
+      - filebeat
+      - telegraf
     container_name: nginx
     restart: always
     image: nginx:1.15-alpine
@@ -9,8 +29,8 @@ services:
       - "443:443"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
-      # Mount file from host.
-      - ./letsencrypt:/etc/letsencrypt
+      - nginx:/var/log/nginx
+      - letsencrypt:/etc/letsencrypt
     networks:
       nginx:
         ipv4_address: 172.25.0.101
@@ -18,35 +38,9 @@ services:
       options:
         max-size: "25M"
         max-file: "3"
-  datadog:
-    container_name: datadog
-    depends_on:
-      - nginx
-      - telegraf
-    restart: always
-    image: datadog/agent:6.8.3
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - /proc/:/host/proc/:ro
-      - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro
-    environment:
-      DD_API_KEY: "${CC_DD_API_KEY}"
-      DD_LOGS_ENABLED: "true"
-      DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL: "true"
-      DD_AC_EXCLUDE: "name:datadog name:telegraf"
-      DD_ENABLE_PAYLOADS_EVENTS: "false"
-      DD_ENABLE_PAYLOADS_SERIES: "false"
-      DD_ENABLE_PAYLOADS_SERVICE_CHECKS: "false"
-      DD_ENABLE_PAYLOADS_SKETCHES: "false"
-    logging:
-      options:
-        max-size: "25M"
-        max-file: "3"
   telegraf:
     container_name: telegraf
     restart: always
-    depends_on:
-      - nginx
     image: telegraf:1.9-alpine
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
@@ -60,9 +54,37 @@ services:
         max-file: "3"
     environment:
       HOSTNAME: "${HOSTNAME}"
+  filebeat:
+    command: ["--strict.perms=false"]
+    restart: always
+    user: root
+    container_name: filebeat
+    image: docker.elastic.co/beats/filebeat:6.5.4
+    volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+    - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    - filebeat:/usr/share/filebeat/data
+    - ./filebeat.yml:/usr/share/filebeat/filebeat.yml
+    - nginx:/var/log/nginx
+    logging:
+      options:
+        max-size: "25M"
+        max-file: "3"
+    environment:
+      HOSTNAME: "${HOSTNAME}"
+      ELASTIC_HOST: "10.136.103.144:9200"
+      ELASTIC_USER: "${CC_ELASTIC_USER}"
+      ELASTIC_PASSWORD: "${CC_ELASTIC_PASSWORD}"
+      KIBANA_HOST: "${CC_KIBANA_HOST}"
+      KIBANA_USER: "${CC_KIBANA_USER}"
+      KIBANA_PASSWORD: "${CC_KIBANA_PASSWORD}"
 networks:
   nginx:
     driver: bridge
     ipam:
       config:
         - subnet: 172.25.0.0/24
+volumes:
+  letsencrypt:
+  filebeat:
+  nginx:
