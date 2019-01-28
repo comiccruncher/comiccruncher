@@ -14,20 +14,15 @@ func TestAppearancesSyncerSync(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	aggs := []comic.YearlyAggregate{
-		{Year: 2017, Count: 11},
-		{Year: 2018, Count: 10},
+		{Year: 2017, Main: 11, Alternate: 0},
+		{Year: 2018, Main: 0, Alternate: 10},
 	}
-	mains := comic.AppearancesByYears{CharacterSlug: "test", Category: comic.Main, Aggregates: aggs}
-	alts := comic.AppearancesByYears{CharacterSlug: "test", Category: comic.Alternate, Aggregates: aggs}
-	both := comic.AppearancesByYears{CharacterSlug: "test", Category: comic.Main | comic.Alternate, Aggregates: aggs}
-
+	mains := comic.AppearancesByYears{CharacterSlug: "test", Aggregates: aggs}
 	r := mock_comic.NewMockAppearancesByYearsRepository(ctrl)
-	r.EXPECT().Main(gomock.Any()).Return(mains, nil)
-	r.EXPECT().Alternate(gomock.Any()).Return(alts, nil)
-	r.EXPECT().Both(gomock.Any()).Return(both, nil)
+	r.EXPECT().List(gomock.Any()).Return(mains, nil)
+
 	w := mock_comic.NewMockAppearancesByYearsWriter(ctrl)
 	w.EXPECT().Set(mains).Return(nil)
-	w.EXPECT().Set(alts).Return(nil)
 
 	s := comic.NewAppearancesSyncerRW(r, w)
 	total, err := s.Sync(comic.CharacterSlug("test"))
@@ -39,12 +34,12 @@ func TestAppearancesSyncerSyncReaderError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	aggs := []comic.YearlyAggregate{
-		{Year: 2017, Count: 11},
-		{Year: 2018, Count: 10},
+		{Year: 2017, Main: 11, Alternate: 10},
+		{Year: 2018, Main: 10, Alternate: 0},
 	}
-	mains := comic.AppearancesByYears{CharacterSlug: "test", Category: comic.Main, Aggregates: aggs}
+	mains := comic.AppearancesByYears{CharacterSlug: "test", Aggregates: aggs}
 	r := mock_comic.NewMockAppearancesByYearsRepository(ctrl)
-	r.EXPECT().Main(gomock.Any()).Return(mains, errors.New("bad error"))
+	r.EXPECT().List(gomock.Any()).Return(mains, errors.New("bad error"))
 
 	w := mock_comic.NewMockAppearancesByYearsWriter(ctrl)
 	s := comic.NewAppearancesSyncerRW(r, w)
@@ -56,13 +51,13 @@ func TestAppearancesSyncerSyncWriterError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 	aggs := []comic.YearlyAggregate{
-		{Year: 2017, Count: 11},
-		{Year: 2018, Count: 10},
+		{Year: 2017, Main: 11, Alternate: 10},
+		{Year: 2018, Main: 10, Alternate:20},
 	}
-	mains := comic.AppearancesByYears{CharacterSlug: "test", Category: comic.Main, Aggregates: aggs}
+	mains := comic.AppearancesByYears{CharacterSlug: "test", Aggregates: aggs}
 
 	r := mock_comic.NewMockAppearancesByYearsRepository(ctrl)
-	r.EXPECT().Main(gomock.Any()).Return(mains, nil)
+	r.EXPECT().List(gomock.Any()).Return(mains, nil)
 	w := mock_comic.NewMockAppearancesByYearsWriter(ctrl)
 	w.EXPECT().Set(mains).Return(errors.New("some error"))
 

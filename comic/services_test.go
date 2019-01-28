@@ -38,18 +38,9 @@ func TestExpandedServiceCharacter(t *testing.T) {
 	cr := mock_comic.NewMockCharacterRepository(ctrl)
 	cr.EXPECT().FindBySlug(gomock.Any(), false).Times(1).Return(ch, nil)
 	ar := mock_comic.NewMockAppearancesByYearsRepository(ctrl)
-	ar.EXPECT().List(gomock.Any()).Return([]comic.AppearancesByYears{
-		{
-			Category: comic.Main,
-			Aggregates: []comic.YearlyAggregate{
-				{Count: 10, Year: 1979},
-			},
-		},
-		{
-			Category: comic.Main | comic.Alternate,
-			Aggregates: []comic.YearlyAggregate{
-				{Count: 10, Year: 1979},
-			},
+	ar.EXPECT().List(gomock.Any()).Return(comic.AppearancesByYears{
+		Aggregates: []comic.YearlyAggregate{
+			{Main: 10, Year: 1979},
 		},
 	}, nil)
 	rc := mock_comic.NewMockRedisClient(ctrl)
@@ -95,7 +86,7 @@ func TestExpandedServiceCharacter(t *testing.T) {
 	at := ec.Stats[0]
 	m := ec.Stats[1]
 	assert.Nil(t, err)
-	assert.Len(t, ec.Appearances, 2)
+	assert.NotNil(t, ec.Appearances)
 	assert.Len(t, ec.Stats, 2)
 	assert.Equal(t, at.Category, comic.AllTimeStats)
 	assert.Equal(t, at.IssueCount, uint(100))
@@ -153,7 +144,7 @@ func TestExpandedServiceCharacterNoRedisResult(t *testing.T) {
 	cr := mock_comic.NewMockCharacterRepository(ctrl)
 	cr.EXPECT().FindBySlug(gomock.Any(), false).Times(1).Return(ch, nil)
 	ar := mock_comic.NewMockAppearancesByYearsRepository(ctrl)
-	ar.EXPECT().List(gomock.Any()).Return([]comic.AppearancesByYears{}, nil)
+	ar.EXPECT().List(gomock.Any()).Return(comic.AppearancesByYears{}, nil)
 	rc := mock_comic.NewMockRedisClient(ctrl)
 	val := make(map[string]string, 0)
 	cmd := redis.NewStringStringMapResult(val, nil)
@@ -166,7 +157,7 @@ func TestExpandedServiceCharacterNoRedisResult(t *testing.T) {
 	svc := comic.NewExpandedService(cr, ar, rc, slr, ctr)
 	ec, err := svc.Character(comic.CharacterSlug("emma-frost"))
 	assert.Nil(t, err)
-	assert.Len(t, ec.Appearances, 0)
+	assert.NotNil(t, ec.Appearances)
 	assert.Len(t, ec.Stats, 0)
 }
 

@@ -41,16 +41,50 @@ func parseUint(s string) (uint, error) {
 	return uint(u), err
 }
 
-// parseYearlyAggregates parses the string value of the redis value into a yearly aggregate.
-func parseRedisYearlyAggregates(value string) []YearlyAggregate {
+type YearlyAggregateSerializer interface {
+	Serialize(aggregates []YearlyAggregate) string
+}
+
+type RedisYearlyAggregateSerializer struct {
+
+}
+
+func (s *RedisYearlyAggregateSerializer) Serialize(aggregates []YearlyAggregate) string {
+	val := ""
+	lenAggs := len(aggregates)
+	// sets the value in the form of `year:main_count:alt_count;year:main_count:alt_count`
+	// this is just a fast, simple, and cheap way to keep them sorted and packed.
+	for idx, appearance := range aggregates {
+		val += fmt.Sprintf("%d:%d:%d", appearance.Year, appearance.Main, appearance.Alternate)
+		// if it's not the last one in the slice
+		if idx != lenAggs-1 {
+			// add a semicolon!
+			val += ";"
+		}
+	}
+	return val
+}
+
+type YearlyAggregateDeserializer interface {
+	Deserialize(val string) []YearlyAggregate
+}
+
+type RedisYearlyAggregateDeserializer struct {
+
+}
+
+// Deserialize deserializes the string into the yearly aggregates structs.
+func (p *RedisYearlyAggregateDeserializer) Deserialize(val string) []YearlyAggregate {
 	var yearlyAggregates []YearlyAggregate
-	// since we sore the appearances values in the form of `1948:1;1949:2;1950:3`, we need to parse out the values.
-	values := strings.Split(value, ";")
-	for _, val := range values {
-		idx := strings.Index(val, ":")
-		year := stringutil.MustAtoi(val[:idx])
-		count := stringutil.MustAtoi(val[idx+1:])
-		yearlyAggregates = append(yearlyAggregates, YearlyAggregate{Year: year, Count: count})
+	// since we sore the appearances values in the form of `1948:1:2;1949:2:0;1950:3:0`, we need to parse out the values.
+	values := strings.Split(val, ";")
+	for _, v := range values {
+		// now we're at 1948:1:2
+		counts := strings.Split(v, ":")
+		year := stringutil.MustAtoi(counts[0])
+		mainCount := stringutil.MustAtoi(counts[1])
+		altCount := stringutil.MustAtoi(counts[2])
+		yearlyAggregates = append(yearlyAggregates, YearlyAggregate{Year: year, Main: mainCount, Alternate: altCount})
 	}
 	return yearlyAggregates
 }

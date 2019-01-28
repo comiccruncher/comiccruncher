@@ -63,10 +63,10 @@ func TestExpandedCharacterMarshalJSON(t *testing.T) {
 		{Category: comic.AllTimeStats, IssueCount: 1, IssueCountRank: 1, AverageRank: 1, Average: 1},
 	}
 	aggs := []comic.YearlyAggregate{
-		{Count: 10, Year: 1900},
+		{Main: 10, Year: 1900, Alternate: 10},
 	}
-	apps := []comic.AppearancesByYears{
-		{CharacterSlug: c.Slug, Category: comic.Main, Aggregates: aggs},
+	apps := comic.AppearancesByYears{
+		CharacterSlug: c.Slug,  Aggregates: aggs,
 	}
 	ec := comic.ExpandedCharacter{
 		Character:   c,
@@ -75,7 +75,7 @@ func TestExpandedCharacterMarshalJSON(t *testing.T) {
 	}
 	b, err := ec.MarshalJSON()
 	assert.Nil(t, err)
-	s := `{"publisher":{"name":"","slug":""},"name":"emma frost","other_name":"","description":"","image":"","slug":"emma-frost","vendor_image":"","vendor_url":"https://example.com","vendor_description":"","thumbnails":null,"stats":[{"category":"all_time","issue_count_rank":1,"issue_count":1,"average_issues_per_year":1,"average_issues_per_year_rank":1}],"last_syncs":null,"appearances":[{"slug":"emma-frost","category":"main","aggregates":[{"year":1900,"count":10}]}]}`
+	s := `{"publisher":{"name":"","slug":""},"name":"emma frost","other_name":"","description":"","image":"","slug":"emma-frost","vendor_image":"","vendor_url":"https://example.com","vendor_description":"","thumbnails":null,"stats":[{"category":"all_time","issue_count_rank":1,"issue_count":1,"average_issues_per_year":1,"average_issues_per_year_rank":1}],"last_syncs":null,"appearances":{"slug":"emma-frost","aggregates":[{"main":10,"alternate":10,"year":1900}]}}`
 	assert.Equal(t, s, string(b))
 }
 

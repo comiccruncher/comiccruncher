@@ -33,35 +33,20 @@
         "num_issues": 10
       }
     ],
-    "appearances": [
-      {
-        "slug": "test",
-        "category": "main",
-        "aggregates": [
-          {
-            "year": 2016,
-            "count": 5
-          },
-          {
-            "year": 2017,
-            "count": 10
-          }
-        ]
-      },
-      {
-        "slug": "test",
-        "category": "alternate",
-        "aggregates": [
-          {
-            "year": 2016,
-            "count": 5
-          },
-          {
-            "year": 2017,
-            "count": 10
-          }
-        ]
-      }
-    ]
+    "appearances": {
+      "slug": "test",
+      "aggregates": [
+        {
+          "main": 5,
+          "alternate": 1,
+          "year": 2016
+        },
+        {
+          "main": 10,
+          "alternate": 0,
+          "year": 2017
+        }
+      ]
+    }
   }
 }

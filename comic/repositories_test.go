@@ -324,121 +324,17 @@ func TestNewPGRepositoryContainer(t *testing.T) {
 	assert.NotNil(t, container.CharacterSyncLogRepository())
 }
 
-// Tests that the query returns the correct values for Main | Alternate appearances.
-func TestPGAppearanceRepositoryAll(t *testing.T) {
-	result, err := testContainer.AppearancesByYearsRepository().Both("emma-frost-2")
-
-	assert.Nil(t, err)
-	assert.Equal(t, "emma-frost-2", string(result.CharacterSlug))
-	assert.Equal(t, comic.Main|comic.Alternate, result.Category)
-
-	expected := make(map[int]int)
-	now := time.Now()
-	for i := 1979; i <= now.Year(); i++ {
-		switch i {
-		case 1979:
-			expected[1979] = 1
-		case 1980:
-			expected[1980] = 2
-		default:
-			expected[i] = 0
-		}
-	}
-
-	assert.Len(t, result.Aggregates, len(expected))
-
-	for _, a := range result.Aggregates {
-		val, ok := expected[a.Year]
-		assert.True(t, ok)
-		assert.Equal(t, val, a.Count)
-	}
-
-	// Test for blanks.
-	bogus, err := testContainer.AppearancesByYearsRepository().Both("bogus")
-	assert.Nil(t, err)
-	assert.Nil(t, bogus.Aggregates)
-}
-
-// Tests that the query returns the correct values for Main appearances.
-func TestPGAppearanceRepositoryMain(t *testing.T) {
-	result, err := testContainer.AppearancesByYearsRepository().Main("emma-frost-2")
-
-	assert.Nil(t, err)
-	assert.Equal(t, "emma-frost-2", string(result.CharacterSlug))
-	assert.Equal(t, comic.Main, result.Category)
-	expected := make(map[int]int)
-	now := time.Now()
-	for i := 1979; i <= now.Year(); i++ {
-		switch i {
-		case 1979:
-			expected[1979] = 1
-		case 1980:
-			expected[1980] = 1
-		default:
-			expected[i] = 0
-		}
-	}
-
-	assert.Len(t, result.Aggregates, len(expected))
-
-	for _, a := range result.Aggregates {
-		val, ok := expected[a.Year]
-		assert.True(t, ok)
-		assert.Equal(t, val, a.Count)
-	}
-
-	// Test for blanks.
-	bogus, err := testContainer.AppearancesByYearsRepository().Main("bogus")
-	assert.Nil(t, err)
-	assert.Nil(t, bogus.Aggregates)
-}
-
-// Test that the query returns the correct values for Alternate appearances.
-func TestPGAppearanceRepositoryAlternate(t *testing.T) {
-	result, err := testContainer.AppearancesByYearsRepository().Alternate("emma-frost-2")
-
-	assert.Nil(t, err)
-	assert.Equal(t, "emma-frost-2", string(result.CharacterSlug))
-	assert.Equal(t, comic.Alternate, result.Category)
-
-	expected := make(map[int]int)
-	now := time.Now()
-	for i := 1979; i <= now.Year(); i++ {
-		switch i {
-		case 1980:
-			expected[1980] = 2
-		default:
-			expected[i] = 0
-		}
-	}
-
-	assert.Len(t, result.Aggregates, len(expected))
-
-	for _, a := range result.Aggregates {
-		val, ok := expected[a.Year]
-		assert.True(t, ok)
-		assert.Equal(t, val, a.Count)
-	}
-
-	// Test for blanks.
-	bogus, err := testContainer.AppearancesByYearsRepository().Alternate("bogus")
-	assert.Nil(t, err)
-	assert.Nil(t, bogus.Aggregates)
-}
-
 // Test that the query returns both main and alternate appearances as slices.
 func TestPGAppearanceRepositoryList(t *testing.T) {
 	list, err := testContainer.AppearancesByYearsRepository().List("emma-frost-2")
 
 	assert.Nil(t, err)
-	assert.Len(t, list, 2)
-	assert.Equal(t, comic.Main, list[0].Category)
-	assert.Equal(t, comic.Alternate, list[1].Category)
+	assert.Len(t, list.Aggregates, 41)
 
 	// Test for blanks.
 	bogus, err := testContainer.AppearancesByYearsRepository().List("bogus")
 	assert.Nil(t, err)
-	assert.Len(t, bogus, 2)
+	assert.Len(t, bogus.Aggregates, 0)
 }
 
 func TestPGStatsRepository_Stats(t *testing.T) {

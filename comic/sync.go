@@ -14,6 +14,11 @@ type Syncer interface {
 	Sync(slug CharacterSlug) (int, error)
 }
 
+// AppearancesByYearsWriter sets the appearances by years for a character.
+type AppearancesByYearsWriter interface {
+	Set(apps AppearancesByYears) error
+}
+
 // AppearancesSyncer to sync yearly appearances from Postgres to Redis.
 type AppearancesSyncer struct {
 	reader AppearancesByYearsRepository
@@ -23,37 +28,24 @@ type AppearancesSyncer struct {
 // Sync gets all the character's appearances from the database and syncs them to Redis.
 // returns the total number of issues synced and an error if any.
 func (s *AppearancesSyncer) Sync(slug CharacterSlug) (int, error) {
-	mainAppsPerYear, err := s.reader.Main(slug)
+	apps, err := s.reader.List(slug)
 	if err != nil {
 		return 0, err
 	}
-	if mainAppsPerYear.Aggregates != nil {
-		log.COMIC().Info("main appearances to send to redis", zap.Int("total", mainAppsPerYear.Total()))
-		err = s.writer.Set(mainAppsPerYear)
-		if err != nil {
-			return 0, err
-		}
-	}
-	altAppsPerYear, err := s.reader.Alternate(slug)
-	if err != nil {
-		return 0, err
-	}
-	if altAppsPerYear.Aggregates != nil {
-		log.COMIC().Info("alt appearances to send to redis", zap.Int("total", altAppsPerYear.Total()))
-		err = s.writer.Set(altAppsPerYear)
-		if err != nil {
-			return 0, err
-		}
-	}
-	all, err := s.reader.Both(slug)
-	total := all.Total()
-	log.COMIC().Info(
-		"done syncing postgres appearances to redis!",
-		zap.String("character", string(slug)),
-		zap.String("appearances", fmt.Sprintf("%v", all.Aggregates)),
+	total := apps.Total()
+	log.COMIC().Info("appearances to send to redis",
+		zap.String("character", slug.Value()),
 		zap.Int("total", total),
-		zap.Error(err))
-	return total, nil
+		zap.Int("main", apps.MainTotal()),
+		zap.Int("alternate", apps.AlternateTotal()))
+	if apps.Aggregates != nil {
+		err = s.writer.Set(apps)
+		if err != nil {
+			log.COMIC().Info("successfully sent appearances to redis", zap.String("character", slug.Value()))
+		}
+		return total, err
+	}
+	return 0, nil
 }
 
 // CharacterStatsSyncer is the interface for syncing characters.

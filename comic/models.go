@@ -139,14 +139,14 @@ type Importance int
 // AppearancesByYears represents the key, category, and appearances categorized per year for a character.
 type AppearancesByYears struct {
 	CharacterSlug CharacterSlug     `json:"slug"` // The unique identifier for the character.
-	Category      AppearanceType    `json:"category"`
 	Aggregates    []YearlyAggregate `json:"aggregates"`
 }
 
 // YearlyAggregate is the aggregated year and count of an appearance for that year.
 type YearlyAggregate struct {
-	Year  int `json:"year"`
-	Count int `json:"count"`
+	Main 		int `json:"main"`
+	Alternate 	int `json:"alternate"`
+	Year  		int `json:"year"`
 }
 
 // Publisher is a publisher is an entity that publishes comics and characters.
@@ -299,7 +299,7 @@ type ExpandedCharacter struct {
 	Thumbnails  *CharacterThumbnails `json:"thumbnails"`
 	LastSyncs   []*LastSync          `json:"last_syncs"`
 	Stats       []CharacterStats     `json:"stats"`
-	Appearances []AppearancesByYears `json:"appearances"`
+	Appearances AppearancesByYears   `json:"appearances"`
 }
 
 // CharacterStatsCategory is the category types for character stats.
@@ -348,7 +348,7 @@ func (c *ExpandedCharacter) MarshalJSON() ([]byte, error) {
 		Thumbnails  *CharacterThumbnails `json:"thumbnails"`
 		Stats       []CharacterStats     `json:"stats"`
 		LastSyncs   []*LastSync          `json:"last_syncs"`
-		Appearances []AppearancesByYears `json:"appearances"`
+		Appearances AppearancesByYears   `json:"appearances"`
 	}{
 		Alias:       (*Alias)(c.Character),
 		Thumbnails:  c.Thumbnails,
@@ -413,6 +413,18 @@ func (u AppearanceType) Value() (driver.Value, error) {
 	return fmt.Sprintf("%08b", byte(u)), nil
 }
 
+// String gets the string value of the appearance type.
+func (u AppearanceType) String() string {
+	switch u {
+	case Main:
+		return "main"
+	case Alternate:
+		return "alternate"
+	default:
+		return "none"
+	}
+}
+
 // AddAppearance adds an appearance to the appearances for the character.
 func (c *AppearancesByYears) AddAppearance(appearance YearlyAggregate) *AppearancesByYears {
 	c.Aggregates = append(c.Aggregates, appearance)
@@ -423,7 +435,25 @@ func (c *AppearancesByYears) AddAppearance(appearance YearlyAggregate) *Appearan
 func (c *AppearancesByYears) Total() int {
 	total := 0
 	for _, a := range c.Aggregates {
-		total += a.Count
+		total += a.Main + a.Alternate
+	}
+	return total
+}
+
+// MainTotal gets the total main appearances per year.
+func (c *AppearancesByYears) MainTotal() int {
+	total := 0
+	for _, a := range c.Aggregates {
+		total += a.Main
+	}
+	return total
+}
+
+// AlternateTotal gets the total alternate appearances per year.
+func (c *AppearancesByYears) AlternateTotal() int {
+	total := 0
+	for _, a := range c.Aggregates {
+		total += a.Alternate
 	}
 	return total
 }
@@ -547,12 +577,17 @@ func NewCharacterIssue(characterID CharacterID, id IssueID, appearanceType Appea
 }
 
 // NewAppearancesByYears creates a new struct with the parameters.
-func NewAppearancesByYears(slug CharacterSlug, cat AppearanceType, aggs []YearlyAggregate) AppearancesByYears {
-	return AppearancesByYears{
+func NewAppearancesByYears(slug CharacterSlug, aggs []YearlyAggregate) AppearancesByYears {
+	apy := AppearancesByYears{
 		CharacterSlug: slug,
-		Category:      cat,
 		Aggregates:    aggs,
 	}
+	if aggs == nil {
+		// satisfy interface for empty slice
+		apy.Aggregates = []YearlyAggregate{}
+	}
+
+	return apy
 }
 
 func cdnUrlForThumbnails(thumbs *CharacterThumbnails) {

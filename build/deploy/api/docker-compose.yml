@@ -1,43 +1,34 @@
-version: "3.2"
+version: "3.4"
 services:
-  certbot:
-    restart: always
-    container_name: certbot
-    image: certbot/dns-route53:v0.30.0
-    entrypoint: >
-      sh -c "certbot certonly -n --dns-route53 --agree-tos --email aimee@aimeelaplant.com -d api.comiccruncher.com &&
-      trap exit TERM; while :; do certbot renew; sleep 24h & wait $${!}; done;"
-    environment:
-      - "AWS_ACCESS_KEY_ID=${AWS_SSL_ACCESS_KEY_ID}"
-      - "AWS_SECRET_ACCESS_KEY=${AWS_SSL_SECRET_ACCESS_KEY}"
-    volumes:
-      - letsencrypt:/etc/letsencrypt
-    logging:
-      options:
-        max-size: "25M"
-        max-file: "3"
-  nginx:
+  api:
     depends_on:
-      - certbot
       - filebeat
       - telegraf
-    container_name: nginx
-    restart: always
-    image: nginx:1.15-alpine
+    container_name: api
+    image: comiccruncher/api:latest
     ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf
-      - nginx:/var/log/nginx
-      - letsencrypt:/etc/letsencrypt
-    networks:
-      nginx:
-        ipv4_address: 172.25.0.101
+      - "8001:8001"
+    environment:
+      - "CC_CDN_URL=${CC_CDN_URL}"
+      - "CC_ENVIRONMENT=${CC_ENVIRONMENT:-production}"
+      - "CC_REDIS_HOST=${CC_REDIS_HOST}"
+      - "CC_REDIS_PORT=${CC_REDIS_PORT}"
+      - "CC_REDIS_PASSWORD=${CC_REDIS_PASSWORD}"
+      - "CC_POSTGRES_HOST=${CC_POSTGRES_HOST}"
+      - "CC_POSTGRES_PORT=${CC_POSTGRES_PORT}"
+      - "CC_POSTGRES_DB=${CC_POSTGRES_DB}"
+      - "CC_POSTGRES_USER=${CC_POSTGRES_USER}"
+      - "CC_POSTGRES_PASSWORD=${CC_POSTGRES_PASSWORD}"
+      - "CC_AUTH_TOKEN=${CC_AUTH_TOKEN}"
+      - "CC_JWT_SIGNING_SECRET=${CC_JWT_SIGNING_SECRET:-default}"
+      - "CC_JWT_AUTH_SECRET=${CC_JWT_AUTH_SECRET:-default}"
     logging:
       options:
         max-size: "25M"
         max-file: "3"
+    labels:
+      - "co.elastic.logs/fileset.stdout=access"
+      - "co.elastic.logs/fileset.stderr=error"
   telegraf:
     container_name: telegraf
     restart: always
@@ -45,9 +36,6 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./telegraf.conf:/etc/telegraf/telegraf.conf:ro
-    networks:
-      nginx:
-        ipv4_address: 172.25.0.102
     logging:
       options:
         max-size: "25M"
@@ -65,12 +53,12 @@ services:
     - /var/lib/docker/containers:/var/lib/docker/containers:ro
     - filebeat:/usr/share/filebeat/data
     - ./filebeat.yml:/usr/share/filebeat/filebeat.yml
-    - nginx:/var/log/nginx
     logging:
       options:
         max-size: "25M"
         max-file: "3"
     environment:
+      CC_ENVIRONMENT: "${CC_ENVIRONMENT:-production}"
       HOSTNAME: "${HOSTNAME}"
       ELASTIC_HOST: "10.136.103.144:9200"
       ELASTIC_USER: "${CC_ELASTIC_USER}"
@@ -78,13 +66,5 @@ services:
       KIBANA_HOST: "${CC_KIBANA_HOST}"
       KIBANA_USER: "${CC_KIBANA_USER}"
       KIBANA_PASSWORD: "${CC_KIBANA_PASSWORD}"
-networks:
-  nginx:
-    driver: bridge
-    ipam:
-      config:
-        - subnet: 172.25.0.0/24
 volumes:
-  letsencrypt:
   filebeat:
-  nginx:

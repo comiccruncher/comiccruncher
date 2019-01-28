@@ -404,32 +404,6 @@ func (mr *MockCharacterServicerMockRecorder) UpdateSyncLog(syncLog interface{}) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateSyncLog", reflect.TypeOf((*MockCharacterServicer)(nil).UpdateSyncLog), syncLog)
 }
 
-// BothAppearances mocks base method
-func (m *MockCharacterServicer) BothAppearances(slug comic.CharacterSlug) (comic.AppearancesByYears, error) {
-	ret := m.ctrl.Call(m, "BothAppearances", slug)
-	ret0, _ := ret[0].(comic.AppearancesByYears)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// BothAppearances indicates an expected call of BothAppearances
-func (mr *MockCharacterServicerMockRecorder) BothAppearances(slug interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "BothAppearances", reflect.TypeOf((*MockCharacterServicer)(nil).BothAppearances), slug)
-}
-
-// ListAppearances mocks base method
-func (m *MockCharacterServicer) ListAppearances(slug comic.CharacterSlug) ([]comic.AppearancesByYears, error) {
-	ret := m.ctrl.Call(m, "ListAppearances", slug)
-	ret0, _ := ret[0].([]comic.AppearancesByYears)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// ListAppearances indicates an expected call of ListAppearances
-func (mr *MockCharacterServicerMockRecorder) ListAppearances(slug interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAppearances", reflect.TypeOf((*MockCharacterServicer)(nil).ListAppearances), slug)
-}
-
 // MockRankedServicer is a mock of RankedServicer interface
 type MockRankedServicer struct {
 	ctrl     *gomock.Controller

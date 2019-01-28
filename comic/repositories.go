@@ -8,12 +8,11 @@ import (
 	"github.com/go-redis/redis"
 	"github.com/gosimple/slug"
 	"go.uber.org/zap"
+	"math"
 	"strings"
 	"sync"
 	"time"
 )
-
-const appearancesPerYearsKey = "yearly"
 
 var (
 	// AllView is the materialized view for all characters with both main and alternate appearances.
@@ -95,15 +94,7 @@ type CharacterIssueRepository interface {
 
 // AppearancesByYearsRepository is the repository interface for getting a characters appearances per year.
 type AppearancesByYearsRepository interface {
-	Both(slug CharacterSlug) (AppearancesByYears, error)
-	Main(slug CharacterSlug) (AppearancesByYears, error)
-	Alternate(slug CharacterSlug) (AppearancesByYears, error)
-	List(slugs ...CharacterSlug) ([]AppearancesByYears, error)
-}
-
-// AppearancesByYearsWriter sets the appearances by years for a character.
-type AppearancesByYearsWriter interface {
-	Set(apps AppearancesByYears) error
+	List(slugs CharacterSlug) (AppearancesByYears, error)
 }
 
 // AppearancesByYearsMapRepository is the repository for listing a character's appearances by years in a map.
@@ -234,6 +225,8 @@ type PGStatsRepository struct {
 // RedisAppearancesByYearsRepository is the Redis implementation for appearances per year repository.
 type RedisAppearancesByYearsRepository struct {
 	redisClient RedisClient
+	deserializer YearlyAggregateDeserializer
+	serializer YearlyAggregateSerializer
 }
 
 // FindBySlug gets a publisher by its slug.
@@ -666,237 +659,107 @@ func (r *PGStatsRepository) Stats() (Stats, error) {
 	return stats, err
 }
 
-// Both gets all of a character's appearances per year, which includes its main and alternate counterparts
-// in one struct. (different from List)
-func (r *PGAppearancesByYearsRepository) Both(slug CharacterSlug) (AppearancesByYears, error) {
-	var appearancesPerYears []YearlyAggregate
-	_, err := r.db.Query(
-		&appearancesPerYears,
-		`SELECT years.year AS year, count(issues.id) AS count
+func (r *PGAppearancesByYearsRepository) createQuery(slug CharacterSlug, t AppearanceType) string {
+	return fmt.Sprintf(`
+	SELECT years.year as year, count(issues.id) AS count, '%s' as category
 	FROM generate_series(
-		(SELECT date_part('year', min(i.sale_date)) FROM issues i
-		INNER JOIN character_issues ci ON ci.issue_id = i.id
-		INNER JOIN characters c on c.id = ci.character_id
-		WHERE c.slug = ?0) :: INT,
-		date_part('year', CURRENT_DATE) :: INT
-	) AS years(year)
-	LEFT JOIN (
-		SELECT i.sale_date AS sale_date, i.id AS id
-		FROM issues i
-		INNER JOIN character_issues ci ON i.id = ci.issue_id
-		INNER JOIN characters c on c.id = ci.character_id
-		WHERE c.slug = ?0
-	) issues ON years.year = date_part('year', issues.sale_date)
-	GROUP BY years.year
-	ORDER BY years.year`, slug)
-
-	if err != nil {
-		return AppearancesByYears{}, err
-	}
-	if len(appearancesPerYears) > 0 {
-		return AppearancesByYears{CharacterSlug: slug, Aggregates: appearancesPerYears, Category: Main | Alternate}, nil
-	}
-	return AppearancesByYears{}, nil
-}
-
-// Main gets a character's main appearances per year. No alternate realities.
-func (r *PGAppearancesByYearsRepository) Main(slug CharacterSlug) (AppearancesByYears, error) {
-	var appearances []YearlyAggregate
-	_, err := r.db.Query(
-		&appearances,
-		fmt.Sprintf(`
-		SELECT years.year as year, count(issues.id) AS count
-		FROM generate_series(
-		(SELECT date_part('year', min(i.sale_date)) FROM issues i
-		INNER JOIN character_issues ci ON ci.issue_id = i.id
-		INNER JOIN characters c on c.id = ci.character_id
-		WHERE c.slug = ?0) :: INT,
-		date_part('year', CURRENT_DATE) :: INT
-		) AS years(year)
-		LEFT JOIN (
+       (SELECT date_part('year', min(i.sale_date)) FROM issues i
+        INNER JOIN character_issues ci ON ci.issue_id = i.id
+        INNER JOIN characters c on c.id = ci.character_id
+        WHERE c.slug = ?0) :: INT,
+        date_part('year', CURRENT_DATE) :: INT
+       ) AS years(year)
+       LEFT JOIN (
 		SELECT i.sale_date AS sale_date, i.id AS id
 		FROM issues i
 		INNER JOIN character_issues ci ON i.id = ci.issue_id
 		INNER JOIN characters c on c.id = ci.character_id
 		WHERE c.slug = ?0 AND ci.appearance_type & B'%08b' > 0::BIT(8)
-		) issues ON years.year = date_part('year', issues.sale_date)
-		GROUP BY years.year
-		ORDER BY years.year`, Main), slug)
-	if err != nil {
-		return AppearancesByYears{}, err
-	}
-	if len(appearances) > 0 {
-		return AppearancesByYears{CharacterSlug: slug, Aggregates: appearances, Category: Main}, nil
-	}
-	return AppearancesByYears{}, nil
-}
-
-// Alternate gets a character's alternate appearances per year. Yes to alternate realities.
-func (r *PGAppearancesByYearsRepository) Alternate(slug CharacterSlug) (AppearancesByYears, error) {
-	var appearances []YearlyAggregate
-	_, err := r.db.Query(&appearances, fmt.Sprintf(`
-	SELECT years.year AS year, count(issues.id) AS count
-	FROM generate_series(
-		(SELECT date_part('year', min(i.sale_date)) FROM issues i
-		INNER JOIN character_issues ci ON ci.issue_id = i.id
-		INNER JOIN characters c on c.id = ci.character_id
-		WHERE c.slug = ?0) :: INT,
-		date_part('year', CURRENT_DATE) :: INT
-	) AS years(year)
-	LEFT JOIN (
-		SELECT i.sale_date AS sale_date, i.id AS id
-		FROM issues i
-		INNER JOIN character_issues ci ON i.id = ci.issue_id
-		INNER JOIN characters c on c.id = ci.character_id
-		WHERE c.slug = ?0 AND ci.appearance_type & B'%08b' > 0::BIT(8)
-	) issues ON years.year = date_part('year', issues.sale_date)
-	GROUP BY years.year
-	ORDER BY years.year`, Alternate), slug)
-	if err != nil {
-		return AppearancesByYears{}, err
-	}
-	if len(appearances) > 0 {
-		return AppearancesByYears{CharacterSlug: slug, Aggregates: appearances, Category: Alternate}, nil
-	}
-	return AppearancesByYears{}, nil
+       ) issues ON years.year = date_part('year', issues.sale_date)
+      GROUP BY years.year`, t.String(), t)
 }
 
 // List gets a slice of a character's main and alternate appearances. This isn't very efficient for multiple characters
 // so you should use the Redis repo instead.
-func (r *PGAppearancesByYearsRepository) List(slugs ...CharacterSlug) ([]AppearancesByYears, error) {
-	allApps := make([]AppearancesByYears, len(slugs)*2)
-	for i := range slugs {
-		main, err := r.Main(slugs[i])
-		if err != nil {
-			return nil, err
-		}
-		allApps[i*2] = main
-		alt, err := r.Alternate(slugs[i])
-		if err != nil {
-			return nil, err
-		}
-		allApps[(i*2)+1] = alt
-	}
-	return allApps, nil
-}
-
-func (r *RedisAppearancesByYearsRepository) byType(slug CharacterSlug, t AppearanceType) (AppearancesByYears, error) {
-	c := AppearancesByYears{}
-	value, err := r.redisClient.Get(redisKey(slug, t)).Result()
-	if err == redis.Nil {
-		// satisfy the interface and return
-		return c, nil
-	}
+func (r *PGAppearancesByYearsRepository) List(s CharacterSlug) (AppearancesByYears, error) {
+	mainQ := r.createQuery(s, Main)
+	altQ := r.createQuery(s, Alternate)
+	q := mainQ + " UNION " + altQ + " ORDER BY year, category"
+	vals := make([]struct{
+		Year     int
+		Count    int
+		Category string
+	}, 0)
+	_, err := r.db.Query(&vals, q, s)
 	if err != nil {
-		return c, err
+		return AppearancesByYears{}, err
 	}
-	c.Aggregates = parseRedisYearlyAggregates(value)
-	c.Category = t
-	c.CharacterSlug = slug
-	return c, nil
-}
-
-// Both gets all of a character's appearances per year, which includes its main and alternate counterparts
-// in one struct. (different from List)
-func (r *RedisAppearancesByYearsRepository) Both(slug CharacterSlug) (AppearancesByYears, error) {
-	return r.byType(slug, Main|Alternate)
-}
-
-// Main gets a character's main appearances per year. No alternate realities.
-func (r *RedisAppearancesByYearsRepository) Main(slug CharacterSlug) (AppearancesByYears, error) {
-	return r.byType(slug, Main)
-}
-
-// Alternate gets a character's alternate appearances per year. Yes alternate realities.
-func (r *RedisAppearancesByYearsRepository) Alternate(slug CharacterSlug) (AppearancesByYears, error) {
-	return r.byType(slug, Alternate)
+	length := int(math.Round(float64(len(vals) / 2)))
+	yas := make([]YearlyAggregate, length)
+ 	t := 0
+	for i := 0; i < len(vals); i+=2 {
+		alt := vals[i]
+		main := vals[i+1]
+		yas[t] = YearlyAggregate{
+			Year:      alt.Year,
+			Alternate: alt.Count,
+			Main:      main.Count,
+		}
+		t++
+	}
+	return NewAppearancesByYears(s, yas), nil
 }
 
 // List returns a slice of appearances per year for the given characters' slugs main and alternate appearances.
-func (r *RedisAppearancesByYearsRepository) List(slugs ...CharacterSlug) ([]AppearancesByYears, error) {
-	slcLen := len(slugs) * 2
-	allKeys := make([]string, slcLen)
-	for i, s := range slugs {
-		allKeys[(i * 2)] = redisKey(s, Main)
-		allKeys[(i*2)+1] = redisKey(s, Alternate)
+func (r *RedisAppearancesByYearsRepository) List(s CharacterSlug) (AppearancesByYears, error) {
+	key := getAppearanceKey(s)
+	all, err := r.redisClient.Get(key).Result()
+	if err != nil  && err != redis.Nil {
+		return AppearancesByYears{}, err
 	}
-	all, err := r.redisClient.MGet(allKeys...).Result()
-	if err != nil {
-		return nil, err
+	if all != "" {
+		return NewAppearancesByYears(s, r.deserializer.Deserialize(all)), nil
 	}
-	allApps := make([]AppearancesByYears, slcLen)
-	for i, s := range slugs {
-		mainIdx := i * 2
-		main := all[mainIdx]
-		if main != nil {
-			allApps[mainIdx] = NewAppearancesByYears(s, Main, parseRedisYearlyAggregates(main.(string)))
-		} else {
-			allApps[mainIdx] = NewAppearancesByYears(s, Main, nil)
-		}
-		altIdx := (i * 2) + 1
-		alt := all[altIdx]
-		if alt != nil {
-			allApps[altIdx] = NewAppearancesByYears(s, Alternate, parseRedisYearlyAggregates(alt.(string)))
-		} else {
-			allApps[altIdx] = NewAppearancesByYears(s, Alternate, nil)
-		}
-	}
-	return allApps, nil
+	return NewAppearancesByYears(s, nil), nil
 }
 
 // ListMap returns a map of appearances per year for the given characters' slugs main and alternate appearances.
-func (r *RedisAppearancesByYearsRepository) ListMap(slugs ...CharacterSlug) (map[CharacterSlug][]AppearancesByYears, error) {
-	slcLen := len(slugs) * 2
+func (r *RedisAppearancesByYearsRepository) ListMap(slugs ...CharacterSlug) (map[CharacterSlug]AppearancesByYears, error) {
+	slcLen := len(slugs)
 	allKeys := make([]string, slcLen)
 	for i, s := range slugs {
-		allKeys[(i * 2)] = redisKey(s, Main)
-		allKeys[(i*2)+1] = redisKey(s, Alternate)
+		allKeys[i] = getAppearanceKey(s)
 	}
 	all, err := r.redisClient.MGet(allKeys...).Result()
 	if err != nil {
 		return nil, err
 	}
-	allApps := make(map[CharacterSlug][]AppearancesByYears, slcLen)
+	allApps := make(map[CharacterSlug]AppearancesByYears, slcLen)
 	for i, s := range slugs {
-		mainIdx := i * 2
-		main := all[mainIdx]
-		apps := make([]AppearancesByYears, 2)
-		if main != nil {
-			apps[0] = NewAppearancesByYears(s, Main, parseRedisYearlyAggregates(main.(string)))
+		val := all[i]
+		if val != nil {
+			allApps[s] = NewAppearancesByYears(s, r.deserializer.Deserialize(val.(string)))
 		} else {
-			apps[0] = NewAppearancesByYears(s, Main, nil)
+			allApps[s] = NewAppearancesByYears(s, nil)
 		}
-		altIdx := (i * 2) + 1
-		alt := all[altIdx]
-		if alt != nil {
-			apps[1] = NewAppearancesByYears(s, Alternate, parseRedisYearlyAggregates(alt.(string)))
-		} else {
-			apps[1] = NewAppearancesByYears(s, Alternate, nil)
-		}
-		allApps[s] = apps
 	}
 	return allApps, nil
 }
 
-// Set sets the character's info like this: HMSET KEY name "character.Name"
-// Sets the character's appearances like this: ZADDNX KEY:yearly 1 "1979" 2 "1980"
+// Sets the character's appearances in Redis.
 func (r *RedisAppearancesByYearsRepository) Set(character AppearancesByYears) error {
 	if character.CharacterSlug.Value() == "" {
 		return errors.New("wtf. got blank character slug")
 	}
-	lenAggregates := len(character.Aggregates)
-	val := ""
-	// sets the value in the form of `year:count;year:count;year:count`
-	// this is just a fast, simple, and cheap way to keep them sorted and packed.
-	for idx, appearance := range character.Aggregates {
-		val += fmt.Sprintf("%d:%d", appearance.Year, appearance.Count)
-		// if it's not the last one in the slice
-		if idx != lenAggregates-1 {
-			// append the semicolon
-			val += ";"
-		}
-	}
-	return r.redisClient.Set(redisKey(character.CharacterSlug, character.Category), val, 0).Err()
+	return r.redisClient.Set(
+		getAppearanceKey(character.CharacterSlug),
+		r.serializer.Serialize(character.Aggregates),
+		0).
+		Err()
+}
+
+func getAppearanceKey(s CharacterSlug) string {
+	return s.Value() + ":appearances"
 }
 
 // All returns all the popular characters for DC and Marvel.
@@ -1095,7 +958,7 @@ func NewPGAppearancesPerYearRepository(db *pg.DB) *PGAppearancesByYearsRepositor
 
 // NewRedisAppearancesPerYearRepository creates the redis yearly appearances repository.
 func NewRedisAppearancesPerYearRepository(client RedisClient) *RedisAppearancesByYearsRepository {
-	return &RedisAppearancesByYearsRepository{redisClient: client}
+	return &RedisAppearancesByYearsRepository{redisClient: client, deserializer: &RedisYearlyAggregateDeserializer{}, serializer: &RedisYearlyAggregateSerializer{}}
 }
 
 // NewPGStatsRepository creates a new stats repository for the postgres implementation.

@@ -1,0 +1,46 @@
+name: "${HOSTNAME}"
+
+tags: ["nginx", "backend", "api"]
+
+fields:
+  env: production
+
+filebeat.config:
+  modules:
+    enabled: true
+    path: ${path.config}/modules.d/*.yml
+    reload.enabled: false
+
+filebeat.modules:
+- module: nginx
+  access:
+    enabled: true
+    var.paths: ["/var/log/nginx/access.log*"]
+  error:
+    enabled: true
+    var.paths: ["/var/log/nginx/error.log*"]
+
+filebeat.autodiscover:
+  providers:
+  - type: docker
+    hints.enabled: true
+  processors:
+  - add_docker_metadata:
+    host: "unix:///var/run/docker.sock"
+
+output.elasticsearch:
+  index: "${HOSTNAME}-%{[beat.version]}-%{+yyyy.MM.dd}"
+  hosts: ["${ELASTIC_HOST}"]
+  username: "${ELASTIC_USER}"
+  password: "${ELASTIC_PASSWORD}"
+  pretty: true
+
+setup.template:
+  name: "${HOSTNAME}"
+  pattern: "${HOSTNAME}-"
+
+setup.kibana:
+  host: "${KIBANA_HOST}"
+  protocol: "https"
+  username: "${KIBANA_USER}"
+  password: "${KIBANA_PASSWORD}"
