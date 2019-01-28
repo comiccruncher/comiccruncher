@@ -421,7 +421,7 @@ func (u AppearanceType) String() string {
 	case Alternate:
 		return "alternate"
 	default:
-		panic("implement method String() for const")
+		return "none"
 	}
 }
 
