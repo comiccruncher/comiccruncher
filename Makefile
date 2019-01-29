@@ -299,7 +299,7 @@ docker-build-xcompile: docker-build-migrations-xcompile docker-build-cerebro-xco
 # Uploads the cerebro binary to the remote server. Used for CircleCI.
 .PHONY: remote-upload-cerebro
 remote-upload-cerebro:
-	scp ./${CEREBRO_BIN} ${LB_SERVER}:~/bin
+	scp ./${CEREBRO_BIN} ${API_SERVER1}:~/bin
 
 # Uploads the cerebro binary to the remote server. Used for CircleCI.
 .PHONY: remote-deploy-cerebro
@@ -308,17 +308,17 @@ remote-deploy-cerebro: remote-upload-cerebro
 # Uploads the comic binary to the remote server.
 .PHONY: remote-deploy-comic
 remote-deploy-comic:
-	scp ./${COMIC_BIN} ${LB_SERVER}:~/bin
+	scp ./${COMIC_BIN} ${API_SERVER1}:~/bin
 
 # Uploads the migrations binary to the remote server. Used for CircleCI.
 .PHONY: remote-upload-migrations
 remote-upload-migrations:
-	scp ./${MIGRATIONS_BIN} ${LB_SERVER}:~/bin
+	scp ./${MIGRATIONS_BIN} ${API_SERVER1}:~/bin
 
 # Runs migrations over the remote server. Used for CircleCI.
 .PHONY: remote-run-migrations
 remote-run-migrations:
-	ssh ${LB_SERVER} "bash -s" < ./build/migrations.sh
+	ssh ${API_SERVER1} "bash -s" < ./build/migrations.sh
 
 # Uploads and runs migrations over the server. Used for CircleCI.
 .PHONY: remote-deploy-migrations
