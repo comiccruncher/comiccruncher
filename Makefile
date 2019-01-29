@@ -183,7 +183,7 @@ docker-build-webapp-xcompile:
 # Builds the webapp binary.
 .PHONY: build-webapp
 build-webapp:
-	 go build -o ./build/deploy/api/bin ${WEB_CMD}
+	 go build -o ./build/deploy/api/bin/webapp ${WEB_CMD}
 
 docker-docker-build-webapp:
 	docker build ./build/deploy/api -t comiccruncher/api:latest
