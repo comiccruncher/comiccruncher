@@ -77,7 +77,7 @@ jobs:
           key: bin-{{ .Revision }}
           paths:
             - "./bin"
-            - "./build/deploy"
+            - "./build/deploy/api/bin"
   codecov:
     machine: true
     steps:
