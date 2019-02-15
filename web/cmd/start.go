@@ -33,7 +33,7 @@ var startCmd = &cobra.Command{
 		searchSvc := search.NewSearchService(instance)
 		statsRepository := comic.NewPGStatsRepository(instance)
 		rankedSvc := comic.NewRankedService(comic.NewPGPopularRepository(instance, comic.NewRedisCharacterThumbRepository(redis)))
-		tr := auth.NewPGTokenRepository(instance)
+		tr := auth.NewRedisTokenRepository(redis)
 		app := web.NewApp(expandedSvc, searchSvc, statsRepository, rankedSvc, ctr, tr)
 		port := cmd.Flag("port")
 

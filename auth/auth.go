@@ -1,23 +1,20 @@
 package auth
 
 import (
-	"github.com/go-pg/pg/orm"
+	"github.com/go-redis/redis"
 	"time"
 )
 
-// ORM is the interface for interacting with the ORM.
-type ORM interface {
-	Model(model ...interface{}) *orm.Query
+// Redis is the interface for interacting with the Redis client.
+type Redis interface {
+	HMSet(key string, fields map[string]interface{}) *redis.StatusCmd
 }
 
 // Token is the struct for details about an issued JWT token.
 type Token struct  {
-	tableName	struct{}   `pg:",discard_unknown_columns"`
-	ID 			uint
 	Payload 	string
 	UUID 		string
-	CreatedAt   time.Time  `sql:",notnull,default:NOW()" json:"-"`
-	UpdatedAt   time.Time  `sql:",notnull,default:NOW()" json:"-"`
+	CreatedAt   time.Time
 }
 
 // TokenRepository is the interface for token repos.
@@ -25,15 +22,17 @@ type TokenRepository interface {
 	Create(t *Token) error
 }
 
-// PGTokenRepository is the token repository.
-type PGTokenRepository struct {
-	db ORM
+// RedisTokenRepository is the implementation of the token repository.
+type RedisTokenRepository struct {
+	client Redis
 }
 
-// Create persists a new token to the database.
-func (r *PGTokenRepository) Create(t *Token) error {
-	_, err := r.db.Model(t).Insert()
-	return err
+// Create creates a new token repository.
+func (r *RedisTokenRepository) Create(t *Token) error {
+	m := make(map[string]interface{}, 3)
+	m["CreatedAt"] = t.CreatedAt.String()
+	m["Payload"] = t.Payload
+	return r.client.HMSet(t.UUID, m).Err()
 }
 
 // NewToken creates a new token struct
@@ -41,7 +40,7 @@ func NewToken(payload string, UUID string) *Token {
 	return &Token{Payload: payload, UUID: UUID}
 }
 
-// NewPGTokenRepository creates a new repository.
-func NewPGTokenRepository(orm ORM) *PGTokenRepository {
-	return &PGTokenRepository{db: orm}
+// NewRedisTokenRepository creates a new Redis token repository.
+func NewRedisTokenRepository(r Redis) *RedisTokenRepository {
+	return &RedisTokenRepository{client: r}
 }

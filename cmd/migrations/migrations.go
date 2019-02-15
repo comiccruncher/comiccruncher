@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/aimeelaplant/comiccruncher/auth"
 	"github.com/aimeelaplant/comiccruncher/comic"
 	"github.com/aimeelaplant/comiccruncher/internal/log"
 	"github.com/aimeelaplant/comiccruncher/internal/pgo"
@@ -37,7 +36,6 @@ var (
 		&comic.CharacterSyncLog{},
 		&comic.Issue{},
 		&comic.CharacterIssue{},
-		&auth.Token{},
 	}
 	updatedAtTriggers = []string{
 		"publishers",
@@ -46,7 +44,6 @@ var (
 		"character_sync_logs",
 		"issues",
 		"character_issues",
-		"tokens",
 	}
 	opts = &orm.CreateTableOptions{
 		IfNotExists:   true,
