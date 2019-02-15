@@ -1,6 +1,7 @@
 version: "3.4"
 services:
   api:
+    restart: always
     depends_on:
       - filebeat
       - telegraf
