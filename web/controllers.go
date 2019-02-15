@@ -225,13 +225,13 @@ func (c *AuthController) Authenticate(ctx echo.Context) error {
 	if err != nil {
 		return err
 	}
-	to := a.NewToken(t, id)
-	to.CreatedAt = created
-	go func() {
+	go func(tk, uuid string) {
+		to := a.NewToken(tk, id)
+		to.CreatedAt = created
 		if err = c.tr.Create(to); err != nil {
 			log.WEB().Error("error creating token", zap.Error(err))
 		}
-	}()
+	}(t, id)
 	return JSONDetailView(ctx, map[string]string{
 		"token": t,
 	}, http.StatusCreated)

@@ -32,9 +32,11 @@ func (a App) Run(port string) error {
 			echo.HeaderContentType,
 			echo.HeaderAccept,
 			echo.HeaderAuthorization,
+			echo.HeaderVary,
 			"X-VISITOR-ID",
 		},
 		AllowCredentials: true,
+		AllowOrigins: []string{"https://comiccruncher.com"},
 	}))
 	e.Use(middleware.SecureWithConfig(middleware.SecureConfig{
 		XSSProtection: "1; mode=block",
@@ -42,32 +44,29 @@ func (a App) Run(port string) error {
 		XFrameOptions: "SAMEORIGIN",
 		HSTSMaxAge: 31536000,
 	}))
-	// Temporary until site is ready.
-	e.Use(RequireCheapAuthentication)
-
 	// TODO: Use when ready.
-	// e.POST("/authenticate", a.authCtrlr.Authenticate)
-	//jwtMiddleware := NewDefaultJWTMiddleware()
+	 e.POST("/authenticate", a.authCtrlr.Authenticate)
+	jwtMiddleware := NewDefaultJWTMiddleware()
 
 	// Stats
-	e.GET("/stats", a.statsCtrlr.Stats)
+	e.GET("/stats", a.statsCtrlr.Stats, jwtMiddleware)
 
 	// Search
-	s := e.Group("/search")
+	s := e.Group("/search", jwtMiddleware)
 	s.GET("/characters", a.searchCtrlr.SearchCharacters)
 
 	// Characters
-	c := e.Group("/characters")
+	c := e.Group("/characters", jwtMiddleware)
 	c.GET("", a.characterCtrlr.Characters)
 	c.GET("/:slug", a.characterCtrlr.Character)
 
 	// Publishers
-	p := e.Group("/publishers")
+	p := e.Group("/publishers", jwtMiddleware)
 	p.GET("/dc", a.publisherCtrlr.DC)
 	p.GET("/marvel", a.publisherCtrlr.Marvel)
 
 	// trending
-	t := e.Group("/trending")
+	t := e.Group("/trending", jwtMiddleware)
 	t.GET("/marvel", a.trendingCtrlr.Marvel)
 	t.GET("/dc", a.trendingCtrlr.DC)
 

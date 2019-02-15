@@ -6,48 +6,44 @@ package mock_auth
 
 import (
 	auth "github.com/aimeelaplant/comiccruncher/auth"
-	orm "github.com/go-pg/pg/orm"
+	redis "github.com/go-redis/redis"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
 
-// MockORM is a mock of ORM interface
-type MockORM struct {
+// MockRedis is a mock of Redis interface
+type MockRedis struct {
 	ctrl     *gomock.Controller
-	recorder *MockORMMockRecorder
+	recorder *MockRedisMockRecorder
 }
 
-// MockORMMockRecorder is the mock recorder for MockORM
-type MockORMMockRecorder struct {
-	mock *MockORM
+// MockRedisMockRecorder is the mock recorder for MockRedis
+type MockRedisMockRecorder struct {
+	mock *MockRedis
 }
 
-// NewMockORM creates a new mock instance
-func NewMockORM(ctrl *gomock.Controller) *MockORM {
-	mock := &MockORM{ctrl: ctrl}
-	mock.recorder = &MockORMMockRecorder{mock}
+// NewMockRedis creates a new mock instance
+func NewMockRedis(ctrl *gomock.Controller) *MockRedis {
+	mock := &MockRedis{ctrl: ctrl}
+	mock.recorder = &MockRedisMockRecorder{mock}
 	return mock
 }
 
 // EXPECT returns an object that allows the caller to indicate expected use
-func (m *MockORM) EXPECT() *MockORMMockRecorder {
+func (m *MockRedis) EXPECT() *MockRedisMockRecorder {
 	return m.recorder
 }
 
-// Model mocks base method
-func (m *MockORM) Model(model ...interface{}) *orm.Query {
-	varargs := []interface{}{}
-	for _, a := range model {
-		varargs = append(varargs, a)
-	}
-	ret := m.ctrl.Call(m, "Model", varargs...)
-	ret0, _ := ret[0].(*orm.Query)
+// HMSet mocks base method
+func (m *MockRedis) HMSet(key string, fields map[string]interface{}) *redis.StatusCmd {
+	ret := m.ctrl.Call(m, "HMSet", key, fields)
+	ret0, _ := ret[0].(*redis.StatusCmd)
 	return ret0
 }
 
-// Model indicates an expected call of Model
-func (mr *MockORMMockRecorder) Model(model ...interface{}) *gomock.Call {
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Model", reflect.TypeOf((*MockORM)(nil).Model), model...)
+// HMSet indicates an expected call of HMSet
+func (mr *MockRedisMockRecorder) HMSet(key, fields interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HMSet", reflect.TypeOf((*MockRedis)(nil).HMSet), key, fields)
 }
 
 // MockTokenRepository is a mock of TokenRepository interface

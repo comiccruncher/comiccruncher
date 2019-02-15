@@ -91,8 +91,7 @@ func logContext(err error, ctx echo.Context) {
 		zap.String("RealIP", ctx.RealIP()),
 		zap.String("User Agent", req.UserAgent()),
 		zap.String("Referer", req.Referer()),
-		zap.String("Form", req.Form.Encode()),
-		zap.String("Authorization", req.Header.Get("Authorization")),
+		zap.String("X-VISITOR-ID", req.Header.Get("X-VISITOR-ID")),
 	)
 }
 
