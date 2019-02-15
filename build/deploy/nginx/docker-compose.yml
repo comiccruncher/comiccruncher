@@ -17,6 +17,7 @@ services:
         max-size: "25M"
         max-file: "3"
   nginx:
+    command: "/bin/sh -c 'while :; do sleep 12h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
     depends_on:
       - certbot
       - filebeat
