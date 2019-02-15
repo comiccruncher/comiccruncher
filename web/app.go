@@ -36,7 +36,7 @@ func (a App) Run(port string) error {
 			"X-VISITOR-ID",
 		},
 		AllowCredentials: true,
-		AllowOrigins: []string{"https://comiccruncher.com"},
+		// AllowOrigins: []string{"https://comiccruncher.com"},
 	}))
 	e.Use(middleware.SecureWithConfig(middleware.SecureConfig{
 		XSSProtection: "1; mode=block",
