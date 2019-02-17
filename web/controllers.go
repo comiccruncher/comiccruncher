@@ -226,7 +226,7 @@ func (c *AuthController) Authenticate(ctx echo.Context) error {
 		return err
 	}
 	go func(tk, uuid string) {
-		to := a.NewToken(tk, id)
+		to := a.NewToken(tk, uuid)
 		to.CreatedAt = created
 		if err = c.tr.Create(to); err != nil {
 			log.WEB().Error("error creating token", zap.Error(err))

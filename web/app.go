@@ -7,6 +7,7 @@ import (
 	"github.com/aimeelaplant/comiccruncher/search"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
+	"os"
 )
 
 // App is the struct for the web app with echo and the controllers.
@@ -26,6 +27,10 @@ func (a App) Run(port string) error {
 	e.Use(middleware.Recover())
 	e.HTTPErrorHandler = ErrorHandler
 
+	allowedOrigins := []string{"*"}
+	if os.Getenv("CC_ENVIRONMENT") == "production" {
+		allowedOrigins = []string{"https://comiccruncher.com"}
+	}
 	e.Use(middleware.CORSWithConfig(middleware.CORSConfig{
 		AllowHeaders: []string{
 			echo.HeaderOrigin,
@@ -35,9 +40,12 @@ func (a App) Run(port string) error {
 			echo.HeaderVary,
 			"X-VISITOR-ID",
 		},
-		AllowCredentials: true,
-		// AllowOrigins: []string{"https://comiccruncher.com"},
+		// AllowCredentials: true,
+		AllowOrigins: allowedOrigins,
+		AllowMethods: []string{"HEAD", "GET", "OPTIONS"},
+		MaxAge: 86400,
 	}))
+
 	e.Use(middleware.SecureWithConfig(middleware.SecureConfig{
 		XSSProtection: "1; mode=block",
 		ContentTypeNosniff: "nosniff",
