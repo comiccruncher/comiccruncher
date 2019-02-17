@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"fmt"
 	"github.com/go-redis/redis"
 	"time"
 )
@@ -31,8 +32,8 @@ type RedisTokenRepository struct {
 func (r *RedisTokenRepository) Create(t *Token) error {
 	m := make(map[string]interface{}, 3)
 	m["CreatedAt"] = t.CreatedAt.String()
-	m["Payload"] = t.Payload
-	return r.client.HMSet(t.UUID, m).Err()
+	// m["Payload"] = t.Payload
+	return r.client.HMSet(fmt.Sprintf("token:%s", t.UUID), m).Err()
 }
 
 // NewToken creates a new token struct
