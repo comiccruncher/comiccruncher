@@ -52,9 +52,6 @@ func (a App) Run(port string) error {
 		XFrameOptions: "SAMEORIGIN",
 		HSTSMaxAge: 31536000,
 	}))
-	e.Use(SessionMiddleware(&SessionConfig{
-		tr: a.tokenRepo,
-	}))
 	// TODO: Use when ready.
 	// e.POST("/authenticate", a.authCtrlr.Authenticate)
 	// jwtMiddleware := NewDefaultJWTMiddleware()
