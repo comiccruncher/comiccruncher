@@ -18,7 +18,7 @@ type App struct {
 	statsCtrlr     *StatsController
 	publisherCtrlr *PublisherController
 	trendingCtrlr  *TrendingController
-	authCtrlr      *AuthController
+	tokenRepo      auth.TokenRepository
 }
 
 // Run runs the web application from the specified port. Logs and exits if there is an error.
@@ -52,8 +52,11 @@ func (a App) Run(port string) error {
 		XFrameOptions: "SAMEORIGIN",
 		HSTSMaxAge: 31536000,
 	}))
+	e.Use(SessionMiddleware(&SessionConfig{
+		tr: a.tokenRepo,
+	}))
 	// TODO: Use when ready.
-	 e.POST("/authenticate", a.authCtrlr.Authenticate)
+	// e.POST("/authenticate", a.authCtrlr.Authenticate)
 	// jwtMiddleware := NewDefaultJWTMiddleware()
 
 	// Stats
@@ -107,6 +110,6 @@ func NewApp(
 		characterCtrlr: NewCharacterController(expandedSvc, rankedSvc),
 		publisherCtrlr: NewPublisherController(rankedSvc),
 		trendingCtrlr:  NewTrendingController(rankedSvc),
-		authCtrlr:      NewDefaultAuthController(tr),
+		tokenRepo:      tr,
 	}
 }
