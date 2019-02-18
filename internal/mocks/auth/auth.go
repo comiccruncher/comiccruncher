@@ -46,6 +46,22 @@ func (mr *MockRedisMockRecorder) HMSet(key, fields interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HMSet", reflect.TypeOf((*MockRedis)(nil).HMSet), key, fields)
 }
 
+// Exists mocks base method
+func (m *MockRedis) Exists(keys ...string) *redis.IntCmd {
+	varargs := []interface{}{}
+	for _, a := range keys {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "Exists", varargs...)
+	ret0, _ := ret[0].(*redis.IntCmd)
+	return ret0
+}
+
+// Exists indicates an expected call of Exists
+func (mr *MockRedisMockRecorder) Exists(keys ...interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Exists", reflect.TypeOf((*MockRedis)(nil).Exists), keys...)
+}
+
 // MockTokenRepository is a mock of TokenRepository interface
 type MockTokenRepository struct {
 	ctrl     *gomock.Controller
@@ -79,4 +95,17 @@ func (m *MockTokenRepository) Create(t *auth.Token) error {
 // Create indicates an expected call of Create
 func (mr *MockTokenRepositoryMockRecorder) Create(t interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockTokenRepository)(nil).Create), t)
+}
+
+// Exists mocks base method
+func (m *MockTokenRepository) Exists(uuid string) (bool, error) {
+	ret := m.ctrl.Call(m, "Exists", uuid)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Exists indicates an expected call of Exists
+func (mr *MockTokenRepositoryMockRecorder) Exists(uuid interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Exists", reflect.TypeOf((*MockTokenRepository)(nil).Exists), uuid)
 }
