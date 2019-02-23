@@ -38,7 +38,7 @@ WEB_CMD = ./cmd/web/web.go
 COMIC_CMD = ./cmd/comic/comic.go
 
 # The username and location to the api server (that's also the tasks server for now).
-LB_SERVER = aimee@142.93.52.234
+LB_SERVER = aimee@104.248.57.241
 API_SERVER1 = aimee@68.183.132.127
 API_SERVER2 = aimee@198.199.91.173
 
