@@ -97,3 +97,19 @@ func (m *MockRedisClient) HGetAll(key string) *redis.StringStringMapCmd {
 func (mr *MockRedisClientMockRecorder) HGetAll(key interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "HGetAll", reflect.TypeOf((*MockRedisClient)(nil).HGetAll), key)
 }
+
+// Del mocks base method
+func (m *MockRedisClient) Del(keys ...string) *redis.IntCmd {
+	varargs := []interface{}{}
+	for _, a := range keys {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "Del", varargs...)
+	ret0, _ := ret[0].(*redis.IntCmd)
+	return ret0
+}
+
+// Del indicates an expected call of Del
+func (mr *MockRedisClientMockRecorder) Del(keys ...interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Del", reflect.TypeOf((*MockRedisClient)(nil).Del), keys...)
+}

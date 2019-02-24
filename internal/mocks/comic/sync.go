@@ -82,6 +82,19 @@ func (mr *MockAppearancesByYearsWriterMockRecorder) Set(apps interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Set", reflect.TypeOf((*MockAppearancesByYearsWriter)(nil).Set), apps)
 }
 
+// Delete mocks base method
+func (m *MockAppearancesByYearsWriter) Delete(slug comic.CharacterSlug) (int64, error) {
+	ret := m.ctrl.Call(m, "Delete", slug)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Delete indicates an expected call of Delete
+func (mr *MockAppearancesByYearsWriterMockRecorder) Delete(slug interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockAppearancesByYearsWriter)(nil).Delete), slug)
+}
+
 // MockCharacterStatsSyncer is a mock of CharacterStatsSyncer interface
 type MockCharacterStatsSyncer struct {
 	ctrl     *gomock.Controller

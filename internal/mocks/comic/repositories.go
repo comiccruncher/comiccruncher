@@ -6,9 +6,45 @@ package mock_comic
 
 import (
 	comic "github.com/aimeelaplant/comiccruncher/comic"
+	pg "github.com/go-pg/pg"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
+
+// MockTransactional is a mock of Transactional interface
+type MockTransactional struct {
+	ctrl     *gomock.Controller
+	recorder *MockTransactionalMockRecorder
+}
+
+// MockTransactionalMockRecorder is the mock recorder for MockTransactional
+type MockTransactionalMockRecorder struct {
+	mock *MockTransactional
+}
+
+// NewMockTransactional creates a new mock instance
+func NewMockTransactional(ctrl *gomock.Controller) *MockTransactional {
+	mock := &MockTransactional{ctrl: ctrl}
+	mock.recorder = &MockTransactionalMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockTransactional) EXPECT() *MockTransactionalMockRecorder {
+	return m.recorder
+}
+
+// RunInTransaction mocks base method
+func (m *MockTransactional) RunInTransaction(fn func(*pg.Tx) error) error {
+	ret := m.ctrl.Call(m, "RunInTransaction", fn)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RunInTransaction indicates an expected call of RunInTransaction
+func (mr *MockTransactionalMockRecorder) RunInTransaction(fn interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RunInTransaction", reflect.TypeOf((*MockTransactional)(nil).RunInTransaction), fn)
+}
 
 // MockPublisherRepository is a mock of PublisherRepository interface
 type MockPublisherRepository struct {
@@ -486,6 +522,19 @@ func (m *MockCharacterIssueRepository) InsertFast(issues []*comic.CharacterIssue
 // InsertFast indicates an expected call of InsertFast
 func (mr *MockCharacterIssueRepositoryMockRecorder) InsertFast(issues interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertFast", reflect.TypeOf((*MockCharacterIssueRepository)(nil).InsertFast), issues)
+}
+
+// RemoveAllByCharacterID mocks base method
+func (m *MockCharacterIssueRepository) RemoveAllByCharacterID(id comic.CharacterID) (int, error) {
+	ret := m.ctrl.Call(m, "RemoveAllByCharacterID", id)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// RemoveAllByCharacterID indicates an expected call of RemoveAllByCharacterID
+func (mr *MockCharacterIssueRepositoryMockRecorder) RemoveAllByCharacterID(id interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveAllByCharacterID", reflect.TypeOf((*MockCharacterIssueRepository)(nil).RemoveAllByCharacterID), id)
 }
 
 // MockAppearancesByYearsRepository is a mock of AppearancesByYearsRepository interface

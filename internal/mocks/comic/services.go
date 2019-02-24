@@ -367,6 +367,23 @@ func (mr *MockCharacterServicerMockRecorder) Issue(characterID, issueID interfac
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Issue", reflect.TypeOf((*MockCharacterServicer)(nil).Issue), characterID, issueID)
 }
 
+// RemoveIssues mocks base method
+func (m *MockCharacterServicer) RemoveIssues(ids ...comic.CharacterID) (int, error) {
+	varargs := []interface{}{}
+	for _, a := range ids {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "RemoveIssues", varargs...)
+	ret0, _ := ret[0].(int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// RemoveIssues indicates an expected call of RemoveIssues
+func (mr *MockCharacterServicerMockRecorder) RemoveIssues(ids ...interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RemoveIssues", reflect.TypeOf((*MockCharacterServicer)(nil).RemoveIssues), ids...)
+}
+
 // CreateSyncLogP mocks base method
 func (m *MockCharacterServicer) CreateSyncLogP(id comic.CharacterID, status comic.CharacterSyncLogStatus, syncType comic.CharacterSyncLogType, syncedAt *time.Time) (*comic.CharacterSyncLog, error) {
 	ret := m.ctrl.Call(m, "CreateSyncLogP", id, status, syncType, syncedAt)
