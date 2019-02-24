@@ -3,6 +3,9 @@ package comic
 import (
 	"fmt"
 	"github.com/aimeelaplant/comiccruncher/imaging"
+	"github.com/aimeelaplant/comiccruncher/internal/log"
+	"github.com/go-pg/pg"
+	"go.uber.org/zap"
 	"strconv"
 	"time"
 )
@@ -100,6 +103,8 @@ type CharacterServicer interface {
 	CreateIssues(issues []*CharacterIssue) error
 	// Issue gets a character issue by its character ID and issue ID
 	Issue(characterID CharacterID, issueID IssueID) (*CharacterIssue, error)
+	// RemoveIssues removes all the issues w/ the associated character ID.
+	RemoveIssues(ids ...CharacterID) (int, error)
 	// CreateSyncLogP creates a sync log for a character with the parameters.
 	CreateSyncLogP(
 		id CharacterID,
@@ -328,6 +333,7 @@ type IssueService struct {
 
 // CharacterService is the service for characters.
 type CharacterService struct {
+	tx                    Transactional
 	repository            CharacterRepository
 	issueRepository       CharacterIssueRepository
 	sourceRepository      CharacterSourceRepository
@@ -579,6 +585,23 @@ func (s *CharacterService) CharactersByPublisher(slugs []PublisherSlug, filterSo
 	})
 }
 
+// RemoveIssues deletes all associated issues for the given character IDs.
+func (s *CharacterService) RemoveIssues(ids ...CharacterID) (int, error) {
+	results := 0
+	res := s.tx.RunInTransaction(func(tx *pg.Tx) error {
+		for _, id := range ids {
+			res, err := s.issueRepository.RemoveAllByCharacterID(id)
+			if err != nil {
+				log.COMIC().Error("error removing character issues for character. transaction will be rolled back.", zap.Uint("ID", id.Value()))
+				return err
+			}
+			results += res
+		}
+		return nil
+	})
+	return results, res
+}
+
 // NewPublisherService creates a new publisher service
 func NewPublisherService(container *PGRepositoryContainer) *PublisherService {
 	return &PublisherService{
@@ -589,6 +612,7 @@ func NewPublisherService(container *PGRepositoryContainer) *PublisherService {
 // NewCharacterService creates a new character service but with the appearances by years coming from postgres.
 func NewCharacterService(container *PGRepositoryContainer) *CharacterService {
 	return &CharacterService{
+		tx:                    container.DB(),
 		repository:            container.CharacterRepository(),
 		issueRepository:       container.CharacterIssueRepository(),
 		sourceRepository:      container.CharacterSourceRepository(),

@@ -40,6 +40,11 @@ func (v MaterializedView) Value() string {
 	return string(v)
 }
 
+// Transactional is an interface for running in a transaction.
+type Transactional interface {
+	RunInTransaction(fn func(tx *pg.Tx) error) error
+}
+
 // PublisherRepository is the repository interface for publishers.
 type PublisherRepository interface {
 	FindBySlug(slug PublisherSlug) (*Publisher, error)
@@ -90,6 +95,7 @@ type CharacterIssueRepository interface {
 	Create(ci *CharacterIssue) error
 	FindOneBy(characterID CharacterID, issueID IssueID) (*CharacterIssue, error)
 	InsertFast(issues []*CharacterIssue) error
+	RemoveAllByCharacterID(id CharacterID) (int, error)
 }
 
 // AppearancesByYearsRepository is the repository interface for getting a characters appearances per year.
@@ -458,6 +464,12 @@ func (r *PGCharacterIssueRepository) FindOneBy(characterID CharacterID, issueID 
 	return characterIssue, nil
 }
 
+// RemoveAllByCharacterID removes ALL character issues associated with the given character ID.
+func (r *PGCharacterIssueRepository) RemoveAllByCharacterID(id CharacterID) (int, error) {
+	res, err := r.db.Model(&CharacterIssue{}).Where("character_id = ?", id).Delete()
+	return res.RowsAffected(), err
+}
+
 // Create creates a character source.
 func (r *PGCharacterSourceRepository) Create(s *CharacterSource) error {
 	_, err := r.db.Model(s).Insert(s)
@@ -756,6 +768,11 @@ func (r *RedisAppearancesByYearsRepository) Set(character AppearancesByYears) er
 		r.serializer.Serialize(character.Aggregates),
 		0).
 		Err()
+}
+
+// Delete deletes all the appearances per years for the given slug.
+func (r *RedisAppearancesByYearsRepository) Delete(slug CharacterSlug) (int64, error) {
+	return r.redisClient.Del(getAppearanceKey(slug)).Result()
 }
 
 func getAppearanceKey(s CharacterSlug) string {

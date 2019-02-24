@@ -4,6 +4,7 @@ import "github.com/go-pg/pg"
 
 // PGRepositoryContainer is the container for all the postgres repositories.
 type PGRepositoryContainer struct {
+	db                           *pg.DB
 	publisherRepository          PublisherRepository
 	issueRepository              IssueRepository
 	characterRepository          CharacterRepository
@@ -60,9 +61,15 @@ func (c *PGRepositoryContainer) Refresher() PopularRefresher {
 	return c.refresher
 }
 
+// DB gets the underlying DB.
+func (c *PGRepositoryContainer) DB() *pg.DB {
+	return c.db
+}
+
 // NewPGRepositoryContainer creates the new postgres repository container.
 func NewPGRepositoryContainer(db *pg.DB) *PGRepositoryContainer {
 	return &PGRepositoryContainer{
+		db:                           db,
 		publisherRepository:          NewPGPublisherRepository(db),
 		issueRepository:              NewPGIssueRepository(db),
 		characterRepository:          NewPGCharacterRepository(db),

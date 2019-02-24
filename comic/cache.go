@@ -12,6 +12,7 @@ type RedisClient interface {
 	Set(key string, value interface{}, expiration time.Duration) *redis.StatusCmd
 	HMSet(key string, fields map[string]interface{}) *redis.StatusCmd
 	HGetAll(key string) *redis.StringStringMapCmd
+	Del(keys ...string) *redis.IntCmd
 }
 
 // redisThumbnailKey returns the key for character profile thumbnails.

@@ -17,6 +17,7 @@ type Syncer interface {
 // AppearancesByYearsWriter sets the appearances by years for a character.
 type AppearancesByYearsWriter interface {
 	Set(apps AppearancesByYears) error
+	Delete(slug CharacterSlug) (int64, error)
 }
 
 // AppearancesSyncer to sync yearly appearances from Postgres to Redis.

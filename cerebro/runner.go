@@ -50,22 +50,9 @@ func (r *ImportRunner) CharacterSources(slugs []comic.CharacterSlug, isStrict bo
 	return r.characterSourceImporter.Import(slugs, isStrict)
 }
 
-//CharacterIssues imports character issues and creates a sync log for each character that gets imported.
-func (r *ImportRunner) CharacterIssues(slugs []comic.CharacterSlug) error {
-	return r.characterIssueImporter.MustImportAll(slugs)
-}
-
-// CharacterIssuesWithCharacterAndLog imports an existing character and existing sync log by their slug and sync log id.
-func (r *ImportRunner) CharacterIssuesWithCharacterAndLog(slug comic.CharacterSlug, id comic.CharacterSyncLogID) error {
-	character, err := r.pgContainer.CharacterRepository().FindBySlug(slug, false)
-	if err != nil {
-		return err
-	}
-	syncLog, err := r.pgContainer.CharacterSyncLogRepository().FindByID(id)
-	if err != nil {
-		return err
-	}
-	return r.characterIssueImporter.ImportWithSyncLog(*character, syncLog)
+// CharacterIssues imports character issues and creates a sync log for each character that gets imported.
+func (r *ImportRunner) CharacterIssues(slugs []comic.CharacterSlug, doReset bool) error {
+	return r.characterIssueImporter.ImportAll(slugs, doReset)
 }
 
 // NewImportRunner returns a new import runner.
@@ -86,7 +73,7 @@ func NewImportRunner() (*ImportRunner, error) {
 	return &ImportRunner{
 		marvelImporter:          NewMarvelCharactersImporter(marvel.NewMarvelAPI(httpClient), container, s3Storage),
 		dcImporter:              NewDcCharactersImporter(dc.NewDcAPI(httpClient), container, s3Storage),
-		characterIssueImporter:  *NewCharacterIssueImporter(container, appearancesSyncer, externalSource, statsSyncer),
+		characterIssueImporter:  *NewCharacterIssueImporter(container, appearancesSyncer, externalSource, statsSyncer, redisRepository),
 		characterSourceImporter: *NewCharacterSourceImporter(container, externalSource),
 		pgContainer:             *container,
 	}, err

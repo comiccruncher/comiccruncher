@@ -61,7 +61,12 @@ var importCharacterIssuesCmd = &cobra.Command{
 			log.CEREBRO().Fatal("could not instantiate import runner", zap.Error(err))
 		} else {
 			slugs := flagutil.Split(*cmd.Flag("character.slug"), ",")
-			if err = importRunner.CharacterIssues(comic.NewCharacterSlugs(slugs...)); err != nil {
+			var reset bool
+			doReset := cmd.Flag("reset")
+			if doReset != nil && doReset.Value.String() == "true" {
+				reset = true
+			}
+			if err = importRunner.CharacterIssues(comic.NewCharacterSlugs(slugs...), reset); err != nil {
 				log.CEREBRO().Error("could not import character issues", zap.Error(err))
 			}
 		}
@@ -71,6 +76,7 @@ var importCharacterIssuesCmd = &cobra.Command{
 // Init scripts.
 func init() {
 	importCharacterIssuesCmd.Flags().StringP("character.slug", "s", "", "Filter by characters slugs to import only those, for example: `character.slug=jean-grey,scarlet-witch`")
+	importCharacterIssuesCmd.Flags().Bool("reset", false, "Reset all the associated issues for the specified characters, including the character issues stored in Postgres and the Redis appearances. Defaults to false.")
 	importCharacterSourcesCmd.Flags().StringP("character.slug", "s", "", "Filter by characters slugs to import only those, for example: `character.slug=jean-grey,scarlet-witch`")
 	// Default is true for strict mode.
 	importCharacterSourcesCmd.Flags().Bool("strict", true, "If true, import sources whose name _exactly_ matches the character's name (case insensitive). Otherwise, it will import all sources that match the search result. Default is true.")

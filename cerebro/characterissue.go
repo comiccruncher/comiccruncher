@@ -82,6 +82,7 @@ type CharacterVendorExtractor interface {
 
 // CharacterIssueImporter is the importer for getting a character's issues from a character source.
 type CharacterIssueImporter struct {
+	appearancesWriter comic.AppearancesByYearsWriter
 	appearanceSyncer comic.Syncer
 	characterSvc     comic.CharacterServicer
 	issueSvc         comic.IssueServicer
@@ -263,7 +264,14 @@ func (i *CharacterIssueImporter) nonExistingURLs(vi CharacterVendorInfo, c comic
 
 // importIssues imports a character's issues from their character sources and polls an external source for issue information
 // and then persists the character's appearances to the db and Redis.
-func (i *CharacterIssueImporter) importIssues(character comic.Character) (int, error) {
+func (i *CharacterIssueImporter) importIssues(character comic.Character, doReset bool) (int, error) {
+	if doReset {
+		res, err := i.characterSvc.RemoveIssues(character.ID)
+		if err != nil {
+			return 0, err
+		}
+		log.CEREBRO().Info("removed issues for character", zap.String("slug", character.Slug.Value()), zap.Int("total", res))
+	}
 	// Set to in progress.
 	i.logger.Info("started import", zap.String("character", character.Slug.Value()))
 	if character.IsDisabled {
@@ -315,6 +323,15 @@ func (i *CharacterIssueImporter) importIssues(character comic.Character) (int, e
 		}
 	}
 	i.logger.Info("issues to attempt to sync!", zap.Int("total", len(linksToFetch)), zap.String("character", character.Slug.Value()))
+	if doReset {
+		// delete all the issues first.
+		res, err := i.appearancesWriter.Delete(character.Slug)
+		if err != nil {
+			log.CEREBRO().Error("error removing appearances from redis", zap.String("character", character.Slug.Value()), zap.Error(err))
+		} else {
+			log.CEREBRO().Info("deleted appearances from redis", zap.String("character", character.Slug.Value()), zap.Int64("total", res))
+		}
+	}
 	// Now send the new character issues over to redis.
 	total, err := i.appearanceSyncer.Sync(character.Slug)
 	if err != nil {
@@ -328,10 +345,10 @@ func (i *CharacterIssueImporter) importIssues(character comic.Character) (int, e
 // and then persists the character's appearances to the db and Redis.
 // A channel is opened listening for a SIGINT if the caller quits the process.
 // In that case, the character sync log is set to failed and the process quits cleanly.
-func (i *CharacterIssueImporter) ImportWithSyncLog(character comic.Character, syncLog *comic.CharacterSyncLog) error {
+func (i *CharacterIssueImporter) ImportWithSyncLog(character comic.Character, syncLog *comic.CharacterSyncLog, doReset bool) error {
 	// Set to in progress.
 	i.updateSyncLog(syncLog, comic.InProgress)
-	total, err := i.importIssues(character)
+	total, err := i.importIssues(character, doReset)
 	if err != nil {
 		i.updateSyncLog(syncLog, comic.Fail)
 		return err
@@ -341,10 +358,11 @@ func (i *CharacterIssueImporter) ImportWithSyncLog(character comic.Character, sy
 	return nil
 }
 
-// MustImportAll imports characters from the specified slugs and creates the sync log for each character and sets it to PENDING,
+// ImportAll imports characters from the specified slugs and creates the sync log for each character and sets it to PENDING,
 // then sequentially imports the issues for the character.
 // Fatals if failed to create a sync log or character cannot be fetched.
-func (i *CharacterIssueImporter) MustImportAll(slugs []comic.CharacterSlug) error {
+// If doReset is set to true, it will delete all associated character issues first and re-import new ones.
+func (i *CharacterIssueImporter) ImportAll(slugs []comic.CharacterSlug, doReset bool) error {
 	characters, err := i.characterSvc.CharactersWithSources(slugs, 0, 0)
 	if err != nil {
 		i.logger.Fatal("cannot get characters", zap.Error(err))
@@ -374,7 +392,7 @@ func (i *CharacterIssueImporter) MustImportAll(slugs []comic.CharacterSlug) erro
 		if ok && syncLog.Character != nil {
 			character := syncLog.Character
 			// start the import. one-by-one -- no concurrency here. maybe in the future if the external source can handle it. :)
-			if err := i.ImportWithSyncLog(*character, syncLog); err != nil {
+			if err := i.ImportWithSyncLog(*character, syncLog, doReset); err != nil {
 				i.logger.Error("error importing character issues", zap.String("character", character.Slug.Value()), zap.Error(err))
 			}
 		}
@@ -475,8 +493,10 @@ func NewCharacterIssueImporter(
 	container *comic.PGRepositoryContainer,
 	appearancesSyncer comic.Syncer,
 	externalSource externalissuesource.ExternalSource,
-	statsSyncer comic.CharacterStatsSyncer) *CharacterIssueImporter {
+	statsSyncer comic.CharacterStatsSyncer,
+	writer comic.AppearancesByYearsWriter) *CharacterIssueImporter {
 	return &CharacterIssueImporter{
+		appearancesWriter: writer,
 		characterSvc:     comic.NewCharacterService(container),
 		issueSvc:         comic.NewIssueService(container),
 		externalSource:   externalSource,
