@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/aimeelaplant/comiccruncher/internal/log"
-`	"github.com/go-pg/pg"
+	"github.com/go-pg/pg"
 	"github.com/go-redis/redis"
 	"go.uber.org/zap"
 )
