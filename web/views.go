@@ -56,7 +56,7 @@ func NewDetailViewOK(data interface{}) DetailView {
 	return NewDetailView(data, http.StatusOK)
 }
 
-// NewDetailViewOK returns a new detail view with a 200.
+// NewDetailView returns a new detail view with a 200.
 func NewDetailView(data interface{}, statusCode int) DetailView {
 	return DetailView{Meta: Meta{StatusCode: statusCode}, Data: data}
 }

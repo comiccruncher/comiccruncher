@@ -6,6 +6,7 @@ import (
 	"strconv"
 )
 
+// InvalidPageErr is for an invalid page / bad request.
 var InvalidPageErr = NewBadRequestError("Invalid page parameter")
 
 // Page represents a page number and link.

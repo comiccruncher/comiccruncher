@@ -41,14 +41,17 @@ func parseUint(s string) (uint, error) {
 	return uint(u), err
 }
 
+// YearlyAggregateSerializer serializes a struct into a string.
 type YearlyAggregateSerializer interface {
 	Serialize(aggregates []YearlyAggregate) string
 }
 
+// RedisYearlyAggregateSerializer serializes a struct into a string for Redis storage.
 type RedisYearlyAggregateSerializer struct {
 
 }
 
+// Serialize serializes the structs into a string for Redis storage.
 func (s *RedisYearlyAggregateSerializer) Serialize(aggregates []YearlyAggregate) string {
 	val := ""
 	lenAggs := len(aggregates)
@@ -65,10 +68,12 @@ func (s *RedisYearlyAggregateSerializer) Serialize(aggregates []YearlyAggregate)
 	return val
 }
 
+// YearlyAggregateDeserializer deserializes a string into a struct.
 type YearlyAggregateDeserializer interface {
 	Deserialize(val string) []YearlyAggregate
 }
 
+// RedisYearlyAggregateDeserializer deserializes a Redis string into a struct.
 type RedisYearlyAggregateDeserializer struct {
 
 }

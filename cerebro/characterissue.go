@@ -490,7 +490,7 @@ func isAppearance(issue *comic.Issue) bool {
 	return false
 }
 
-// NewCharacterIssueImporterFactory creates a new character issue importer.
+// NewCharacterIssueImporter creates a new character issue importer.
 func NewCharacterIssueImporter(
 	db *pg.DB,
 	redis *redis.Client) *CharacterIssueImporter {

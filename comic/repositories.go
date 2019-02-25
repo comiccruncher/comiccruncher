@@ -41,6 +41,7 @@ func (v MaterializedView) Value() string {
 	return string(v)
 }
 
+// ORM is  the interface for interacting w/ the ORM.
 type ORM interface {
 	Model(model ...interface{}) *orm.Query
 	Update(model interface{}) error
@@ -769,7 +770,7 @@ func (r *RedisAppearancesByYearsRepository) ListMap(slugs ...CharacterSlug) (map
 	return allApps, nil
 }
 
-// Sets the character's appearances in Redis.
+// Set sets the character's appearances in Redis.
 func (r *RedisAppearancesByYearsRepository) Set(character AppearancesByYears) error {
 	if character.CharacterSlug.Value() == "" {
 		return errors.New("wtf. got blank character slug")
