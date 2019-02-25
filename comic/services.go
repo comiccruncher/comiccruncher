@@ -604,9 +604,7 @@ func (s *CharacterService) RemoveIssues(ids ...CharacterID) (int, error) {
 
 // NewPublisherServiceFactory creates a new publisher service
 func NewPublisherServiceFactory(db ORM) *PublisherService {
-	return &PublisherService{
-		repository: NewPGPublisherRepository(db),
-	}
+	return NewPublisherService(NewPGPublisherRepository(db))
 }
 
 // NewPublisherService creates a new publisher service.
@@ -618,14 +616,14 @@ func NewPublisherService(repository PublisherRepository) *PublisherService {
 
 // NewCharacterServiceFactory creates a new character service but with the appearances by years coming from postgres.
 func NewCharacterServiceFactory(db ORM) *CharacterService {
-	return &CharacterService{
-		tx:                    db,
-		repository:            NewPGCharacterRepository(db),
-		issueRepository:       NewPGCharacterIssueRepository(db),
-		sourceRepository:      NewPGCharacterSourceRepository(db),
-		syncLogRepository:     NewPGCharacterSyncLogRepository(db),
-		appearancesRepository: NewPGAppearancesPerYearRepository(db),
-	}
+	return NewCharacterService(
+		db,
+		NewPGCharacterRepository(db),
+		NewPGCharacterIssueRepository(db),
+		NewPGCharacterSourceRepository(db),
+		NewPGCharacterSyncLogRepository(db),
+		NewPGAppearancesPerYearRepository(db),
+	)
 }
 
 // NewCharacterService creates a new character service.
@@ -648,9 +646,7 @@ func NewCharacterService(
 
 // NewIssueServiceFactory creates a new issue service from the repository container.
 func NewIssueServiceFactory(db ORM) *IssueService {
-	return &IssueService{
-		repository: NewPGIssueRepository(db),
-	}
+	return NewIssueService(NewPGIssueRepository(db))
 }
 
 // NewIssueService creates a new service.
@@ -662,9 +658,7 @@ func NewIssueService(repository IssueRepository) *IssueService {
 
 // NewRankedServiceFactory creates a new service for ranked characters.
 func NewRankedServiceFactory(db ORM, r RedisClient) *RankedService {
-	return &RankedService{
-		popRepo: NewPGPopularRepository(db, NewRedisCharacterThumbRepository(r)),
-	}
+	return NewRankedService(NewPGPopularRepository(db, NewRedisCharacterThumbRepository(r)))
 }
 
 // NewRankedService creates a new service.
@@ -676,13 +670,13 @@ func NewRankedService(p PopularRepository) *RankedService {
 
 // NewExpandedServiceFactory creates a new service for getting expanded details for a character
 func NewExpandedServiceFactory(db ORM, r RedisClient) *ExpandedService {
-	return &ExpandedService{
-		cr: NewPGCharacterRepository(db),
-		ar: NewRedisAppearancesPerYearRepository(r),
-		r:  r,
-		slr: NewPGCharacterSyncLogRepository(db),
-		ctr: NewRedisCharacterThumbRepository(r),
-	}
+	return NewExpandedService(
+		NewPGCharacterRepository(db),
+		NewRedisAppearancesPerYearRepository(r),
+		r,
+		NewPGCharacterSyncLogRepository(db),
+		NewRedisCharacterThumbRepository(r),
+	)
 }
 
 // NewExpandedService creates a new expanded service.

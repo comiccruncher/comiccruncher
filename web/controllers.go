@@ -1,17 +1,10 @@
 package web
 
 import (
-	a "github.com/aimeelaplant/comiccruncher/auth"
 	"github.com/aimeelaplant/comiccruncher/comic"
-	"github.com/aimeelaplant/comiccruncher/internal/log"
 	"github.com/aimeelaplant/comiccruncher/search"
-	"github.com/dgrijalva/jwt-go"
-	"github.com/google/uuid"
 	"github.com/labstack/echo"
-	"go.uber.org/zap"
 	"net/http"
-	"os"
-	"time"
 )
 
 // Pagination limit.
@@ -195,60 +188,6 @@ func listRanked(results []*comic.RankedCharacter) []interface{} {
 		data[i] = v
 	}
 	return data
-}
-
-// AuthController is the struct for granting tokens.
-type AuthController struct {
-	secretKey string
-	secretSigningKey string
-	tr a.TokenRepository
-}
-
-// Authenticate is for generating JWT tokens from an authenticated service.
-func (c *AuthController) Authenticate(ctx echo.Context) error {
-	auth, err := parseAuthorizationBearer(ctx.Request().Header)
-	if err != nil {
-		return err
-	}
-	if auth == "" || auth != c.secretKey {
-		return echo.ErrUnauthorized
-	}
-	token := jwt.New(jwt.SigningMethodHS256)
-	claims := token.Claims.(jwt.MapClaims)
-	id := uuid.New().String()
-	created := time.Now()
-	// no exp. this is just to track visitors.
-	// claims["exp"] = created.Add(time.Hour * 168).Unix()
-	claims["public"] = true
-	claims["jti"] = id
-	t, err := token.SignedString([]byte(c.secretSigningKey))
-	if err != nil {
-		return err
-	}
-	go func(tk, uuid string) {
-		to := a.NewToken(tk, uuid)
-		to.CreatedAt = created
-		if err = c.tr.Create(to); err != nil {
-			log.WEB().Error("error creating token", zap.Error(err))
-		}
-	}(t, id)
-	return JSONDetailView(ctx, map[string]string{
-		"token": t,
-	}, http.StatusCreated)
-}
-
-// NewDefaultAuthController creates a new default auth controller from environment vars.
-func NewDefaultAuthController(tr a.TokenRepository) *AuthController {
-	return NewAuthController(os.Getenv("CC_JWT_AUTH_SECRET"), os.Getenv("CC_JWT_SIGNING_SECRET"), tr)
-}
-
-// NewAuthController creates a new authentication controller.
-func NewAuthController(secretKey string, secretSigningKey string, tr a.TokenRepository) *AuthController {
-	return &AuthController{
-		secretKey: secretKey,
-		secretSigningKey: secretSigningKey,
-		tr: tr,
-	}
 }
 
 // NewCharacterController creates a new character controller.

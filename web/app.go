@@ -2,7 +2,6 @@ package web
 
 import (
 	"context"
-	"github.com/aimeelaplant/comiccruncher/auth"
 	"github.com/aimeelaplant/comiccruncher/comic"
 	"github.com/aimeelaplant/comiccruncher/search"
 	"github.com/go-pg/pg"
@@ -20,7 +19,6 @@ type App struct {
 	statsCtrlr     *StatsController
 	publisherCtrlr *PublisherController
 	trendingCtrlr  *TrendingController
-	tokenRepo      auth.TokenRepository
 }
 
 // Run runs the web application from the specified port. Logs and exits if there is an error.
@@ -100,8 +98,7 @@ func NewApp(
 	searcher search.Searcher,
 	statsRepository comic.StatsRepository,
 	rankedSvc comic.RankedServicer,
-	ctr comic.CharacterThumbRepository,
-	tr auth.TokenRepository) *App {
+	ctr comic.CharacterThumbRepository) *App {
 	return &App{
 		echo:           echo.New(),
 		statsCtrlr:     NewStatsController(statsRepository),
@@ -109,25 +106,15 @@ func NewApp(
 		characterCtrlr: NewCharacterController(expandedSvc, rankedSvc),
 		publisherCtrlr: NewPublisherController(rankedSvc),
 		trendingCtrlr:  NewTrendingController(rankedSvc),
-		tokenRepo:      tr,
 	}
 }
 
 // NewAppFactory creates a new app with minimal dependencies.
 func NewAppFactory(db *pg.DB, redis *redis.Client) *App {
-	ctr := comic.NewRedisCharacterThumbRepository(redis)
-	expandedSvc := comic.NewExpandedServiceFactory(db, redis)
-	searchSvc := search.NewSearchService(db)
-	statsRepository := comic.NewPGStatsRepository(db)
-	rankedSvc := comic.NewRankedServiceFactory(db, redis)
-	tr := auth.NewRedisTokenRepository(redis)
-	return &App{
-		echo:           echo.New(),
-		statsCtrlr:     NewStatsController(statsRepository),
-		searchCtrlr:    NewSearchController(searchSvc, ctr),
-		characterCtrlr: NewCharacterController(expandedSvc, rankedSvc),
-		publisherCtrlr: NewPublisherController(rankedSvc),
-		trendingCtrlr:  NewTrendingController(rankedSvc),
-		tokenRepo:      tr,
-	}
+	return NewApp(
+		comic.NewExpandedServiceFactory(db, redis),
+		search.NewSearchService(db),
+		comic.NewPGStatsRepository(db),
+		comic.NewRankedServiceFactory(db, redis),
+		comic.NewRedisCharacterThumbRepository(redis))
 }
