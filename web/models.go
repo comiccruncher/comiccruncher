@@ -24,7 +24,7 @@ func (c *Character) MarshalJSON() ([]byte, error) {
 		ch.VendorImage = cdnURL + "/" + ch.VendorImage
 	}
 	thumbs := c.CharacterThumbnails
-	cdnUrlForThumbnails(thumbs)
+	cdnURLForThumbnails(thumbs)
 	if thumbs.Image == nil && thumbs.VendorImage == nil {
 		thumbs = nil
 	}
@@ -52,18 +52,18 @@ func NewCharacter(c *comic.Character, th *comic.CharacterThumbnails) *Character 
 	}
 }
 
-func cdnUrlForThumbnails(thumbs *comic.CharacterThumbnails) {
+func cdnURLForThumbnails(thumbs *comic.CharacterThumbnails) {
 	if thumbs != nil {
 		if thumbs.VendorImage != nil {
-			cdnUrlForSizes(thumbs.VendorImage)
+			cdnURLForSizes(thumbs.VendorImage)
 		}
 		if thumbs.Image != nil {
-			cdnUrlForSizes(thumbs.Image)
+			cdnURLForSizes(thumbs.Image)
 		}
 	}
 }
 
-func cdnUrlForSizes(sizes *comic.ThumbnailSizes) {
+func cdnURLForSizes(sizes *comic.ThumbnailSizes) {
 	if sizes != nil {
 		sizes.Small = cdnURL + "/" + sizes.Small
 		sizes.Medium = cdnURL + "/" + sizes.Medium

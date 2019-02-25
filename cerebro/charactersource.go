@@ -272,7 +272,7 @@ func ParseCharacterName(s string) string {
 	return s
 }
 
-// NewCharacterSourceImporterFactory returns the implementation for the character source importer.
+// NewCharacterSourceImporter returns the implementation for the character source importer.
 func NewCharacterSourceImporter(db comic.ORM) *CharacterSourceImporter {
 	es := externalissuesource.NewCbExternalSource(externalissuesource.NewHttpClient(), &externalissuesource.CbExternalSourceConfig{})
 	return &CharacterSourceImporter{

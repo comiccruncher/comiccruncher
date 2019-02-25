@@ -341,7 +341,7 @@ func (c *ExpandedCharacter) MarshalJSON() ([]byte, error) {
 	if c.VendorImage != "" {
 		c.VendorImage = cdnURL + "/" + c.VendorImage
 	}
-	cdnUrlForThumbnails(c.Thumbnails)
+	cdnURLForThumbnails(c.Thumbnails)
 	type Alias Character
 	return json.Marshal(&struct {
 		*Alias
@@ -367,7 +367,7 @@ func (c *RankedCharacter) MarshalJSON() ([]byte, error) {
 	if c.VendorImage != "" {
 		c.VendorImage = cdnURL + "/" + c.VendorImage
 	}
-	cdnUrlForThumbnails(c.Thumbnails)
+	cdnURLForThumbnails(c.Thumbnails)
 	type Alias RankedCharacter
 	return json.Marshal(&struct {
 		*Alias
@@ -590,18 +590,18 @@ func NewAppearancesByYears(slug CharacterSlug, aggs []YearlyAggregate) Appearanc
 	return apy
 }
 
-func cdnUrlForThumbnails(thumbs *CharacterThumbnails) {
+func cdnURLForThumbnails(thumbs *CharacterThumbnails) {
 	if thumbs != nil {
 		if thumbs.VendorImage != nil {
-			cdnUrlForSizes(thumbs.VendorImage)
+			cdnURLForSizes(thumbs.VendorImage)
 		}
 		if thumbs.Image != nil {
-			cdnUrlForSizes(thumbs.Image)
+			cdnURLForSizes(thumbs.Image)
 		}
 	}
 }
 
-func cdnUrlForSizes(sizes *ThumbnailSizes) {
+func cdnURLForSizes(sizes *ThumbnailSizes) {
 	if sizes != nil {
 		sizes.Small = cdnURL + "/" + sizes.Small
 		sizes.Medium = cdnURL + "/" + sizes.Medium

@@ -2,7 +2,6 @@ package web
 
 import (
 	"errors"
-	"github.com/aimeelaplant/comiccruncher/auth"
 	"github.com/aimeelaplant/comiccruncher/internal/log"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
@@ -23,10 +22,6 @@ type JWTConfig struct {
 	SecretSigningKey string
 }
 
-type SessionConfig struct {
-	tr auth.TokenRepository
-}
-
 // JWTMiddlewareWithConfig creates a new middleware func from the specified configuration.
 func JWTMiddlewareWithConfig(config JWTConfig) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
@@ -36,34 +31,6 @@ func JWTMiddlewareWithConfig(config JWTConfig) echo.MiddlewareFunc {
 				return err
 			}
 			return next(c)
-		}
-	}
-}
-
-// SessionMiddleware creates a new middleware func from the specified configuration.
-func SessionMiddleware(config *SessionConfig) echo.MiddlewareFunc {
-	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func (c echo.Context) error {
-			visitorID := c.Request().Header.Get("X-VISITOR-ID")
-			// s:w-w-1.abcd/fy
-			idx := strings.Index(visitorID, ":")
-			idx2 := strings.Index(visitorID, ".")
-			id := ""
-			if idx != -1 && idx2 != -1 {
-				id = visitorID[idx+1:idx2]
-			} else {
-				id = visitorID
-			}
-			res, err := config.tr.Exists(id)
-			if err != nil {
-				log.WEB().Error("error checking token", zap.Error(err))
-				// not critical. just pass
-				return next(c)
-			}
-			if res {
-				return next(c)
-			}
-			return NewJSONErrorView(c, "Invalid session", http.StatusUnauthorized)
 		}
 	}
 }
