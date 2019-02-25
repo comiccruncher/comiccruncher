@@ -366,7 +366,7 @@ func NewMarvelCharactersImporter(db *pg.DB) *MarvelCharactersImporter {
 	}
 	return &MarvelCharactersImporter{
 		marvelAPI: mAPI,
-		importer: imp,
+		importer:  imp,
 	}
 }
 
@@ -384,7 +384,7 @@ func NewDCCharactersImporter(db *pg.DB) *DcCharactersImporter {
 		logger:       log.MARVELIMPORTER(),
 	}
 	return &DcCharactersImporter{
-		dcAPI: dcAPI,
+		dcAPI:    dcAPI,
 		importer: imp,
 	}
 }

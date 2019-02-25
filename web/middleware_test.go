@@ -104,7 +104,7 @@ func TestJWTMiddlewareWithConfigWithBadHeader(t *testing.T) {
 
 func TestRequireCheapAuthenticationPass(t *testing.T) {
 	m := web.RequireCheapAuthentication
-	req := httptest.NewRequest(http.MethodGet, "/?key=" + os.Getenv("CC_AUTH_TOKEN"), nil)
+	req := httptest.NewRequest(http.MethodGet, "/?key="+os.Getenv("CC_AUTH_TOKEN"), nil)
 	rec := httptest.NewRecorder()
 	e := echo.New()
 	ctx := e.NewContext(req, rec)

@@ -31,23 +31,23 @@ func (c *Character) MarshalJSON() ([]byte, error) {
 	type Alias Character
 	return json.Marshal(&struct {
 		*Alias
-		Slug string `json:"slug"`
-		Image string `json:"image"`
-		VendorImage string `json:"vendor_image"`
-		Thumbnails *comic.CharacterThumbnails `json:"thumbnails"`
+		Slug        string                     `json:"slug"`
+		Image       string                     `json:"image"`
+		VendorImage string                     `json:"vendor_image"`
+		Thumbnails  *comic.CharacterThumbnails `json:"thumbnails"`
 	}{
 		Alias:       (*Alias)(c),
-		Slug: ch.Slug.Value(),
-		Image: ch.Image,
+		Slug:        ch.Slug.Value(),
+		Image:       ch.Image,
 		VendorImage: ch.VendorImage,
-		Thumbnails: thumbs,
+		Thumbnails:  thumbs,
 	})
 }
 
 // NewCharacter creates a new character for presentation.
 func NewCharacter(c *comic.Character, th *comic.CharacterThumbnails) *Character {
 	return &Character{
-		Character: c,
+		Character:           c,
 		CharacterThumbnails: th,
 	}
 }

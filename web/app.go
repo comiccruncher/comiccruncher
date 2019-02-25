@@ -43,14 +43,14 @@ func (a App) Run(port string) error {
 		// AllowCredentials: true,
 		AllowOrigins: allowedOrigins,
 		AllowMethods: []string{"HEAD", "GET", "OPTIONS"},
-		MaxAge: 86400,
+		MaxAge:       86400,
 	}))
 
 	e.Use(middleware.SecureWithConfig(middleware.SecureConfig{
-		XSSProtection: "1; mode=block",
+		XSSProtection:      "1; mode=block",
 		ContentTypeNosniff: "nosniff",
-		XFrameOptions: "SAMEORIGIN",
-		HSTSMaxAge: 31536000,
+		XFrameOptions:      "SAMEORIGIN",
+		HSTSMaxAge:         31536000,
 	}))
 	// TODO: Use when ready.
 	// e.POST("/authenticate", a.authCtrlr.Authenticate)

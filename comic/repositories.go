@@ -181,7 +181,7 @@ func (ctr *RedisCharacterThumbRepository) AllThumbnails(slugs ...CharacterSlug) 
 	}
 	allThumbs := make(map[CharacterSlug]*CharacterThumbnails, slcLen)
 	for i, s := range slugs {
-		thumb := &CharacterThumbnails{Slug: s,}
+		thumb := &CharacterThumbnails{Slug: s}
 		allThumbs[s] = thumb
 		if all != nil {
 			val := all[i]
@@ -242,9 +242,9 @@ type PGStatsRepository struct {
 
 // RedisAppearancesByYearsRepository is the Redis implementation for appearances per year repository.
 type RedisAppearancesByYearsRepository struct {
-	redisClient RedisClient
+	redisClient  RedisClient
 	deserializer YearlyAggregateDeserializer
-	serializer YearlyAggregateSerializer
+	serializer   YearlyAggregateSerializer
 }
 
 // FindBySlug gets a publisher by its slug.
@@ -709,7 +709,7 @@ func (r *PGAppearancesByYearsRepository) List(s CharacterSlug) (AppearancesByYea
 	mainQ := r.createQuery(s, Main)
 	altQ := r.createQuery(s, Alternate)
 	q := mainQ + " UNION " + altQ + " ORDER BY year, category"
-	vals := make([]struct{
+	vals := make([]struct {
 		Year     int
 		Count    int
 		Category string
@@ -720,8 +720,8 @@ func (r *PGAppearancesByYearsRepository) List(s CharacterSlug) (AppearancesByYea
 	}
 	length := int(math.Round(float64(len(vals) / 2)))
 	yas := make([]YearlyAggregate, length)
- 	t := 0
-	for i := 0; i < len(vals); i+=2 {
+	t := 0
+	for i := 0; i < len(vals); i += 2 {
 		alt := vals[i]
 		main := vals[i+1]
 		yas[t] = YearlyAggregate{
@@ -738,7 +738,7 @@ func (r *PGAppearancesByYearsRepository) List(s CharacterSlug) (AppearancesByYea
 func (r *RedisAppearancesByYearsRepository) List(s CharacterSlug) (AppearancesByYears, error) {
 	key := getAppearanceKey(s)
 	all, err := r.redisClient.Get(key).Result()
-	if err != nil  && err != redis.Nil {
+	if err != nil && err != redis.Nil {
 		return AppearancesByYears{}, err
 	}
 	if all != "" {
@@ -1031,7 +1031,7 @@ func NewPGCharacterSyncLogRepository(db ORM) *PGCharacterSyncLogRepository {
 // and the redis cache for appearances.
 func NewPGPopularRepository(db ORM, ctr CharacterThumbRepository) *PGPopularRepository {
 	return &PGPopularRepository{
-		db: db,
+		db:  db,
 		ctr: ctr,
 	}
 }

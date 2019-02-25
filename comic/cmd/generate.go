@@ -13,7 +13,7 @@ import (
 )
 
 var generateCmd = &cobra.Command{
-	Use: "generate",
+	Use:   "generate",
 	Short: "The command for generating stuff",
 }
 

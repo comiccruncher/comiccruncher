@@ -34,7 +34,7 @@ var startCmd = &cobra.Command{
 
 		quit := make(chan os.Signal)
 		signal.Notify(quit, os.Interrupt)
-		<- quit
+		<-quit
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 
@@ -49,7 +49,7 @@ var startCmd = &cobra.Command{
 
 func handleError(err error, client string) {
 	if err != nil {
-		log.WEB().Error("error closing connection", zap.String("client", client),  zap.Error(err))
+		log.WEB().Error("error closing connection", zap.String("client", client), zap.Error(err))
 	}
 	log.WEB().Info("closed connection", zap.String("client", client))
 }

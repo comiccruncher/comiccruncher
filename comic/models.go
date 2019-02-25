@@ -144,9 +144,9 @@ type AppearancesByYears struct {
 
 // YearlyAggregate is the aggregated year and count of an appearance for that year.
 type YearlyAggregate struct {
-	Main 		int `json:"main"`
-	Alternate 	int `json:"alternate"`
-	Year  		int `json:"year"`
+	Main      int `json:"main"`
+	Alternate int `json:"alternate"`
+	Year      int `json:"year"`
 }
 
 // Publisher is a publisher is an entity that publishes comics and characters.
@@ -247,13 +247,14 @@ type CharacterIssue struct {
 
 // ThumbnailSizes represents the sizes of thumbnails.
 type ThumbnailSizes struct {
-	Small  string	`json:"small"`
-	Medium string	`json:"medium"`
-	Large  string	`json:"large"`
+	Small  string `json:"small"`
+	Medium string `json:"medium"`
+	Large  string `json:"large"`
 }
+
 // CharacterThumbnails represents thumbnails for a character.
 type CharacterThumbnails struct {
-	Slug        CharacterSlug `json:"slug"`
+	Slug        CharacterSlug   `json:"slug"`
 	Image       *ThumbnailSizes `json:"image"`
 	VendorImage *ThumbnailSizes `json:"vendor_image"`
 }
@@ -270,19 +271,19 @@ type Stats struct {
 // RankedCharacter represents a character who has its rank and issue count accounted for
 // with its appearances attached..
 type RankedCharacter struct {
-	ID                CharacterID    `json:"-"`
-	Publisher         Publisher      `json:"publisher"`
-	PublisherID       PublisherID    `json:"-"`
-	Name              string         `json:"name"`
-	OtherName         string         `json:"other_name"`
-	Description       string         `json:"description"`
-	Image             string         `json:"image"`
-	Slug              CharacterSlug  `json:"slug"`
-	VendorImage       string         `json:"vendor_image"`
-	VendorURL         string         `json:"vendor_url"`
-	VendorDescription string         `json:"vendor_description"`
-	Thumbnails        *CharacterThumbnails  `json:"thumbnails"`
-	Stats             CharacterStats `json:"stats"`
+	ID                CharacterID          `json:"-"`
+	Publisher         Publisher            `json:"publisher"`
+	PublisherID       PublisherID          `json:"-"`
+	Name              string               `json:"name"`
+	OtherName         string               `json:"other_name"`
+	Description       string               `json:"description"`
+	Image             string               `json:"image"`
+	Slug              CharacterSlug        `json:"slug"`
+	VendorImage       string               `json:"vendor_image"`
+	VendorURL         string               `json:"vendor_url"`
+	VendorDescription string               `json:"vendor_description"`
+	Thumbnails        *CharacterThumbnails `json:"thumbnails"`
+	Stats             CharacterStats       `json:"stats"`
 }
 
 // LastSync represents the last sync for a character.
@@ -372,7 +373,7 @@ func (c *RankedCharacter) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&struct {
 		*Alias
 	}{
-		Alias:       (*Alias)(c),
+		Alias: (*Alias)(c),
 	})
 }
 

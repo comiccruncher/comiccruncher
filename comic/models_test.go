@@ -66,7 +66,7 @@ func TestExpandedCharacterMarshalJSON(t *testing.T) {
 		{Main: 10, Year: 1900, Alternate: 10},
 	}
 	apps := comic.AppearancesByYears{
-		CharacterSlug: c.Slug,  Aggregates: aggs,
+		CharacterSlug: c.Slug, Aggregates: aggs,
 	}
 	ec := comic.ExpandedCharacter{
 		Character:   c,
@@ -81,19 +81,19 @@ func TestExpandedCharacterMarshalJSON(t *testing.T) {
 
 func TestRankedCharacterMarshalJSON(t *testing.T) {
 	rc := comic.RankedCharacter{
-		ID: 1,
+		ID:          1,
 		PublisherID: 1,
-		Name: "emma frost",
+		Name:        "emma frost",
 		Description: "test",
-		Image: "test",
+		Image:       "test",
 		VendorImage: "test1",
-		Slug: "emma-frost",
+		Slug:        "emma-frost",
 		Stats: comic.CharacterStats{
-			Category: comic.AllTimeStats,
-			IssueCount: 1,
+			Category:       comic.AllTimeStats,
+			IssueCount:     1,
 			IssueCountRank: 1,
-			AverageRank: 1,
-			Average: 1,
+			AverageRank:    1,
+			Average:        1,
 		},
 	}
 	b, err := rc.MarshalJSON()

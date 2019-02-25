@@ -152,7 +152,7 @@ type RankedService struct {
 
 // CharacterThumbService is the service for creating and uploading thumbnails for characters.
 type CharacterThumbService struct {
-	r RedisClient
+	r  RedisClient
 	tu imaging.ThumbnailUploader
 }
 
@@ -162,8 +162,8 @@ func (cts *CharacterThumbService) Upload(c *Character) (*CharacterThumbnails, er
 	imageKey := c.Image
 	slug := c.Slug
 	thumbs := &CharacterThumbnails{
-		Slug: slug,
-		Image: &ThumbnailSizes{},
+		Slug:        slug,
+		Image:       &ThumbnailSizes{},
 		VendorImage: &ThumbnailSizes{},
 	}
 	opts := imaging.NewDefaultThumbnailOptions(
@@ -632,7 +632,7 @@ func NewCharacterService(
 	cr CharacterRepository,
 	ci CharacterIssueRepository,
 	cs CharacterSourceRepository,
-	sl  CharacterSyncLogRepository,
+	sl CharacterSyncLogRepository,
 	ap AppearancesByYearsRepository) *CharacterService {
 	return &CharacterService{
 		tx:                    tx,
@@ -687,9 +687,9 @@ func NewExpandedService(
 	slr CharacterSyncLogRepository,
 	ctr CharacterThumbRepository) *ExpandedService {
 	return &ExpandedService{
-		cr: cr,
-		ar: ar,
-		r: r,
+		cr:  cr,
+		ar:  ar,
+		r:   r,
 		slr: slr,
 		ctr: ctr,
 	}
@@ -698,7 +698,7 @@ func NewExpandedService(
 // NewCharacterThumbnailService creates a new thumbnail service.
 func NewCharacterThumbnailService(r RedisClient, tu imaging.ThumbnailUploader) *CharacterThumbService {
 	return &CharacterThumbService{
-		r: r,
+		r:  r,
 		tu: tu,
 	}
 }

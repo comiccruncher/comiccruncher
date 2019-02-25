@@ -85,14 +85,14 @@ type CharacterVendorExtractor interface {
 // CharacterIssueImporter is the importer for getting a character's issues from a character source.
 type CharacterIssueImporter struct {
 	appearancesWriter comic.AppearancesByYearsWriter
-	appearanceSyncer comic.Syncer
-	characterSvc     comic.CharacterServicer
-	issueSvc         comic.IssueServicer
-	externalSource   externalissuesource.ExternalSource
-	extractor        CharacterVendorExtractor
-	refresher        comic.PopularRefresher
-	statsSyncer      comic.CharacterStatsSyncer
-	logger           *zap.Logger
+	appearanceSyncer  comic.Syncer
+	characterSvc      comic.CharacterServicer
+	issueSvc          comic.IssueServicer
+	externalSource    externalissuesource.ExternalSource
+	extractor         CharacterVendorExtractor
+	refresher         comic.PopularRefresher
+	statsSyncer       comic.CharacterStatsSyncer
+	logger            *zap.Logger
 }
 
 // CharacterVendorInfo contains information about a character's vendor IDs and
@@ -406,7 +406,7 @@ func (i *CharacterIssueImporter) ImportAll(slugs []comic.CharacterSlug, doReset 
 	// Now sync them all to redis
 	results := i.statsSyncer.SyncAll(characters)
 	for idx := 0; idx < len(characters); idx++ {
-		res := <- results
+		res := <-results
 		err = res.Error
 		slug := res.Slug.Value()
 		if res.Error != nil {
@@ -504,14 +504,14 @@ func NewCharacterIssueImporter(
 	externalSource := externalissuesource.NewCbExternalSource(externalissuesource.NewHttpClient(), &externalissuesource.CbExternalSourceConfig{})
 	return &CharacterIssueImporter{
 		appearancesWriter: aw,
-		characterSvc:     comic.NewCharacterServiceFactory(db),
-		issueSvc:         comic.NewIssueServiceFactory(db),
-		externalSource:   externalSource,
-		appearanceSyncer: as,
-		logger:           log.CEREBRO(),
-		extractor:        NewCharacterCBExtractor(externalSource),
-		refresher:        p,
-		statsSyncer:      ss,
+		characterSvc:      comic.NewCharacterServiceFactory(db),
+		issueSvc:          comic.NewIssueServiceFactory(db),
+		externalSource:    externalSource,
+		appearanceSyncer:  as,
+		logger:            log.CEREBRO(),
+		extractor:         NewCharacterCBExtractor(externalSource),
+		refresher:         p,
+		statsSyncer:       ss,
 	}
 }
 
