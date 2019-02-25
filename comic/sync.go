@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/aimeelaplant/comiccruncher/internal/log"
+`	"github.com/go-pg/pg"
 	"github.com/go-redis/redis"
 	"go.uber.org/zap"
 )
@@ -155,11 +156,11 @@ func (s *RedisCharacterStatsSyncer) set(c *Character, allTime *RankedCharacter, 
 	return s.r.HMSet(key, m).Err()
 }
 
-// NewAppearancesSyncer returns a new appearances syncer
-func NewAppearancesSyncer(r *PGRepositoryContainer, w *RedisAppearancesByYearsRepository) *AppearancesSyncer {
+// NewAppearancesSyncer2 returns a new appearances syncer
+func NewAppearancesSyncer(db *pg.DB, redis RedisClient) *AppearancesSyncer {
 	return &AppearancesSyncer{
-		reader: r.AppearancesByYearsRepository(),
-		writer: w,
+		reader: NewPGAppearancesPerYearRepository(db),
+		writer: NewRedisAppearancesPerYearRepository(redis),
 	}
 }
 

@@ -4,7 +4,10 @@ import (
 	"github.com/aimeelaplant/comiccruncher/cerebro"
 	"github.com/aimeelaplant/comiccruncher/comic"
 	"github.com/aimeelaplant/comiccruncher/internal/flagutil"
+	"github.com/aimeelaplant/comiccruncher/internal/listutil"
 	"github.com/aimeelaplant/comiccruncher/internal/log"
+	"github.com/aimeelaplant/comiccruncher/internal/pgo"
+	"github.com/aimeelaplant/comiccruncher/internal/rediscache"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 )
@@ -20,12 +23,22 @@ var importCharactersCmd = &cobra.Command{
 	Use:   "characters",
 	Short: "Import characters from an external source.",
 	Run: func(cmd *cobra.Command, args []string) {
-		if importRunner, err := cerebro.NewImportRunner(); err != nil {
-			log.CEREBRO().Fatal("could not instantiate import runner", zap.Error(err))
-		} else {
-			publishers := flagutil.Split(*cmd.Flag("publisher"), ",")
-			if err := importRunner.Characters(publishers); err != nil {
-				log.CEREBRO().Fatal("could not import characters", zap.Error(err))
+		publishers := flagutil.Split(*cmd.Flag("publisher"), ",")
+		db := pgo.MustInstance()
+		if len(publishers) == 0 || listutil.StringInSlice(publishers, "marvel") {
+			mi := cerebro.NewMarvelCharactersImporter(db)
+			err := mi.ImportAll()
+			if err != nil {
+				log.WEB().Fatal("error importing characters from marvel", zap.Error(err))
+			}
+		}
+		if len(publishers) == 0 || listutil.StringInSlice(publishers, "dc") {
+			dcImporter := cerebro.NewDCCharactersImporter(db)
+			err := dcImporter.ImportAll()
+			if err != nil {
+				if err != nil {
+					log.WEB().Fatal("error importing characters from dc", zap.Error(err))
+				}
 			}
 		}
 	},
@@ -36,18 +49,16 @@ var importCharacterSourcesCmd = &cobra.Command{
 	Use:   "charactersources",
 	Short: "Import character sources from an external source.",
 	Run: func(cmd *cobra.Command, args []string) {
-		if importRunner, err := cerebro.NewImportRunner(); err != nil {
-			log.CEREBRO().Fatal("could not instantiate import runner", zap.Error(err))
-		} else {
-			slugs := flagutil.Split(*cmd.Flag("character.slug"), ",")
-			strict := cmd.Flag("strict")
-			var isStrict = true
-			if strict != nil && strict.Value.String() == "false" {
-				isStrict = false
-			}
-			if err := importRunner.CharacterSources(comic.NewCharacterSlugs(slugs...), isStrict); err != nil {
-				log.CEREBRO().Fatal("could not import character sources", zap.Error(err))
-			}
+		db := pgo.MustInstance()
+		cs := cerebro.NewCharacterSourceImporter(db)
+		slugs := flagutil.Split(*cmd.Flag("character.slug"), ",")
+		strict := cmd.Flag("strict")
+		var isStrict = true
+		if strict != nil && strict.Value.String() == "false" {
+			isStrict = false
+		}
+		if err := cs.Import(comic.NewCharacterSlugs(slugs...), isStrict); err != nil {
+			log.CEREBRO().Fatal("could not import character sources", zap.Error(err))
 		}
 	},
 }
@@ -57,18 +68,17 @@ var importCharacterIssuesCmd = &cobra.Command{
 	Use:   "characterissues",
 	Short: "Imports character issues from an external source.",
 	Run: func(cmd *cobra.Command, args []string) {
-		if importRunner, err := cerebro.NewImportRunner(); err != nil {
-			log.CEREBRO().Fatal("could not instantiate import runner", zap.Error(err))
-		} else {
-			slugs := flagutil.Split(*cmd.Flag("character.slug"), ",")
-			var reset bool
-			doReset := cmd.Flag("reset")
-			if doReset != nil && doReset.Value.String() == "true" {
-				reset = true
-			}
-			if err = importRunner.CharacterIssues(comic.NewCharacterSlugs(slugs...), reset); err != nil {
-				log.CEREBRO().Error("could not import character issues", zap.Error(err))
-			}
+		db := pgo.MustInstance()
+		redis := rediscache.Instance()
+		ci := cerebro.NewCharacterIssueImporter(db, redis)
+		slugs := flagutil.Split(*cmd.Flag("character.slug"), ",")
+		var reset bool
+		doReset := cmd.Flag("reset")
+		if doReset != nil && doReset.Value.String() == "true" {
+			reset = true
+		}
+		if err := ci.ImportAll(comic.NewCharacterSlugs(slugs...), reset); err != nil {
+			log.CEREBRO().Error("could not import character issues", zap.Error(err))
 		}
 	},
 }

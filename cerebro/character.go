@@ -8,9 +8,11 @@ import (
 	"github.com/aimeelaplant/comiccruncher/internal/log"
 	"github.com/aimeelaplant/comiccruncher/marvel"
 	"github.com/aimeelaplant/comiccruncher/storage"
+	"github.com/go-pg/pg"
 	"github.com/microcosm-cc/bluemonday"
 	"go.uber.org/zap"
 	"html"
+	"net/http"
 	"strconv"
 	"strings"
 	"sync"
@@ -349,36 +351,42 @@ func vendorType(ec ExternalCharacter) (comic.VendorType, error) {
 	return comic.VendorType(0), fmt.Errorf("unknown publisher %s", ec.Publisher)
 }
 
-// NewMarvelCharactersImporter returns a new instance of the Marvel character importer.
-func NewMarvelCharactersImporter(
-	marvelAPI *marvel.API,
-	container *comic.PGRepositoryContainer,
-	storage storage.Storage) *MarvelCharactersImporter {
+// NewMarvelCharactersImporterFactory returns the implementation for the Marvel Characters importer.
+func NewMarvelCharactersImporter(db *pg.DB) *MarvelCharactersImporter {
+	mApi := marvel.NewMarvelAPI(http.DefaultClient)
+	container := comic.NewPGRepositoryContainer(db)
+	s3Storage, err := storage.NewS3StorageFromEnv()
+	if err != nil {
+		log.CEREBRO().Fatal("could not instantiate s3 session", zap.Error(err))
+	}
 	imp := &importer{
 		publisherSvc: comic.NewPublisherService(container),
 		characterSvc: comic.NewCharacterService(container),
-		storage:      storage,
+		storage:      s3Storage,
 		logger:       log.MARVELIMPORTER(),
 	}
 	return &MarvelCharactersImporter{
-		marvelAPI: marvelAPI,
-		importer:  imp,
+		marvelAPI: mApi,
+		importer: imp,
 	}
 }
 
-// NewDcCharactersImporter returns a new instance of the DC character importer.
-func NewDcCharactersImporter(
-	dcAPI *dc.API,
-	container *comic.PGRepositoryContainer,
-	storage storage.Storage) *DcCharactersImporter {
+// NewDCCharactersImporterFactory returns the implementation for the DC Characters importer.
+func NewDCCharactersImporter(db *pg.DB) *DcCharactersImporter {
+	dcApi := dc.NewDcAPI(http.DefaultClient)
+	container := comic.NewPGRepositoryContainer(db)
+	s3Storage, err := storage.NewS3StorageFromEnv()
+	if err != nil {
+		log.CEREBRO().Fatal("could not instantiate s3 session", zap.Error(err))
+	}
 	imp := &importer{
 		publisherSvc: comic.NewPublisherService(container),
 		characterSvc: comic.NewCharacterService(container),
-		storage:      storage,
-		logger:       log.DCIMPORTER(),
+		storage:      s3Storage,
+		logger:       log.MARVELIMPORTER(),
 	}
 	return &DcCharactersImporter{
-		dcAPI:    dcAPI,
+		dcAPI: dcApi,
 		importer: imp,
 	}
 }

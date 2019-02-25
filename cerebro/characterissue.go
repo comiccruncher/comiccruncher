@@ -8,6 +8,8 @@ import (
 	"github.com/aimeelaplant/comiccruncher/internal/stringutil"
 	"github.com/aimeelaplant/externalissuesource"
 	"github.com/avast/retry-go"
+	"github.com/go-pg/pg"
+	"github.com/go-redis/redis"
 	"go.uber.org/zap"
 	"os"
 	"os/signal"
@@ -488,23 +490,28 @@ func isAppearance(issue *comic.Issue) bool {
 	return false
 }
 
-// NewCharacterIssueImporter creates a new character issue importer.
+// NewCharacterIssueImporterFactory creates a new character issue importer.
 func NewCharacterIssueImporter(
-	container *comic.PGRepositoryContainer,
-	appearancesSyncer comic.Syncer,
-	externalSource externalissuesource.ExternalSource,
-	statsSyncer comic.CharacterStatsSyncer,
-	writer comic.AppearancesByYearsWriter) *CharacterIssueImporter {
+	db *pg.DB,
+	redis *redis.Client) *CharacterIssueImporter {
+	as := comic.NewAppearancesSyncer(db, redis)
+	cr := comic.NewPGCharacterRepository(db)
+	ctr := comic.NewRedisCharacterThumbRepository(redis)
+	pr := comic.NewPGPopularRepository(db, ctr)
+	ss := comic.NewCharacterStatsSyncer(redis, cr, pr)
+	c := comic.NewPGRepositoryContainer(db)
+	aw := comic.NewRedisAppearancesPerYearRepository(redis)
+	externalSource := externalissuesource.NewCbExternalSource(externalissuesource.NewHttpClient(), &externalissuesource.CbExternalSourceConfig{})
 	return &CharacterIssueImporter{
-		appearancesWriter: writer,
-		characterSvc:     comic.NewCharacterService(container),
-		issueSvc:         comic.NewIssueService(container),
+		appearancesWriter: aw,
+		characterSvc:     comic.NewCharacterService(c),
+		issueSvc:         comic.NewIssueService(c),
 		externalSource:   externalSource,
-		appearanceSyncer: appearancesSyncer,
+		appearanceSyncer: as,
 		logger:           log.CEREBRO(),
 		extractor:        NewCharacterCBExtractor(externalSource),
-		refresher:        container.Refresher(),
-		statsSyncer:      statsSyncer,
+		refresher:        c.Refresher(),
+		statsSyncer:      ss,
 	}
 }
 

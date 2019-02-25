@@ -6,6 +6,7 @@ import (
 	"github.com/aimeelaplant/comiccruncher/internal/log"
 	"github.com/aimeelaplant/comiccruncher/internal/stringutil"
 	"github.com/aimeelaplant/externalissuesource"
+	"github.com/go-pg/pg"
 	"go.uber.org/zap"
 	"strings"
 	"sync"
@@ -272,14 +273,13 @@ func ParseCharacterName(s string) string {
 	return s
 }
 
-// NewCharacterSourceImporter returns a new instance of the importer.
-func NewCharacterSourceImporter(
-	container *comic.PGRepositoryContainer,
-	cbExternalSource externalissuesource.ExternalSource,
-) *CharacterSourceImporter {
+// NewCharacterSourceImporterFactory returns the implementation for the character source importer.
+func NewCharacterSourceImporter(db *pg.DB) *CharacterSourceImporter {
+	container := comic.NewPGRepositoryContainer(db)
+	es := externalissuesource.NewCbExternalSource(externalissuesource.NewHttpClient(), &externalissuesource.CbExternalSourceConfig{})
 	return &CharacterSourceImporter{
-		characterSvc:   comic.NewCharacterService(container),
-		externalSource: cbExternalSource,
-		logger:         log.CEREBRO(),
+		characterSvc: comic.NewCharacterService(container),
+		externalSource: es,
+		logger: log.CEREBRO(),
 	}
 }
