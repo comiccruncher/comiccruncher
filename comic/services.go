@@ -602,45 +602,100 @@ func (s *CharacterService) RemoveIssues(ids ...CharacterID) (int, error) {
 	return results, res
 }
 
-// NewPublisherService creates a new publisher service
-func NewPublisherService(container *PGRepositoryContainer) *PublisherService {
+// NewPublisherServiceFactory creates a new publisher service
+func NewPublisherServiceFactory(db ORM) *PublisherService {
 	return &PublisherService{
-		repository: container.PublisherRepository(),
+		repository: NewPGPublisherRepository(db),
 	}
 }
 
-// NewCharacterService creates a new character service but with the appearances by years coming from postgres.
-func NewCharacterService(container *PGRepositoryContainer) *CharacterService {
+// NewPublisherService creates a new publisher service.
+func NewPublisherService(repository PublisherRepository) *PublisherService {
+	return &PublisherService{
+		repository: repository,
+	}
+}
+
+// NewCharacterServiceFactory creates a new character service but with the appearances by years coming from postgres.
+func NewCharacterServiceFactory(db ORM) *CharacterService {
 	return &CharacterService{
-		tx:                    container.DB(),
-		repository:            container.CharacterRepository(),
-		issueRepository:       container.CharacterIssueRepository(),
-		sourceRepository:      container.CharacterSourceRepository(),
-		syncLogRepository:     container.CharacterSyncLogRepository(),
-		appearancesRepository: container.AppearancesByYearsRepository(),
+		tx:                    db,
+		repository:            NewPGCharacterRepository(db),
+		issueRepository:       NewPGCharacterIssueRepository(db),
+		sourceRepository:      NewPGCharacterSourceRepository(db),
+		syncLogRepository:     NewPGCharacterSyncLogRepository(db),
+		appearancesRepository: NewPGAppearancesPerYearRepository(db),
 	}
 }
 
-// NewIssueService creates a new issue service from the repository container.
-func NewIssueService(container *PGRepositoryContainer) *IssueService {
+// NewCharacterService creates a new character service.
+func NewCharacterService(
+	tx Transactional,
+	cr CharacterRepository,
+	ci CharacterIssueRepository,
+	cs CharacterSourceRepository,
+	sl  CharacterSyncLogRepository,
+	ap AppearancesByYearsRepository) *CharacterService {
+	return &CharacterService{
+		tx:                    tx,
+		repository:            cr,
+		issueRepository:       ci,
+		sourceRepository:      cs,
+		syncLogRepository:     sl,
+		appearancesRepository: ap,
+	}
+}
+
+// NewIssueServiceFactory creates a new issue service from the repository container.
+func NewIssueServiceFactory(db ORM) *IssueService {
 	return &IssueService{
-		repository: container.IssueRepository(),
+		repository: NewPGIssueRepository(db),
 	}
 }
 
-// NewRankedService creates a new service for ranked characters.
-func NewRankedService(repository PopularRepository) *RankedService {
+// NewIssueService creates a new service.
+func NewIssueService(repository IssueRepository) *IssueService {
+	return &IssueService{
+		repository: repository,
+	}
+}
+
+// NewRankedServiceFactory creates a new service for ranked characters.
+func NewRankedServiceFactory(db ORM, r RedisClient) *RankedService {
 	return &RankedService{
-		popRepo: repository,
+		popRepo: NewPGPopularRepository(db, NewRedisCharacterThumbRepository(r)),
 	}
 }
 
-// NewExpandedService creates a new service for getting expanded details for a character
-func NewExpandedService(cr CharacterRepository, ar AppearancesByYearsRepository, rc RedisClient, slr CharacterSyncLogRepository, ctr CharacterThumbRepository) *ExpandedService {
+// NewRankedService creates a new service.
+func NewRankedService(p PopularRepository) *RankedService {
+	return &RankedService{
+		popRepo: p,
+	}
+}
+
+// NewExpandedServiceFactory creates a new service for getting expanded details for a character
+func NewExpandedServiceFactory(db ORM, r RedisClient) *ExpandedService {
 	return &ExpandedService{
-		cr:  cr,
-		ar:  ar,
-		r:   rc,
+		cr: NewPGCharacterRepository(db),
+		ar: NewRedisAppearancesPerYearRepository(r),
+		r:  r,
+		slr: NewPGCharacterSyncLogRepository(db),
+		ctr: NewRedisCharacterThumbRepository(r),
+	}
+}
+
+// NewExpandedService creates a new expanded service.
+func NewExpandedService(
+	cr CharacterRepository,
+	ar AppearancesByYearsRepository,
+	r RedisClient,
+	slr CharacterSyncLogRepository,
+	ctr CharacterThumbRepository) *ExpandedService {
+	return &ExpandedService{
+		cr: cr,
+		ar: ar,
+		r: r,
 		slr: slr,
 		ctr: ctr,
 	}

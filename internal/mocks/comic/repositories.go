@@ -7,9 +7,143 @@ package mock_comic
 import (
 	comic "github.com/aimeelaplant/comiccruncher/comic"
 	pg "github.com/go-pg/pg"
+	orm "github.com/go-pg/pg/orm"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
+
+// MockORM is a mock of ORM interface
+type MockORM struct {
+	ctrl     *gomock.Controller
+	recorder *MockORMMockRecorder
+}
+
+// MockORMMockRecorder is the mock recorder for MockORM
+type MockORMMockRecorder struct {
+	mock *MockORM
+}
+
+// NewMockORM creates a new mock instance
+func NewMockORM(ctrl *gomock.Controller) *MockORM {
+	mock := &MockORM{ctrl: ctrl}
+	mock.recorder = &MockORMMockRecorder{mock}
+	return mock
+}
+
+// EXPECT returns an object that allows the caller to indicate expected use
+func (m *MockORM) EXPECT() *MockORMMockRecorder {
+	return m.recorder
+}
+
+// Model mocks base method
+func (m *MockORM) Model(model ...interface{}) *orm.Query {
+	varargs := []interface{}{}
+	for _, a := range model {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "Model", varargs...)
+	ret0, _ := ret[0].(*orm.Query)
+	return ret0
+}
+
+// Model indicates an expected call of Model
+func (mr *MockORMMockRecorder) Model(model ...interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Model", reflect.TypeOf((*MockORM)(nil).Model), model...)
+}
+
+// Update mocks base method
+func (m *MockORM) Update(model interface{}) error {
+	ret := m.ctrl.Call(m, "Update", model)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Update indicates an expected call of Update
+func (mr *MockORMMockRecorder) Update(model interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockORM)(nil).Update), model)
+}
+
+// Query mocks base method
+func (m *MockORM) Query(model, query interface{}, params ...interface{}) (orm.Result, error) {
+	varargs := []interface{}{model, query}
+	for _, a := range params {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "Query", varargs...)
+	ret0, _ := ret[0].(orm.Result)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Query indicates an expected call of Query
+func (mr *MockORMMockRecorder) Query(model, query interface{}, params ...interface{}) *gomock.Call {
+	varargs := append([]interface{}{model, query}, params...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Query", reflect.TypeOf((*MockORM)(nil).Query), varargs...)
+}
+
+// Exec mocks base method
+func (m *MockORM) Exec(query interface{}, params ...interface{}) (orm.Result, error) {
+	varargs := []interface{}{query}
+	for _, a := range params {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "Exec", varargs...)
+	ret0, _ := ret[0].(orm.Result)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// Exec indicates an expected call of Exec
+func (mr *MockORMMockRecorder) Exec(query interface{}, params ...interface{}) *gomock.Call {
+	varargs := append([]interface{}{query}, params...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Exec", reflect.TypeOf((*MockORM)(nil).Exec), varargs...)
+}
+
+// Insert mocks base method
+func (m *MockORM) Insert(model ...interface{}) error {
+	varargs := []interface{}{}
+	for _, a := range model {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "Insert", varargs...)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Insert indicates an expected call of Insert
+func (mr *MockORMMockRecorder) Insert(model ...interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Insert", reflect.TypeOf((*MockORM)(nil).Insert), model...)
+}
+
+// QueryOne mocks base method
+func (m *MockORM) QueryOne(model, query interface{}, params ...interface{}) (orm.Result, error) {
+	varargs := []interface{}{model, query}
+	for _, a := range params {
+		varargs = append(varargs, a)
+	}
+	ret := m.ctrl.Call(m, "QueryOne", varargs...)
+	ret0, _ := ret[0].(orm.Result)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// QueryOne indicates an expected call of QueryOne
+func (mr *MockORMMockRecorder) QueryOne(model, query interface{}, params ...interface{}) *gomock.Call {
+	varargs := append([]interface{}{model, query}, params...)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "QueryOne", reflect.TypeOf((*MockORM)(nil).QueryOne), varargs...)
+}
+
+// RunInTransaction mocks base method
+func (m *MockORM) RunInTransaction(fn func(*pg.Tx) error) error {
+	ret := m.ctrl.Call(m, "RunInTransaction", fn)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// RunInTransaction indicates an expected call of RunInTransaction
+func (mr *MockORMMockRecorder) RunInTransaction(fn interface{}) *gomock.Call {
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RunInTransaction", reflect.TypeOf((*MockORM)(nil).RunInTransaction), fn)
+}
 
 // MockTransactional is a mock of Transactional interface
 type MockTransactional struct {

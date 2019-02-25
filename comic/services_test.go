@@ -6,6 +6,7 @@ import (
 	"github.com/aimeelaplant/comiccruncher/imaging"
 	"github.com/aimeelaplant/comiccruncher/internal/mocks/comic"
 	"github.com/aimeelaplant/comiccruncher/internal/mocks/imaging"
+	"github.com/aimeelaplant/comiccruncher/internal/pgo"
 	"github.com/go-redis/redis"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
@@ -15,7 +16,7 @@ import (
 
 // db test to test query.
 func TestCharacterServiceMustNormalizeSources(t *testing.T) {
-	svc := comic.NewCharacterService(testContainer)
+	svc := comic.NewCharacterServiceFactory(pgo.MustInstanceTest())
 	c, err := svc.Character("emma-frost")
 	assert.Nil(t, err)
 	svc.MustNormalizeSources(c)

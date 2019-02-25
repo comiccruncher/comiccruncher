@@ -5,6 +5,8 @@ import (
 	"github.com/aimeelaplant/comiccruncher/auth"
 	"github.com/aimeelaplant/comiccruncher/comic"
 	"github.com/aimeelaplant/comiccruncher/search"
+	"github.com/go-pg/pg"
+	"github.com/go-redis/redis"
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
 	"os"
@@ -104,6 +106,25 @@ func NewApp(
 		echo:           echo.New(),
 		statsCtrlr:     NewStatsController(statsRepository),
 		searchCtrlr:    NewSearchController(searcher, ctr),
+		characterCtrlr: NewCharacterController(expandedSvc, rankedSvc),
+		publisherCtrlr: NewPublisherController(rankedSvc),
+		trendingCtrlr:  NewTrendingController(rankedSvc),
+		tokenRepo:      tr,
+	}
+}
+
+// NewAppFactory creates a new app with minimal dependencies.
+func NewAppFactory(db *pg.DB, redis *redis.Client) *App {
+	ctr := comic.NewRedisCharacterThumbRepository(redis)
+	expandedSvc := comic.NewExpandedServiceFactory(db, redis)
+	searchSvc := search.NewSearchService(db)
+	statsRepository := comic.NewPGStatsRepository(db)
+	rankedSvc := comic.NewRankedServiceFactory(db, redis)
+	tr := auth.NewRedisTokenRepository(redis)
+	return &App{
+		echo:           echo.New(),
+		statsCtrlr:     NewStatsController(statsRepository),
+		searchCtrlr:    NewSearchController(searchSvc, ctr),
 		characterCtrlr: NewCharacterController(expandedSvc, rankedSvc),
 		publisherCtrlr: NewPublisherController(rankedSvc),
 		trendingCtrlr:  NewTrendingController(rankedSvc),

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/aimeelaplant/comiccruncher/internal/log"
 	"github.com/go-pg/pg"
+	"github.com/go-pg/pg/orm"
 	"github.com/go-redis/redis"
 	"github.com/gosimple/slug"
 	"go.uber.org/zap"
@@ -38,6 +39,16 @@ type MaterializedView string
 // Value returns the string value.
 func (v MaterializedView) Value() string {
 	return string(v)
+}
+
+type ORM interface {
+	Model(model ...interface{}) *orm.Query
+	Update(model interface{}) error
+	Query(model, query interface{}, params ...interface{}) (res orm.Result, err error)
+	Exec(query interface{}, params ...interface{}) (res orm.Result, err error)
+	Insert(model ...interface{}) error
+	QueryOne(model, query interface{}, params ...interface{}) (orm.Result, error)
+	RunInTransaction(fn func(tx *pg.Tx) error) error
 }
 
 // Transactional is an interface for running in a transaction.
@@ -184,48 +195,48 @@ func (ctr *RedisCharacterThumbRepository) AllThumbnails(slugs ...CharacterSlug) 
 
 // PGPopularRepository is the postgres implementation for the popular character repository.
 type PGPopularRepository struct {
-	db  *pg.DB
+	db  ORM
 	ctr CharacterThumbRepository
 }
 
 // PGAppearancesByYearsRepository is the postgres implementation for the appearances per year repository.
 type PGAppearancesByYearsRepository struct {
-	db *pg.DB
+	db ORM
 }
 
 // PGCharacterRepository is the postgres implementation for the character repository.
 type PGCharacterRepository struct {
-	db *pg.DB
+	db ORM
 }
 
 // PGPublisherRepository is the postgres implementation for the publisher repository.
 type PGPublisherRepository struct {
-	db *pg.DB
+	db ORM
 }
 
 // PGIssueRepository is the postgres implementation for the issue repository.
 type PGIssueRepository struct {
-	db *pg.DB
+	db ORM
 }
 
 // PGCharacterSourceRepository is the postgres implementation for the character source repository.
 type PGCharacterSourceRepository struct {
-	db *pg.DB
+	db ORM
 }
 
 // PGCharacterIssueRepository is the postgres implementation for the character issue repository.
 type PGCharacterIssueRepository struct {
-	db *pg.DB
+	db ORM
 }
 
 // PGCharacterSyncLogRepository is the postgres implementation for the character sync log repository.
 type PGCharacterSyncLogRepository struct {
-	db *pg.DB
+	db ORM
 }
 
 // PGStatsRepository is the postgres implementation for the stats repository.
 type PGStatsRepository struct {
-	db *pg.DB
+	db ORM
 }
 
 // RedisAppearancesByYearsRepository is the Redis implementation for appearances per year repository.
@@ -967,7 +978,7 @@ func (r *PGPopularRepository) query(table MaterializedView, cr PopularCriteria) 
 }
 
 // NewPGAppearancesPerYearRepository creates the new appearances by year repository for postgres.
-func NewPGAppearancesPerYearRepository(db *pg.DB) *PGAppearancesByYearsRepository {
+func NewPGAppearancesPerYearRepository(db ORM) *PGAppearancesByYearsRepository {
 	return &PGAppearancesByYearsRepository{
 		db: db,
 	}
@@ -979,45 +990,45 @@ func NewRedisAppearancesPerYearRepository(client RedisClient) *RedisAppearancesB
 }
 
 // NewPGStatsRepository creates a new stats repository for the postgres implementation.
-func NewPGStatsRepository(db *pg.DB) *PGStatsRepository {
+func NewPGStatsRepository(db ORM) *PGStatsRepository {
 	return &PGStatsRepository{db: db}
 }
 
 // NewPGCharacterIssueRepository creates the new character issue repository for the postgres implementation.
-func NewPGCharacterIssueRepository(db *pg.DB) *PGCharacterIssueRepository {
+func NewPGCharacterIssueRepository(db ORM) *PGCharacterIssueRepository {
 	return &PGCharacterIssueRepository{db: db}
 }
 
 // NewPGCharacterSourceRepository creates the new character source repository for the postgres implementation.
-func NewPGCharacterSourceRepository(db *pg.DB) *PGCharacterSourceRepository {
+func NewPGCharacterSourceRepository(db ORM) *PGCharacterSourceRepository {
 	return &PGCharacterSourceRepository{
 		db: db,
 	}
 }
 
 // NewPGPublisherRepository creates a new publisher repository for the postgres implementation.
-func NewPGPublisherRepository(db *pg.DB) *PGPublisherRepository {
+func NewPGPublisherRepository(db ORM) *PGPublisherRepository {
 	return &PGPublisherRepository{db: db}
 }
 
 // NewPGIssueRepository creates a new issue repository for the postgres implementation.
-func NewPGIssueRepository(db *pg.DB) *PGIssueRepository {
+func NewPGIssueRepository(db ORM) *PGIssueRepository {
 	return &PGIssueRepository{db: db}
 }
 
 // NewPGCharacterRepository creates the new character repository.
-func NewPGCharacterRepository(db *pg.DB) *PGCharacterRepository {
+func NewPGCharacterRepository(db ORM) *PGCharacterRepository {
 	return &PGCharacterRepository{db: db}
 }
 
 // NewPGCharacterSyncLogRepository creates the new character sync log repository.
-func NewPGCharacterSyncLogRepository(db *pg.DB) *PGCharacterSyncLogRepository {
+func NewPGCharacterSyncLogRepository(db ORM) *PGCharacterSyncLogRepository {
 	return &PGCharacterSyncLogRepository{db: db}
 }
 
 // NewPGPopularRepository creates the new popular characters repository for postgres
 // and the redis cache for appearances.
-func NewPGPopularRepository(db *pg.DB, ctr CharacterThumbRepository) *PGPopularRepository {
+func NewPGPopularRepository(db ORM, ctr CharacterThumbRepository) *PGPopularRepository {
 	return &PGPopularRepository{
 		db: db,
 		ctr: ctr,
@@ -1025,7 +1036,7 @@ func NewPGPopularRepository(db *pg.DB, ctr CharacterThumbRepository) *PGPopularR
 }
 
 // NewPopularRefresher creates a new refresher for refreshing the materialized views.
-func NewPopularRefresher(db *pg.DB) *PGPopularRepository {
+func NewPopularRefresher(db ORM) *PGPopularRepository {
 	return &PGPopularRepository{
 		db: db,
 	}

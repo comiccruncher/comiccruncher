@@ -499,18 +499,18 @@ func NewCharacterIssueImporter(
 	ctr := comic.NewRedisCharacterThumbRepository(redis)
 	pr := comic.NewPGPopularRepository(db, ctr)
 	ss := comic.NewCharacterStatsSyncer(redis, cr, pr)
-	c := comic.NewPGRepositoryContainer(db)
 	aw := comic.NewRedisAppearancesPerYearRepository(redis)
+	p := comic.NewPGPopularRepository(db, ctr)
 	externalSource := externalissuesource.NewCbExternalSource(externalissuesource.NewHttpClient(), &externalissuesource.CbExternalSourceConfig{})
 	return &CharacterIssueImporter{
 		appearancesWriter: aw,
-		characterSvc:     comic.NewCharacterService(c),
-		issueSvc:         comic.NewIssueService(c),
+		characterSvc:     comic.NewCharacterServiceFactory(db),
+		issueSvc:         comic.NewIssueServiceFactory(db),
 		externalSource:   externalSource,
 		appearanceSyncer: as,
 		logger:           log.CEREBRO(),
 		extractor:        NewCharacterCBExtractor(externalSource),
-		refresher:        c.Refresher(),
+		refresher:        p,
 		statsSyncer:      ss,
 	}
 }

@@ -354,14 +354,13 @@ func vendorType(ec ExternalCharacter) (comic.VendorType, error) {
 // NewMarvelCharactersImporterFactory returns the implementation for the Marvel Characters importer.
 func NewMarvelCharactersImporter(db *pg.DB) *MarvelCharactersImporter {
 	mApi := marvel.NewMarvelAPI(http.DefaultClient)
-	container := comic.NewPGRepositoryContainer(db)
 	s3Storage, err := storage.NewS3StorageFromEnv()
 	if err != nil {
 		log.CEREBRO().Fatal("could not instantiate s3 session", zap.Error(err))
 	}
 	imp := &importer{
-		publisherSvc: comic.NewPublisherService(container),
-		characterSvc: comic.NewCharacterService(container),
+		publisherSvc: comic.NewPublisherServiceFactory(db),
+		characterSvc: comic.NewCharacterServiceFactory(db),
 		storage:      s3Storage,
 		logger:       log.MARVELIMPORTER(),
 	}
@@ -374,14 +373,13 @@ func NewMarvelCharactersImporter(db *pg.DB) *MarvelCharactersImporter {
 // NewDCCharactersImporterFactory returns the implementation for the DC Characters importer.
 func NewDCCharactersImporter(db *pg.DB) *DcCharactersImporter {
 	dcApi := dc.NewDcAPI(http.DefaultClient)
-	container := comic.NewPGRepositoryContainer(db)
 	s3Storage, err := storage.NewS3StorageFromEnv()
 	if err != nil {
 		log.CEREBRO().Fatal("could not instantiate s3 session", zap.Error(err))
 	}
 	imp := &importer{
-		publisherSvc: comic.NewPublisherService(container),
-		characterSvc: comic.NewCharacterService(container),
+		publisherSvc: comic.NewPublisherServiceFactory(db),
+		characterSvc: comic.NewCharacterServiceFactory(db),
 		storage:      s3Storage,
 		logger:       log.MARVELIMPORTER(),
 	}

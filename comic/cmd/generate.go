@@ -24,7 +24,7 @@ var generateThumbsCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		s := flagutil.Split(*cmd.Flag("character.slug"), ",")
 		slugs := comic.NewCharacterSlugs(s...)
-		svc := comic.NewCharacterService(comic.NewPGRepositoryContainer(pgo.MustInstance()))
+		svc := comic.NewCharacterService(pgo.MustInstance())
 		strg, err := storage.NewS3StorageFromEnv()
 		if err != nil {
 			log.COMIC().Fatal("error getting storage from env", zap.Error(err))

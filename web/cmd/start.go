@@ -2,12 +2,9 @@ package cmd
 
 import (
 	"context"
-	"github.com/aimeelaplant/comiccruncher/auth"
-	"github.com/aimeelaplant/comiccruncher/comic"
 	"github.com/aimeelaplant/comiccruncher/internal/log"
 	"github.com/aimeelaplant/comiccruncher/internal/pgo"
 	"github.com/aimeelaplant/comiccruncher/internal/rediscache"
-	"github.com/aimeelaplant/comiccruncher/search"
 	"github.com/aimeelaplant/comiccruncher/web"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
@@ -26,15 +23,7 @@ var startCmd = &cobra.Command{
 			log.WEB().Fatal("cannot instantiate database", zap.Error(err))
 		}
 		redis := rediscache.Instance()
-		container := comic.NewPGRepositoryContainer(instance)
-		apps := comic.NewRedisAppearancesPerYearRepository(redis)
-		ctr := comic.NewRedisCharacterThumbRepository(redis)
-		expandedSvc := comic.NewExpandedService(container.CharacterRepository(), apps, redis, container.CharacterSyncLogRepository(), ctr)
-		searchSvc := search.NewSearchService(instance)
-		statsRepository := comic.NewPGStatsRepository(instance)
-		rankedSvc := comic.NewRankedService(comic.NewPGPopularRepository(instance, comic.NewRedisCharacterThumbRepository(redis)))
-		tr := auth.NewRedisTokenRepository(redis)
-		app := web.NewApp(expandedSvc, searchSvc, statsRepository, rankedSvc, ctr, tr)
+		app := web.NewAppFactory(instance, redis)
 		port := cmd.Flag("port")
 
 		go func() {
