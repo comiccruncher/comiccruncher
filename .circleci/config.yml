@@ -30,6 +30,7 @@ workflows:
           repo: comiccruncher/api
           tag: latest
           path: ./build/deploy/api
+          dockerfile: ./build/deploy/api/Dockerfile
           requires:
             - test_and_build
           filters:
