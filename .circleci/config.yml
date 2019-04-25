@@ -1,6 +1,7 @@
-version: 2
+version: 2.1
+orbs:
+  aws-ecr: circleci/aws-ecr@4.0.1
 workflows:
-  version: 2
   vet-test-build-deploy:
     jobs:
       - test_and_build:
@@ -25,9 +26,20 @@ workflows:
               only: /^v.*/
             branches:
               ignore: /.*/
-      - deploy_webapps:
+      - aws-ecr/build_and_push_image:
+          repo: comiccruncher/api
+          tag: latest
+          path: ./build/deploy/api
           requires:
             - test_and_build
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
+      - deploy_webapps:
+          requires:
+            - aws-ecr/build_and_push_image
           filters:
             tags:
               only: /^v.*/
@@ -120,15 +132,6 @@ jobs:
       - add_ssh_keys:
             fingerprints:
               - "8f:f7:d9:2c:ee:0a:6c:86:c2:d9:55:3b:68:2a:ee:d8"
-      - run:
-          name: Login to Docker.
-          command: docker login -u $CC_DOCKER_USER -p $CC_DOCKER_PASSWORD > /dev/null
-      - run:
-          name: Build the Docker images.
-          command: make docker-docker-build-webapp
-      - run:
-          name: Push the Docker images.
-          command: make docker-docker-push-webapp
       - run:
             name: Deploy webapp.
             command: make remote-deploy-webapps

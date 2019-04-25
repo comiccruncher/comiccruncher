@@ -52,7 +52,7 @@ func (s *AppearancesSyncer) Sync(slug CharacterSlug) (int, error) {
 // CharacterStatsSyncer is the interface for syncing characters.
 type CharacterStatsSyncer interface {
 	Sync(slug CharacterSlug) error
-	SyncAll(characters []*Character) <- chan CharacterSyncResult
+	SyncAll(characters []*Character) <-chan CharacterSyncResult
 }
 
 // RedisHmSetter is a redis client for setting hash-sets.
@@ -107,7 +107,7 @@ func (s *RedisCharacterStatsSyncer) Sync(slug CharacterSlug) error {
 
 // CharacterSyncResult is the result set for a synced character to redis and an error if any.
 type CharacterSyncResult struct {
-	Slug CharacterSlug
+	Slug  CharacterSlug
 	Error error
 }
 

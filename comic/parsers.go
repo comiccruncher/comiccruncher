@@ -48,7 +48,6 @@ type YearlyAggregateSerializer interface {
 
 // RedisYearlyAggregateSerializer serializes a struct into a string for Redis storage.
 type RedisYearlyAggregateSerializer struct {
-
 }
 
 // Serialize serializes the structs into a string for Redis storage.
@@ -75,7 +74,6 @@ type YearlyAggregateDeserializer interface {
 
 // RedisYearlyAggregateDeserializer deserializes a Redis string into a struct.
 type RedisYearlyAggregateDeserializer struct {
-
 }
 
 // Deserialize deserializes the string into the yearly aggregates structs.

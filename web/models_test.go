@@ -9,9 +9,9 @@ import (
 
 func TestNewCharacter(t *testing.T) {
 	c := &comic.Character{
-		Name: "test",
+		Name:        "test",
 		VendorImage: "test.jpg",
-		Slug: "test",
+		Slug:        "test",
 	}
 	th := &comic.CharacterThumbnails{
 		Slug: "test",
@@ -22,16 +22,16 @@ func TestNewCharacter(t *testing.T) {
 
 func TestCharacterMarshalJSON(t *testing.T) {
 	c := &comic.Character{
-		Name: "test",
+		Name:        "test",
 		VendorImage: "test.jpg",
-		Slug: "test-test",
+		Slug:        "test-test",
 	}
 	th := &comic.CharacterThumbnails{
 		Slug: "test-test",
 		VendorImage: &comic.ThumbnailSizes{
-			Small: "test.jpg",
+			Small:  "test.jpg",
 			Medium: "test.jpg",
-			Large: "test.jpg",
+			Large:  "test.jpg",
 		},
 	}
 	ch := NewCharacter(c, th)
@@ -47,14 +47,14 @@ func TestCharacterMarshalJSON(t *testing.T) {
 	assert.Nil(t, err)
 
 	assertions := map[string]string{
-		"name": "test",
-		"other_name": "",
-		"description": "",
+		"name":               "test",
+		"other_name":         "",
+		"description":        "",
 		"vendor_description": "",
-		"vendor_url": "",
-		"slug": "test-test",
-		"image": "",
-		"vendor_image": "https://d2jsu6fyd1g4ln.cloudfront.net/test.jpg",
+		"vendor_url":         "",
+		"slug":               "test-test",
+		"image":              "",
+		"vendor_image":       "https://d2jsu6fyd1g4ln.cloudfront.net/test.jpg",
 	}
 
 	for key, val := range assertions {

@@ -193,8 +193,8 @@ func TestCharacterControllerCharacters(t *testing.T) {
 		Average: 2, AverageRank: 2, IssueCountRank: 2, IssueCount: 5,
 	}
 	rankedChrs := []*comic.RankedCharacter{
-		{ID: 1, PublisherID: 1, Publisher: p, Stats: stats1, Name: "Test", Slug: "test", Image: "test.jpg", VendorImage: "test2.jpg", Thumbnails: nil,},
-		{ID: 2, PublisherID: 1, Publisher: p, Stats: stats2, Name: "Test2", Slug: "test2", Thumbnails: nil,},
+		{ID: 1, PublisherID: 1, Publisher: p, Stats: stats1, Name: "Test", Slug: "test", Image: "test.jpg", VendorImage: "test2.jpg", Thumbnails: nil},
+		{ID: 2, PublisherID: 1, Publisher: p, Stats: stats2, Name: "Test2", Slug: "test2", Thumbnails: nil},
 	}
 	expandedSvc := mock_comic.NewMockExpandedServicer(ctrl)
 

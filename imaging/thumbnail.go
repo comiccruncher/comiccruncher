@@ -37,19 +37,19 @@ type ThumbnailResult struct {
 
 // ThumbnailSize defines the width and height of the thumbnails.
 type ThumbnailSize struct {
-	Width Width
+	Width  Width
 	Height Height
 }
 
 // ThumbnailOptions defines options for generating thumbnails.
 type ThumbnailOptions struct {
-	Sizes          []*ThumbnailSize  // The widths and heights for the thumbnails.
+	Sizes          []*ThumbnailSize         // The widths and heights for the thumbnails.
 	NamingStrategy storage.FileNameStrategy // The strategy for generating thumbnail filenames.
-	RemoteDir      string // The remote directory to upload the thumbnails.
+	RemoteDir      string                   // The remote directory to upload the thumbnails.
 }
 
 // InMemoryThumbnailer is for resizing images to thumbnails in memory (doesn't save to  temp file, etc).
-type InMemoryThumbnailer struct {}
+type InMemoryThumbnailer struct{}
 
 // Resize resizes the image to the given width and height.
 func (t *InMemoryThumbnailer) Resize(body io.Reader, width, height int) (*bytes.Buffer, error) {
@@ -65,7 +65,7 @@ func (t *InMemoryThumbnailer) Resize(body io.Reader, width, height int) (*bytes.
 
 // S3ThumbnailUploader is for generating and uploading thumbnails to the remote storage.
 type S3ThumbnailUploader struct {
-	s storage.Storage
+	s           storage.Storage
 	thumbnailer Thumbnailer
 }
 
@@ -93,7 +93,7 @@ func (u *S3ThumbnailUploader) Generate(key string, opts *ThumbnailOptions) ([]*T
 			closeReader(buf)
 			return nil, err
 		}
-		filename := remoteDir + strat(string(time.Now().Nanosecond()) + ".jpg")
+		filename := remoteDir + strat(string(time.Now().Nanosecond())+".jpg")
 		err = u.s.UploadBytes(buf, filename)
 		if err != nil {
 			closeReader(buf)
@@ -120,7 +120,7 @@ func NewInMemoryThumbnailer() *InMemoryThumbnailer {
 // NewS3ThumbnailUploader creates a new s3 thumbnail uploader.
 func NewS3ThumbnailUploader(s storage.Storage, thumbnailer Thumbnailer) *S3ThumbnailUploader {
 	return &S3ThumbnailUploader{
-		s: s,
+		s:           s,
 		thumbnailer: thumbnailer,
 	}
 }
@@ -133,9 +133,9 @@ func NewDefaultThumbnailOptions(remoteDir string, sizes ...*ThumbnailSize) *Thum
 		szs[i] = size
 	}
 	return &ThumbnailOptions{
-		Sizes: szs,
+		Sizes:          szs,
 		NamingStrategy: storage.Crc32TimeNamingStrategy(),
-		RemoteDir: remoteDir,
+		RemoteDir:      remoteDir,
 	}
 }
 

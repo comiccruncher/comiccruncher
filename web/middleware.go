@@ -25,7 +25,7 @@ type JWTConfig struct {
 // JWTMiddlewareWithConfig creates a new middleware func from the specified configuration.
 func JWTMiddlewareWithConfig(config JWTConfig) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
-		return func (c echo.Context) error {
+		return func(c echo.Context) error {
 			_, err := validateToken(c.Request(), config.SecretSigningKey)
 			if err != nil {
 				return err
@@ -100,7 +100,7 @@ func validateToken(req *http.Request, secret string) (map[string]interface{}, er
 	if err != nil {
 		return nil, err
 	}
-	token, err := jwt.Parse(val, func (token *jwt.Token) (interface{}, error) {
+	token, err := jwt.Parse(val, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("unexpected signing method")
 		}

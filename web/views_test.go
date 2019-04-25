@@ -27,7 +27,9 @@ func TestNewJSONErrorView(t *testing.T) {
 		panic(err)
 	}
 	b2, err := ioutil.ReadAll(f)
-	if err != nil { panic(err) }
+	if err != nil {
+		panic(err)
+	}
 	b, err := ioutil.ReadAll(rec.Result().Body)
 	assert.Nil(t, err)
 	assert.Equal(t, b2, b)
@@ -42,12 +44,18 @@ func TestJSONDetailViewOK(t *testing.T) {
 	assert.Nil(t, j)
 	assert.Equal(t, http.StatusOK, c.Response().Status)
 	b, err := ioutil.ReadAll(rec.Result().Body)
-	if err != nil { panic(err) }
+	if err != nil {
+		panic(err)
+	}
 
 	f, err := os.Open("testdata/detailok.json")
-	if err != nil { panic(err) }
+	if err != nil {
+		panic(err)
+	}
 	b2, err := ioutil.ReadAll(f)
-	if err != nil { panic(err) }
+	if err != nil {
+		panic(err)
+	}
 	assert.Equal(t, b2, b)
 }
 
@@ -63,12 +71,18 @@ func TestJSONListViewOK(t *testing.T) {
 	assert.Nil(t, j)
 	assert.Equal(t, http.StatusOK, c.Response().Status)
 	b, err := ioutil.ReadAll(rec.Result().Body)
-	if err != nil { panic(err) }
+	if err != nil {
+		panic(err)
+	}
 
 	f, err := os.Open("testdata/listok.json")
-	if err != nil { panic(err) }
+	if err != nil {
+		panic(err)
+	}
 	b2, err := ioutil.ReadAll(f)
-	if err != nil { panic(err) }
+	if err != nil {
+		panic(err)
+	}
 	assert.Equal(t, b2, b)
 }
 

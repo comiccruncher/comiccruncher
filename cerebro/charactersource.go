@@ -276,8 +276,8 @@ func ParseCharacterName(s string) string {
 func NewCharacterSourceImporter(db comic.ORM) *CharacterSourceImporter {
 	es := externalissuesource.NewCbExternalSource(externalissuesource.NewHttpClient(), &externalissuesource.CbExternalSourceConfig{})
 	return &CharacterSourceImporter{
-		characterSvc: comic.NewCharacterServiceFactory(db),
+		characterSvc:   comic.NewCharacterServiceFactory(db),
 		externalSource: es,
-		logger: log.CEREBRO(),
+		logger:         log.CEREBRO(),
 	}
 }

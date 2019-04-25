@@ -78,7 +78,7 @@ type UploadedImage struct {
 func (storage *S3Storage) Download(key string) (*bytes.Reader, error) {
 	in := &s3.GetObjectInput{
 		Bucket: &storage.bucket,
-		Key: &key,
+		Key:    &key,
 	}
 	buf := aws.NewWriteAtBuffer(nil)
 	_, err := storage.s3Downloader.Download(buf, in)

@@ -13,7 +13,7 @@ func TestRedisYearlyAggregateDeserializerDeserialize(t *testing.T) {
 
 	expected := []comic.YearlyAggregate{
 		{Year: 1948, Main: 1, Alternate: 2},
-		{Year: 1949, Main: 2, Alternate: 0,},
+		{Year: 1949, Main: 2, Alternate: 0},
 		{Year: 1950, Main: 3, Alternate: 0},
 	}
 

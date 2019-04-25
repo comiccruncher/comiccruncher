@@ -98,7 +98,7 @@ func TestNewS3ThumbnailUploaderGenerate(t *testing.T) {
 			{Width: 300, Height: 300},
 		},
 		NamingStrategy: storage.Crc32TimeNamingStrategy(),
-		RemoteDir: "testdir/",
+		RemoteDir:      "testdir/",
 	}
 
 	results, err := uploader.Generate("testy.jpg", opts)

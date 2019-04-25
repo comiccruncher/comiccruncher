@@ -52,7 +52,7 @@ func TestAppearancesSyncerSyncWriterError(t *testing.T) {
 	defer ctrl.Finish()
 	aggs := []comic.YearlyAggregate{
 		{Year: 2017, Main: 11, Alternate: 10},
-		{Year: 2018, Main: 10, Alternate:20},
+		{Year: 2018, Main: 10, Alternate: 20},
 	}
 	mains := comic.AppearancesByYears{CharacterSlug: "test", Aggregates: aggs}
 

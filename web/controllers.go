@@ -27,7 +27,7 @@ func (c StatsController) Stats(ctx echo.Context) error {
 // SearchController is the controller for search.
 type SearchController struct {
 	searcher search.Searcher
-	ctr       comic.CharacterThumbRepository
+	ctr      comic.CharacterThumbRepository
 }
 
 // SearchCharacters searches characters with the `query` parameter.
@@ -202,7 +202,7 @@ func NewCharacterController(eSvc comic.ExpandedServicer, rSvc comic.RankedServic
 func NewSearchController(searcher search.Searcher, ctr comic.CharacterThumbRepository) *SearchController {
 	return &SearchController{
 		searcher: searcher,
-		ctr: ctr,
+		ctr:      ctr,
 	}
 }
 

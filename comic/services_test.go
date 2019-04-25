@@ -72,14 +72,14 @@ func TestExpandedServiceCharacter(t *testing.T) {
 	ctr.EXPECT().Thumbnails(gomock.Any()).Return(&comic.CharacterThumbnails{
 		Slug: slug,
 		Image: &comic.ThumbnailSizes{
-			Small: "a",
+			Small:  "a",
 			Medium: "b",
-			Large: "c",
+			Large:  "c",
 		},
 		VendorImage: &comic.ThumbnailSizes{
-			Small: "d",
+			Small:  "d",
 			Medium: "e",
-			Large: "f",
+			Large:  "f",
 		},
 	}, nil)
 	svc := comic.NewExpandedService(cr, ar, rc, slr, ctr)
@@ -189,8 +189,8 @@ func TestRankedServiceMarvelTrending(t *testing.T) {
 func TestCharacterThumbServiceUpload(t *testing.T) {
 	c := &comic.Character{
 		VendorImage: "myvendorimg.jpg",
-		Image: "myimage.jpg",
-		Slug: "test",
+		Image:       "myimage.jpg",
+		Slug:        "test",
 	}
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()

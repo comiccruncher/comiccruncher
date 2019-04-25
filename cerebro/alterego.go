@@ -168,9 +168,9 @@ func NewAlterEgoImporter(h HTTPClient, svc comic.CharacterServicer) *AlterEgoImp
 }
 
 // NewAlterEgoIdentifier creates a new identifier.
-func NewAlterEgoIdentifier(h HTTPClient, svc comic.CharacterServicer) *AlterEgoIdentifier{
+func NewAlterEgoIdentifier(h HTTPClient, svc comic.CharacterServicer) *AlterEgoIdentifier {
 	return &AlterEgoIdentifier{
-		httpClient: h,
+		httpClient:   h,
 		characterSvc: svc,
 	}
 }
