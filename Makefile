@@ -295,7 +295,7 @@ docker-build-comic-xcompile:
 
 # Builds all the app binaries in the Docker contaner.
 .PHONY: docker-build-xcompile
-docker-build-xcompile: docker-build-migrations-xcompile docker-build-cerebro-xcompile docker-build-webapp-xcompile docker-build-comic-xcompile
+docker-build-xcompile: docker-build-migrations-xcompile docker-build-cerebro-xcompile docker-build-comic-xcompile
 
 # Uploads the cerebro binary to the remote server. Used for CircleCI.
 .PHONY: remote-upload-cerebro
