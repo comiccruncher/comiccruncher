@@ -17,8 +17,6 @@ ENV GOPATH /gocode/
 
 RUN go get github.com/golang/mock/gomock
 
-RUN go install github.com/golang/mock/mockgen
-
 RUN go get -u golang.org/x/lint/golint
 
 # Expose 8001 if running the webapp.
