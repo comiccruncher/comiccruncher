@@ -31,6 +31,7 @@ workflows:
           tag: latest
           path: ./build/deploy/api
           dockerfile: ./build/deploy/api/Dockerfile
+          attach-workspace: true
           requires:
             - test_and_build
           filters:
