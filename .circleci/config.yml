@@ -133,7 +133,7 @@ jobs:
       - run:
           name: Publish the Docker image
           command: |
-            docker tag comiccruncher/api:latest
+            docker tag comiccruncher/api:latest 570480763436.dkr.ecr.us-east-1.amazonaws.com/comiccruncher/api:latest
             docker push 570480763436.dkr.ecr.us-east-1.amazonaws.com/comiccruncher/api:latest
       - run:
             name: Deploy webapp.
