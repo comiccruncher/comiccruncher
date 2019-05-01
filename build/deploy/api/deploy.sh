@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/local/bin/bash
 
 $(aws ecr get-login --no-include-email)
 docker-compose pull
