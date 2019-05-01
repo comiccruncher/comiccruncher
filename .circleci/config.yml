@@ -26,22 +26,9 @@ workflows:
               only: /^v.*/
             branches:
               ignore: /.*/
-      - aws-ecr/build_and_push_image:
-          repo: comiccruncher/api
-          tag: latest
-          path: ./build/deploy/api
-          dockerfile: ./build/deploy/api/Dockerfile
-          attach-workspace: true
-          requires:
-            - test_and_build
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              ignore: /.*/
       - deploy_webapps:
           requires:
-            - aws-ecr/build_and_push_image
+            - test_and_build
           filters:
             tags:
               only: /^v.*/
@@ -131,9 +118,22 @@ jobs:
       - restore_cache:
           keys:
             - bin-{{ .Revision }}
+            - vendor-{{ checksum "Gopkg.lock" }}
       - add_ssh_keys:
             fingerprints:
               - "8f:f7:d9:2c:ee:0a:6c:86:c2:d9:55:3b:68:2a:ee:d8"
+      - aws-ecr/ecr-login
+      - run:
+          name: Generate netrc
+          command: GITHUB_ACCESS_TOKEN=${GITHUB_ACCESS_TOKEN} make netrc > /dev/null
+      - run:
+          name: Build the Docker image
+          command: docker build -f ./build/deploy/api/Dockerfile -t comiccruncher/api:latest .
+      - run:
+          name: Publish the Docker image
+          command: |
+            docker tag comiccruncher/api:latest
+            docker push 570480763436.dkr.ecr.us-east-1.amazonaws.com/comiccruncher/api:latest
       - run:
             name: Deploy webapp.
             command: make remote-deploy-webapps
