@@ -4,7 +4,6 @@ services:
     restart: always
     depends_on:
       - filebeat
-      - telegraf
     container_name: api
     image: 570480763436.dkr.ecr.us-east-1.amazonaws.com/comiccruncher/api:latest
     ports:
@@ -27,22 +26,6 @@ services:
       options:
         max-size: "25M"
         max-file: "3"
-    labels:
-      - "co.elastic.logs/fileset.stdout=access"
-      - "co.elastic.logs/fileset.stderr=error"
-  telegraf:
-    container_name: telegraf
-    restart: always
-    image: telegraf:1.9-alpine
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - ./telegraf.conf:/etc/telegraf/telegraf.conf:ro
-    logging:
-      options:
-        max-size: "25M"
-        max-file: "3"
-    environment:
-      HOSTNAME: "${HOSTNAME}"
   filebeat:
     command: ["--strict.perms=false"]
     restart: always

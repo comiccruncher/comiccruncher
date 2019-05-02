@@ -19,6 +19,8 @@ RUN dep ensure -vendor-only -v
 
 RUN go build -o /usr/local/bin/webapp ./cmd/web/web.go
 
+RUN rm -rf /root/.netrc
+
 FROM alpine:3.8 AS app
 
 RUN apk add --update ca-certificates && \
