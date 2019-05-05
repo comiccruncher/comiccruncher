@@ -123,6 +123,7 @@ jobs:
       - add_ssh_keys:
             fingerprints:
               - "8f:f7:d9:2c:ee:0a:6c:86:c2:d9:55:3b:68:2a:ee:d8"
+              - "06:c5:51:61:f5:df:f2:bd:57:37:5d:b0:8c:39:81:be"
       - aws-ecr/ecr-login
       - run:
           name: Generate netrc
