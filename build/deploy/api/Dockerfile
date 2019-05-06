@@ -1,11 +1,9 @@
-FROM golang:1.10-alpine3.8 AS builder
+FROM golang:1.11-alpine3.8 AS builder
 
 RUN apk --update upgrade && \
     apk add curl tzdata ca-certificates git make && \
     update-ca-certificates && \
     rm -rf /var/cache/apk/*
-
-RUN curl https://raw.githubusercontent.com/golang/dep/v0.5.0/install.sh | sh
 
 ENV GOPATH /go/
 
@@ -15,7 +13,7 @@ COPY . .
 
 RUN cp .netrc /root/.netrc
 
-RUN dep ensure -vendor-only -v
+RUN go mod download
 
 RUN go build -o /usr/local/bin/webapp ./cmd/web/web.go
 

@@ -1,4 +1,4 @@
-FROM golang:1.10-alpine3.7
+FROM golang:1.11-alpine3.7
 
 RUN apk --update upgrade && \
     apk add curl tzdata ca-certificates git make && \
@@ -6,10 +6,6 @@ RUN apk --update upgrade && \
     rm -rf /var/cache/apk/*
 
 RUN go version
-
-RUN curl https://raw.githubusercontent.com/golang/dep/v0.5.0/install.sh | sh
-
-RUN dep version
 
 RUN mkdir -p /gocode/
 
