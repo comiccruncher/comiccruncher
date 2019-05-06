@@ -1,7 +1,7 @@
 package listutil_test
 
 import (
-	"github.com/aimeelaplant/comiccruncher/internal/listutil"
+	"github.com/comiccruncher/comiccruncher/internal/listutil"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

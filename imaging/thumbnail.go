@@ -2,8 +2,8 @@ package imaging
 
 import (
 	"bytes"
-	"github.com/aimeelaplant/comiccruncher/internal/log"
-	"github.com/aimeelaplant/comiccruncher/storage"
+	"github.com/comiccruncher/comiccruncher/internal/log"
+	"github.com/comiccruncher/comiccruncher/storage"
 	"github.com/disintegration/imaging"
 	"go.uber.org/zap"
 	"image"

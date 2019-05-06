@@ -2,9 +2,9 @@ package web_test
 
 import (
 	"context"
-	"github.com/aimeelaplant/comiccruncher/internal/mocks/comic"
-	"github.com/aimeelaplant/comiccruncher/internal/mocks/search"
-	"github.com/aimeelaplant/comiccruncher/web"
+	"github.com/comiccruncher/comiccruncher/internal/mocks/comic"
+	"github.com/comiccruncher/comiccruncher/internal/mocks/search"
+	"github.com/comiccruncher/comiccruncher/web"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"testing"

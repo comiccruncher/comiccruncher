@@ -2,10 +2,10 @@ package cmd
 
 import (
 	"context"
-	"github.com/aimeelaplant/comiccruncher/internal/log"
-	"github.com/aimeelaplant/comiccruncher/internal/pgo"
-	"github.com/aimeelaplant/comiccruncher/internal/rediscache"
-	"github.com/aimeelaplant/comiccruncher/web"
+	"github.com/comiccruncher/comiccruncher/internal/log"
+	"github.com/comiccruncher/comiccruncher/internal/pgo"
+	"github.com/comiccruncher/comiccruncher/internal/rediscache"
+	"github.com/comiccruncher/comiccruncher/web"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 	"os"

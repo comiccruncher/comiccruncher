@@ -2,8 +2,8 @@ package storage_test
 
 import (
 	"errors"
-	"github.com/aimeelaplant/comiccruncher/internal/mocks/storage"
-	"github.com/aimeelaplant/comiccruncher/storage"
+	"github.com/comiccruncher/comiccruncher/internal/mocks/storage"
+	"github.com/comiccruncher/comiccruncher/storage"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"

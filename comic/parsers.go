@@ -3,7 +3,7 @@ package comic
 import (
 	"errors"
 	"fmt"
-	"github.com/aimeelaplant/comiccruncher/internal/stringutil"
+	"github.com/comiccruncher/comiccruncher/internal/stringutil"
 	"strconv"
 	"strings"
 )

@@ -1,7 +1,7 @@
 package search
 
 import (
-	"github.com/aimeelaplant/comiccruncher/comic"
+	"github.com/comiccruncher/comiccruncher/comic"
 	"github.com/go-pg/pg"
 )
 

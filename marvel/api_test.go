@@ -1,7 +1,7 @@
 package marvel_test
 
 import (
-	"github.com/aimeelaplant/comiccruncher/marvel"
+	"github.com/comiccruncher/comiccruncher/marvel"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net/http"

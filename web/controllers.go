@@ -1,8 +1,8 @@
 package web
 
 import (
-	"github.com/aimeelaplant/comiccruncher/comic"
-	"github.com/aimeelaplant/comiccruncher/search"
+	"github.com/comiccruncher/comiccruncher/comic"
+	"github.com/comiccruncher/comiccruncher/search"
 	"github.com/labstack/echo"
 	"net/http"
 )

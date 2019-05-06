@@ -1,6 +1,6 @@
 package main
 
-import "github.com/aimeelaplant/comiccruncher/comic/cmd"
+import "github.com/comiccruncher/comiccruncher/comic/cmd"
 
 func main() {
 	cmd.Exec()

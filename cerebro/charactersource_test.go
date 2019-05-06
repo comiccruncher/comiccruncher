@@ -1,7 +1,7 @@
 package cerebro_test
 
 import (
-	"github.com/aimeelaplant/comiccruncher/cerebro"
+	"github.com/comiccruncher/comiccruncher/cerebro"
 	"github.com/stretchr/testify/assert"
 	"strings"
 	"testing"

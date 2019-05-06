@@ -3,8 +3,8 @@ package cerebro
 import (
 	"errors"
 	"github.com/PuerkitoBio/goquery"
-	"github.com/aimeelaplant/comiccruncher/comic"
-	"github.com/aimeelaplant/comiccruncher/internal/log"
+	"github.com/comiccruncher/comiccruncher/comic"
+	"github.com/comiccruncher/comiccruncher/internal/log"
 	"github.com/andybalholm/cascadia"
 	"go.uber.org/zap"
 	"golang.org/x/text/encoding/charmap"

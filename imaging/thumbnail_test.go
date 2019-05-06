@@ -2,10 +2,10 @@ package imaging_test
 
 import (
 	"bytes"
-	"github.com/aimeelaplant/comiccruncher/imaging"
-	"github.com/aimeelaplant/comiccruncher/internal/mocks/imaging"
-	"github.com/aimeelaplant/comiccruncher/internal/mocks/storage"
-	"github.com/aimeelaplant/comiccruncher/storage"
+	"github.com/comiccruncher/comiccruncher/imaging"
+	"github.com/comiccruncher/comiccruncher/internal/mocks/imaging"
+	"github.com/comiccruncher/comiccruncher/internal/mocks/storage"
+	"github.com/comiccruncher/comiccruncher/storage"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"io"

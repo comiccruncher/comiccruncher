@@ -1,7 +1,7 @@
 package web_test
 
 import (
-	"github.com/aimeelaplant/comiccruncher/web"
+	"github.com/comiccruncher/comiccruncher/web"
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"
 	"net/http"

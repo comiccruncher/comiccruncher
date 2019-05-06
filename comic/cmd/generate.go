@@ -1,13 +1,13 @@
 package cmd
 
 import (
-	"github.com/aimeelaplant/comiccruncher/comic"
-	"github.com/aimeelaplant/comiccruncher/imaging"
-	"github.com/aimeelaplant/comiccruncher/internal/flagutil"
-	"github.com/aimeelaplant/comiccruncher/internal/log"
-	"github.com/aimeelaplant/comiccruncher/internal/pgo"
-	"github.com/aimeelaplant/comiccruncher/internal/rediscache"
-	"github.com/aimeelaplant/comiccruncher/storage"
+	"github.com/comiccruncher/comiccruncher/comic"
+	"github.com/comiccruncher/comiccruncher/imaging"
+	"github.com/comiccruncher/comiccruncher/internal/flagutil"
+	"github.com/comiccruncher/comiccruncher/internal/log"
+	"github.com/comiccruncher/comiccruncher/internal/pgo"
+	"github.com/comiccruncher/comiccruncher/internal/rediscache"
+	"github.com/comiccruncher/comiccruncher/storage"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 )

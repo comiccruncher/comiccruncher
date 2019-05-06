@@ -1,7 +1,7 @@
 package hashutil_test
 
 import (
-	"github.com/aimeelaplant/comiccruncher/internal/hashutil"
+	"github.com/comiccruncher/comiccruncher/internal/hashutil"
 	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"

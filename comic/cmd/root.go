@@ -1,7 +1,7 @@
 package cmd
 
 import (
-	"github.com/aimeelaplant/comiccruncher/internal/log"
+	"github.com/comiccruncher/comiccruncher/internal/log"
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 )

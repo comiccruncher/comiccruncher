@@ -3,8 +3,8 @@ package comic_test
 import (
 	"errors"
 	"fmt"
-	"github.com/aimeelaplant/comiccruncher/comic"
-	"github.com/aimeelaplant/comiccruncher/internal/mocks/comic"
+	"github.com/comiccruncher/comiccruncher/comic"
+	"github.com/comiccruncher/comiccruncher/internal/mocks/comic"
 	"github.com/go-pg/pg/orm"
 	"github.com/go-redis/redis"
 	"github.com/golang/mock/gomock"

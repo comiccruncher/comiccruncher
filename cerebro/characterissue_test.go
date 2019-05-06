@@ -1,9 +1,9 @@
 package cerebro_test
 
 import (
-	"github.com/aimeelaplant/comiccruncher/cerebro"
-	"github.com/aimeelaplant/comiccruncher/comic"
-	"github.com/aimeelaplant/comiccruncher/internal/mocks/externalissuesource"
+	"github.com/comiccruncher/comiccruncher/cerebro"
+	"github.com/comiccruncher/comiccruncher/comic"
+	"github.com/comiccruncher/comiccruncher/internal/mocks/externalissuesource"
 	"github.com/aimeelaplant/externalissuesource"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"

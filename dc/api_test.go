@@ -1,7 +1,7 @@
 package dc_test
 
 import (
-	"github.com/aimeelaplant/comiccruncher/dc"
+	"github.com/comiccruncher/comiccruncher/dc"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net/http"

@@ -3,7 +3,7 @@ package pgo
 import (
 	"errors"
 	"fmt"
-	"github.com/aimeelaplant/comiccruncher/internal/log"
+	"github.com/comiccruncher/comiccruncher/internal/log"
 	"github.com/go-pg/pg"
 	"go.uber.org/zap"
 	"os"

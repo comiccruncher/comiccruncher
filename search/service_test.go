@@ -2,9 +2,9 @@ package search_test
 
 import (
 	"fmt"
-	"github.com/aimeelaplant/comiccruncher/comic"
-	"github.com/aimeelaplant/comiccruncher/internal/pgo"
-	"github.com/aimeelaplant/comiccruncher/search"
+	"github.com/comiccruncher/comiccruncher/comic"
+	"github.com/comiccruncher/comiccruncher/internal/pgo"
+	"github.com/comiccruncher/comiccruncher/search"
 	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"

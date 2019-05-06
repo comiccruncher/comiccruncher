@@ -6,7 +6,7 @@ package mock_imaging
 
 import (
 	bytes "bytes"
-	imaging "github.com/aimeelaplant/comiccruncher/imaging"
+	imaging "github.com/comiccruncher/comiccruncher/imaging"
 	gomock "github.com/golang/mock/gomock"
 	io "io"
 	reflect "reflect"

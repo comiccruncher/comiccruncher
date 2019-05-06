@@ -2,8 +2,8 @@ package web
 
 import (
 	"context"
-	"github.com/aimeelaplant/comiccruncher/comic"
-	"github.com/aimeelaplant/comiccruncher/search"
+	"github.com/comiccruncher/comiccruncher/comic"
+	"github.com/comiccruncher/comiccruncher/search"
 	"github.com/go-pg/pg"
 	"github.com/go-redis/redis"
 	"github.com/labstack/echo"

@@ -1,7 +1,7 @@
 package rediscache_test
 
 import (
-	"github.com/aimeelaplant/comiccruncher/internal/rediscache"
+	"github.com/comiccruncher/comiccruncher/internal/rediscache"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )

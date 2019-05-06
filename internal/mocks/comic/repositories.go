@@ -5,7 +5,7 @@
 package mock_comic
 
 import (
-	comic "github.com/aimeelaplant/comiccruncher/comic"
+	comic "github.com/comiccruncher/comiccruncher/comic"
 	pg "github.com/go-pg/pg"
 	orm "github.com/go-pg/pg/orm"
 	gomock "github.com/golang/mock/gomock"

@@ -3,7 +3,7 @@ package comic
 import (
 	"errors"
 	"fmt"
-	"github.com/aimeelaplant/comiccruncher/internal/log"
+	"github.com/comiccruncher/comiccruncher/internal/log"
 	"github.com/go-redis/redis"
 	"go.uber.org/zap"
 )

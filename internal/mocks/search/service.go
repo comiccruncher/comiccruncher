@@ -5,7 +5,7 @@
 package mock_search
 
 import (
-	comic "github.com/aimeelaplant/comiccruncher/comic"
+	comic "github.com/comiccruncher/comiccruncher/comic"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )

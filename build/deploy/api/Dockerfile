@@ -9,7 +9,7 @@ RUN curl https://raw.githubusercontent.com/golang/dep/v0.5.0/install.sh | sh
 
 ENV GOPATH /go/
 
-WORKDIR /go/src/github.com/aimeelaplant/comiccruncher
+WORKDIR /go/src/github.com/comiccruncher/comiccruncher
 
 COPY . .
 

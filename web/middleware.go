@@ -2,7 +2,7 @@ package web
 
 import (
 	"errors"
-	"github.com/aimeelaplant/comiccruncher/internal/log"
+	"github.com/comiccruncher/comiccruncher/internal/log"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/labstack/echo"
 	"go.uber.org/zap"

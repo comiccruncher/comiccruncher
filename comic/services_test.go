@@ -2,11 +2,11 @@ package comic_test
 
 import (
 	"fmt"
-	"github.com/aimeelaplant/comiccruncher/comic"
-	"github.com/aimeelaplant/comiccruncher/imaging"
-	"github.com/aimeelaplant/comiccruncher/internal/mocks/comic"
-	"github.com/aimeelaplant/comiccruncher/internal/mocks/imaging"
-	"github.com/aimeelaplant/comiccruncher/internal/pgo"
+	"github.com/comiccruncher/comiccruncher/comic"
+	"github.com/comiccruncher/comiccruncher/imaging"
+	"github.com/comiccruncher/comiccruncher/internal/mocks/comic"
+	"github.com/comiccruncher/comiccruncher/internal/mocks/imaging"
+	"github.com/comiccruncher/comiccruncher/internal/pgo"
 	"github.com/go-redis/redis"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"

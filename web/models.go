@@ -2,7 +2,7 @@ package web
 
 import (
 	"encoding/json"
-	"github.com/aimeelaplant/comiccruncher/comic"
+	"github.com/comiccruncher/comiccruncher/comic"
 	"os"
 )
 

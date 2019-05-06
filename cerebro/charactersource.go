@@ -2,9 +2,9 @@ package cerebro
 
 import (
 	"errors"
-	"github.com/aimeelaplant/comiccruncher/comic"
-	"github.com/aimeelaplant/comiccruncher/internal/log"
-	"github.com/aimeelaplant/comiccruncher/internal/stringutil"
+	"github.com/comiccruncher/comiccruncher/comic"
+	"github.com/comiccruncher/comiccruncher/internal/log"
+	"github.com/comiccruncher/comiccruncher/internal/stringutil"
 	"github.com/aimeelaplant/externalissuesource"
 	"go.uber.org/zap"
 	"strings"

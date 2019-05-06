@@ -90,8 +90,7 @@ docker-test:
 
 # Just run the database tests.
 .PHONY: docker-test-db
-docker-test-db:
-	${DOCKER_RUN_TEST} go test -v github.com/aimeelaplant/comiccruncher/comic/ github.com/aimeelaplant/comiccruncher/search/
+	${DOCKER_RUN_TEST} go test -v github.com/comiccruncher/comiccruncher/comic/ github.com/comiccruncher/comiccruncher/search/
 
 # Install the docker images and Go dependencies.
 .PHONY: docker-install

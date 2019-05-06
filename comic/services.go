@@ -2,8 +2,8 @@ package comic
 
 import (
 	"fmt"
-	"github.com/aimeelaplant/comiccruncher/imaging"
-	"github.com/aimeelaplant/comiccruncher/internal/log"
+	"github.com/comiccruncher/comiccruncher/imaging"
+	"github.com/comiccruncher/comiccruncher/internal/log"
 	"github.com/go-pg/pg"
 	"go.uber.org/zap"
 	"strconv"

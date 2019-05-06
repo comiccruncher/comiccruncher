@@ -5,8 +5,8 @@
 package mock_cerebro
 
 import (
-	cerebro "github.com/aimeelaplant/comiccruncher/cerebro"
-	comic "github.com/aimeelaplant/comiccruncher/comic"
+	cerebro "github.com/comiccruncher/comiccruncher/cerebro"
+	comic "github.com/comiccruncher/comiccruncher/comic"
 	gomock "github.com/golang/mock/gomock"
 	reflect "reflect"
 )
