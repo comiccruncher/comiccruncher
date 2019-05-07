@@ -23,7 +23,7 @@ services:
       - ./build/docker/redis/data/:/data
       - ./build/docker/redis/redis.conf:/usr/local/etc/redis/redis.conf
   comiccruncher:
-    working_dir: /gocode/src/github.com/comiccruncher/comiccruncher
+    working_dir: /app/comiccruncher
     container_name: comiccruncher_backend
     ports:
       - "8001:8001"
@@ -31,9 +31,11 @@ services:
       context: .
       dockerfile: Dockerfile
     volumes:
-      - ./:/gocode/src/github.com/comiccruncher/comiccruncher
+      - ./:/app/comiccruncher
       - ./.netrc:/root/.netrc
+      - ${GOPATH}/pkg/mod:/gocode/pkg/mod
     environment:
+      - "GO11MODULE=on"
       - "CC_AUTH_KEY=${CC_AUTH_KEY:-test}"
       - "CC_CDN_URL=${CC_CDN_URL}"
       - "CC_ENVIRONMENT=${CC_ENVIRONMENT:-development}"

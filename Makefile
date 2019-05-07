@@ -88,26 +88,17 @@ docker-stop-test:
 docker-test:
 	${DOCKER_RUN_TEST} go test -v $(shell ${DOCKER_RUN_TEST} go list ./... | grep -v ./cmd) -coverprofile=coverage.txt
 
-# Just run the database tests.
-.PHONY: docker-test-db
-	${DOCKER_RUN_TEST} go test -v github.com/comiccruncher/comiccruncher/comic/ github.com/comiccruncher/comiccruncher/search/
-
 # Install the docker images and Go dependencies.
 .PHONY: docker-install
-docker-install: docker-up docker-dep-ensure
+docker-install: docker-up docker-mod-download
 
-# Install the Go dependencies.
-.PHONY: dep-ensure
-dep-ensure:
-	dep ensure
+.PHONY:
+mod-download:
+	go mod download
 
-.PHONY: dep-ensure-update
-	dep ensure -update
-
-# Install the Go dependencies in the Docker container.
-.PHONY: docker-dep-ensure
-docker-dep-ensure:
-	${DOCKER_RUN} make dep-ensure
+.PHONY: docker-mod
+docker-mod-download:
+	${DOCKER_RUN} make mod-download
 
 # Format the files with `go fmt`.
 .PHONY: docker-format

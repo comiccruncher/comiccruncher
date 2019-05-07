@@ -6,14 +6,17 @@ RUN apk --update upgrade && \
     rm -rf /var/cache/apk/*
 
 ENV GOPATH /go/
+ENV CGO_ENABLED=0
 
-WORKDIR /go/src/github.com/comiccruncher/comiccruncher
+WORKDIR /app
 
 COPY . .
 
 RUN cp .netrc /root/.netrc
 
 RUN go mod download
+
+RUN rm -rf /root/.netrc
 
 RUN go build -o /usr/local/bin/webapp ./cmd/web/web.go
 

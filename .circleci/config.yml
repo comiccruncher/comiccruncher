@@ -38,11 +38,14 @@ workflows:
 jobs:
   test_and_build:
     machine: true
+    working_directory: ~/app/comiccruncher
+    environment:
+      GOPATH: ~/gocode/
     steps:
       - checkout
       - restore_cache:
           keys:
-            - vendor-{{ checksum "Gopkg.lock" }}
+            - gomod-{{ checksum "go.sum" }}
       - run:
           name: Build the test container.
           command: make docker-up-test
@@ -51,11 +54,11 @@ jobs:
           command: GITHUB_ACCESS_TOKEN=${GITHUB_ACCESS_TOKEN} make netrc > /dev/null
       - run:
           name: Install the dependencies.
-          command: make docker-dep-ensure
+          command: make docker-mod-download
       - save_cache:
-          key: vendor-{{ checksum "Gopkg.lock" }}
+          key: gomod-{{ checksum "go.sum" }}
           paths:
-            - "vendor"
+            - "~/gocode/pkg/mod"
       - run:
           name: Run database migrations for the test db.
           command: make docker-migrations-test
@@ -82,11 +85,14 @@ jobs:
             - "./build/deploy/api/bin"
   codecov:
     machine: true
+    working_directory: ~/app/comiccruncher
+    environment:
+      GOPATH: ~/comiccruncher/gocode/
     steps:
       - checkout
       - restore_cache:
           keys:
-            - vendor-{{ checksum "Gopkg.lock" }}
+            - gomod-{{ checksum "go.sum" }}
       - restore_cache:
           keys:
             - coverage-{{ .Branch }}-{{ .Revision }}
@@ -114,12 +120,15 @@ jobs:
           command: make remote-deploy-comic
   deploy_webapps:
       machine: true
+      working_directory: ~/app/comiccruncher
+      environment:
+        GOPATH: ~/comiccruncher/gocode/
       steps:
       - checkout
       - restore_cache:
           keys:
             - bin-{{ .Revision }}
-            - vendor-{{ checksum "Gopkg.lock" }}
+            - gomod-{{ checksum "go.sum" }}
       - add_ssh_keys:
             fingerprints:
               - "8f:f7:d9:2c:ee:0a:6c:86:c2:d9:55:3b:68:2a:ee:d8"

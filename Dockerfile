@@ -1,4 +1,4 @@
-FROM golang:1.11-alpine3.7
+FROM golang:1.11-alpine3.8
 
 RUN apk --update upgrade && \
     apk add curl tzdata ca-certificates git make && \
@@ -10,6 +10,7 @@ RUN go version
 RUN mkdir -p /gocode/
 
 ENV GOPATH /gocode/
+ENV CGO_ENABLED=0
 
 RUN go get github.com/golang/mock/gomock
 
