@@ -87,7 +87,7 @@ jobs:
     machine: true
     working_directory: ~/app/comiccruncher
     environment:
-      GOPATH: ~/comiccruncher/gocode/
+      GOPATH: ~/gocode/
     steps:
       - checkout
       - restore_cache:
@@ -122,7 +122,7 @@ jobs:
       machine: true
       working_directory: ~/app/comiccruncher
       environment:
-        GOPATH: ~/comiccruncher/gocode/
+        GOPATH: ~/gocode/
       steps:
       - checkout
       - restore_cache:
