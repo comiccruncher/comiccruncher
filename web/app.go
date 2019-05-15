@@ -51,6 +51,7 @@ func (a App) Run(port string) error {
 		ContentTypeNosniff: "nosniff",
 		XFrameOptions:      "SAMEORIGIN",
 		HSTSMaxAge:         31536000,
+		HSTSPreloadEnabled: true,
 	}))
 	// TODO: Use when ready.
 	// e.POST("/authenticate", a.authCtrlr.Authenticate)
