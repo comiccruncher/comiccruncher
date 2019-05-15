@@ -7,7 +7,7 @@ import (
 	"github.com/comiccruncher/comiccruncher/internal/mocks/search"
 	"github.com/comiccruncher/comiccruncher/web"
 	"github.com/golang/mock/gomock"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net/http"

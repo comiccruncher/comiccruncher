@@ -3,7 +3,7 @@ package web_test
 import (
 	"github.com/comiccruncher/comiccruncher/comic"
 	"github.com/comiccruncher/comiccruncher/web"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net/http"

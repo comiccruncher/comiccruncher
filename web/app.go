@@ -6,8 +6,8 @@ import (
 	"github.com/comiccruncher/comiccruncher/search"
 	"github.com/go-pg/pg"
 	"github.com/go-redis/redis"
-	"github.com/labstack/echo"
-	"github.com/labstack/echo/middleware"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	"os"
 )
 

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"github.com/comiccruncher/comiccruncher/internal/log"
 	"github.com/dgrijalva/jwt-go"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
 	"net/http"
 	"os"

@@ -3,7 +3,7 @@ package web
 import (
 	"github.com/comiccruncher/comiccruncher/comic"
 	"github.com/comiccruncher/comiccruncher/search"
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 	"net/http"
 )
 
