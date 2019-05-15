@@ -53,9 +53,8 @@ func (a App) Run(port string) error {
 		HSTSMaxAge:         31536000,
 		HSTSPreloadEnabled: true,
 	}))
-	// TODO: Use when ready.
-	// e.POST("/authenticate", a.authCtrlr.Authenticate)
-	// jwtMiddleware := NewDefaultJWTMiddleware()
+
+	e.Use(ReferrerPolicyMiddleware("origin"))
 
 	// Stats
 	e.GET("/stats", a.statsCtrlr.Stats)

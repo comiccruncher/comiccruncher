@@ -49,6 +49,16 @@ func RequireCheapAuthentication(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
+// ReferrerPolicyMiddleware sets the `Referrer-Policy` header for the specified policy.
+func ReferrerPolicyMiddleware(policy string) echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			c.Response().Header().Set("Referrer-Policy", policy)
+			return next(c)
+		}
+	}
+}
+
 // ErrorHandler logs errors to the logger if there are any and sends the appropriate response back.
 func ErrorHandler(err error, ctx echo.Context) {
 	if err == nil {
