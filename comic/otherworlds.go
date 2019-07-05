@@ -92,6 +92,7 @@ var (
 		"Superman Red",
 		"Superman Blue",
 		"Superboy",
+		"Secret Identity",
 	}
 	// marvelAltUniverses defines the alternate universes of the MU.
 	// Unfortunately have to define all possible alternate universes versus just 616
@@ -192,6 +193,12 @@ var (
 		"Battleworld",
 		"Mesozic",
 		"(Earth",
+		"Age of X-Man",
+		"Spider-Man Unlimited",
+		"No More",
+		"Life Story",
+		"18th Century",
+		"Renew",
 	}
 	// marvelDisabledUniverses defines the universes that should be disabled for character sources.
 	marvelDisabledUniverses = []universeDefinition{

@@ -70,7 +70,7 @@ func (i *CharacterSourceImporter) createIfNotExists(c *comic.Character, l extern
 	if src != nil {
 		i.logger.Info(
 			"source already exists for character. skipping",
-			zap.String("source", src.VendorURL),
+			zap.String("source", src.VendorName),
 			zap.String("character", c.Slug.Value()))
 		return nil
 	}
