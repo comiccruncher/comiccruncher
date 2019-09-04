@@ -304,7 +304,7 @@ remote-deploy-comic:
 # Uploads the migrations binary to the remote server. Used for CircleCI.
 .PHONY: remote-upload-migrations
 remote-upload-migrations:
-	scp ./${MIGRATIONS_BIN} ${API_SERVER1}:~/bin
+	scp -r ./${MIGRATIONS_BIN} ${API_SERVER1}:~/bin
 
 # Runs migrations over the remote server. Used for CircleCI.
 .PHONY: remote-run-migrations

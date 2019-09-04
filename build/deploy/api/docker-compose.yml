@@ -20,4 +20,4 @@ services:
       - "CC_AUTH_TOKEN=${CC_AUTH_TOKEN}"
       - "CC_JWT_SIGNING_SECRET=${CC_JWT_SIGNING_SECRET:-default}"
       - "CC_JWT_AUTH_SECRET=${CC_JWT_AUTH_SECRET:-default}"
-volumes:
+
