@@ -2,8 +2,6 @@ version: "3.4"
 services:
   api:
     restart: always
-    depends_on:
-      - filebeat
     container_name: api
     image: 570480763436.dkr.ecr.us-east-1.amazonaws.com/comiccruncher/api:latest
     ports:
@@ -22,33 +20,4 @@ services:
       - "CC_AUTH_TOKEN=${CC_AUTH_TOKEN}"
       - "CC_JWT_SIGNING_SECRET=${CC_JWT_SIGNING_SECRET:-default}"
       - "CC_JWT_AUTH_SECRET=${CC_JWT_AUTH_SECRET:-default}"
-    logging:
-      options:
-        max-size: "25M"
-        max-file: "3"
-  filebeat:
-    command: ["--strict.perms=false"]
-    restart: always
-    user: root
-    container_name: filebeat
-    image: docker.elastic.co/beats/filebeat:6.5.4
-    volumes:
-    - /var/run/docker.sock:/var/run/docker.sock
-    - /var/lib/docker/containers:/var/lib/docker/containers:ro
-    - filebeat:/usr/share/filebeat/data
-    - ./filebeat.yml:/usr/share/filebeat/filebeat.yml
-    logging:
-      options:
-        max-size: "25M"
-        max-file: "3"
-    environment:
-      CC_ENVIRONMENT: "${CC_ENVIRONMENT:-production}"
-      HOSTNAME: "${HOSTNAME}"
-      ELASTIC_HOST: "10.136.103.144:9200"
-      ELASTIC_USER: "${CC_ELASTIC_USER}"
-      ELASTIC_PASSWORD: "${CC_ELASTIC_PASSWORD}"
-      KIBANA_HOST: "${CC_KIBANA_HOST}"
-      KIBANA_USER: "${CC_KIBANA_USER}"
-      KIBANA_PASSWORD: "${CC_KIBANA_PASSWORD}"
 volumes:
-  filebeat:

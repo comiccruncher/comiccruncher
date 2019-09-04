@@ -20,7 +20,6 @@ services:
     command: "/bin/sh -c 'while :; do sleep 12h & wait $${!}; nginx -s reload; done & nginx -g \"daemon off;\"'"
     depends_on:
       - certbot
-      - filebeat
     container_name: nginx
     restart: always
     image: nginx:1.15-alpine
@@ -38,30 +37,6 @@ services:
       options:
         max-size: "25M"
         max-file: "3"
-  filebeat:
-    command: ["--strict.perms=false"]
-    restart: always
-    user: root
-    container_name: filebeat
-    image: docker.elastic.co/beats/filebeat:6.5.4
-    volumes:
-    - /var/run/docker.sock:/var/run/docker.sock
-    - /var/lib/docker/containers:/var/lib/docker/containers:ro
-    - filebeat:/usr/share/filebeat/data
-    - ./filebeat.yml:/usr/share/filebeat/filebeat.yml
-    - nginx:/var/log/nginx
-    logging:
-      options:
-        max-size: "25M"
-        max-file: "3"
-    environment:
-      HOSTNAME: "${HOSTNAME}"
-      ELASTIC_HOST: "10.136.103.144:9200"
-      ELASTIC_USER: "${CC_ELASTIC_USER}"
-      ELASTIC_PASSWORD: "${CC_ELASTIC_PASSWORD}"
-      KIBANA_HOST: "${CC_KIBANA_HOST}"
-      KIBANA_USER: "${CC_KIBANA_USER}"
-      KIBANA_PASSWORD: "${CC_KIBANA_PASSWORD}"
 networks:
   nginx:
     driver: bridge
@@ -70,5 +45,4 @@ networks:
         - subnet: 172.25.0.0/24
 volumes:
   letsencrypt:
-  filebeat:
   nginx:
