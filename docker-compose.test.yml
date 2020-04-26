@@ -6,7 +6,7 @@ services:
     ports:
       - "5434:5432"
     volumes:
-      - ./build/docker/postgres-test/data:/tmp
+      - comiccruncher_test:/tmp
       - ./build/docker/postgres/postgresql.conf:/etc/postgresql.conf
     environment:
       POSTGRES_USER: root
@@ -25,3 +25,5 @@ services:
       - "CC_JWT_AUTH_SECRET=test1"
       - "CC_JWT_SIGNING_SECRET=test2"
       - "CC_AUTH_TOKEN=test"
+  volumes:
+    comiccruncher_test:

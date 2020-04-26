@@ -6,7 +6,7 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      - ./build/docker/postgres/data:/tmp
+      - comiccruncher:/tmp
       - ./build/docker/postgres/postgresql.conf:/etc/postgresql.conf
     environment:
       POSTGRES_USER: root
@@ -20,7 +20,7 @@ services:
       - "6380:6380"
     command: redis-server /usr/local/etc/redis/redis.conf
     volumes:
-      - ./build/docker/redis/data/:/data
+      - comiccruncher:/data
       - ./build/docker/redis/redis.conf:/usr/local/etc/redis/redis.conf
   comiccruncher:
     working_dir: /app/comiccruncher
@@ -32,27 +32,8 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ./:/app/comiccruncher
-      - ./.netrc:/root/.netrc
       - ${GOPATH}/pkg/mod:/gocode/pkg/mod
-    environment:
-      - "GO11MODULE=on"
-      - "CC_AUTH_KEY=${CC_AUTH_KEY:-test}"
-      - "CC_CDN_URL=${CC_CDN_URL}"
-      - "CC_ENVIRONMENT=${CC_ENVIRONMENT:-development}"
-      - "CC_REDIS_HOST=comiccruncher_redis"
-      - "CC_REDIS_PORT=6380"
-      - "CC_REDIS_PASSWORD=${CC_REDIS_PASSWORD:-foo}"
-      - "CC_POSTGRES_DEV_HOST=comiccruncher_postgres"
-      - "CC_POSTGRES_DEV_PORT=5432"
-      - "CC_POSTGRES_DEV_DB=comiccruncher_db"
-      - "CC_POSTGRES_DEV_USER=${CC_POSTGRES_DEV_USER:-root}"
-      - "CC_POSTGRES_DEV_PASSWORD=${CC_POSTGRES_DEV_PASSWORD:-root}"
-      - "CC_MARVEL_PUBLIC_KEY=${CC_MARVEL_PUBLIC_KEY}"
-      - "CC_MARVEL_PRIVATE_KEY=${CC_MARVEL_PRIVATE_KEY}"
-      - "CC_AWS_ACCESS_KEY_ID=${CC_AWS_ACCESS_KEY_ID}"
-      - "CC_AWS_SECRET_ACCESS_KEY=${CC_AWS_SECRET_ACCESS_KEY}"
-      - "CC_AWS_BUCKET=${CC_AWS_BUCKET}"
-      - "CC_AWS_REGION=${CC_AWS_REGION}"
-      - "CC_CB_SESSION_ID=${CC_CB_SESSION_ID}"
-      - "CC_CB_SESSION_ONE=${CC_CB_SESSION_ONE}"
-      - "CC_CB_SESSION_TWO=${CC_CB_SESSION_TWO}"
+    env_file:
+      - .env
+volumes:
+  comiccruncher:

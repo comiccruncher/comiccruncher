@@ -15,16 +15,16 @@ RUN go mod download
 
 COPY . .
 
-RUN go build -o /usr/local/bin/webapp ./cmd/web/web.go
+RUN go build -o /usr/local/bin/migrations ./cmd/migrations/migrations.go
 
-FROM alpine:3.11 AS app
+RUN go build -o /usr/local/bin/comic ./cmd/comic/comic.go
+
+RUN go build -o /usr/local/bin/cerebro ./cmd/cerebro/cerebro.go
+
+FROM alpine:3.11 AS tasks
 
 RUN apk add --update ca-certificates && \
     update-ca-certificates && \
     rm -rf /var/cache/apk/*
 
-COPY --from=builder /usr/local/bin/webapp /usr/local/bin/webapp
-
-CMD webapp start -p 8001
-
-EXPOSE 8001
+COPY --from=builder /usr/local/bin/* /usr/local/bin/

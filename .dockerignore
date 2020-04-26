@@ -1,0 +1,14 @@
+.circleci
+.github
+.git
+.gitattributes
+.idea
+bin
+coverage.txt
+.git
+.cache
+build/
+.gitattributes
+.DS_Store
+LICENSE.txt
+codecov.yml
