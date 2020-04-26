@@ -25,5 +25,5 @@ services:
       - "CC_JWT_AUTH_SECRET=test1"
       - "CC_JWT_SIGNING_SECRET=test2"
       - "CC_AUTH_TOKEN=test"
-  volumes:
-    comiccruncher_test:
+volumes:
+  comiccruncher_test:
