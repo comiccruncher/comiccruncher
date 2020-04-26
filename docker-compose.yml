@@ -35,5 +35,25 @@ services:
       - ${GOPATH}/pkg/mod:/gocode/pkg/mod
     env_file:
       - .env
+    environment:
+      - "CC_JWT_AUTH_SECRET=test1"
+      - "CC_JWT_SIGNING_SECRET=test2"
+      - "CC_AUTH_TOKEN=test"
+      - "CC_CDN_URL=${CC_CDN_URL}"
+      - "CC_ENVIRONMENT=development"
+      - "CC_POSTGRES_DEV_HOST=comiccruncher_postgres"
+      - "CC_POSTGRES_DEV_PORT=5432"
+      - "CC_POSTGRES_DEV_DB=comiccruncher_db"
+      - "CC_POSTGRES_DEV_USER=${CC_POSTGRES_DEV_USER:-root}"
+      - "CC_POSTGRES_DEV_PASSWORD=${CC_POSTGRES_DEV_PASSWORD:-root}"
+      - "CC_MARVEL_PUBLIC_KEY=${CC_MARVEL_PUBLIC_KEY}"
+      - "CC_MARVEL_PRIVATE_KEY=${CC_MARVEL_PRIVATE_KEY}"
+      - "CC_AWS_ACCESS_KEY_ID=${CC_AWS_ACCESS_KEY_ID}"
+      - "CC_AWS_SECRET_ACCESS_KEY=${CC_AWS_SECRET_ACCESS_KEY}"
+      - "CC_AWS_BUCKET=${CC_AWS_BUCKET}"
+      - "CC_AWS_REGION=${CC_AWS_REGION}"
+      - "CC_CB_SESSION_ID=${CC_CB_SESSION_ID}"
+      - "CC_CB_SESSION_ONE=${CC_CB_SESSION_ONE}"
+      - "CC_CB_SESSION_TWO=${CC_CB_SESSION_TWO}"
 volumes:
   comiccruncher:

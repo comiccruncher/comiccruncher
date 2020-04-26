@@ -3,7 +3,13 @@
 set -e
 
 eval $(~/.local/bin/aws ecr get-login --no-include-email)
+
 docker-compose pull
-HOSTNAME=${HOSTNAME} docker-compose up -d --build --remove-orphans
+
+docker run --rm --env-file=.env 570480763436.dkr.ecr.us-east-1.amazonaws.com/comiccruncher/tasks:latest migrations
+
+docker-compose up -d --build --remove-orphans
+
 docker system prune -af
+
 docker logout

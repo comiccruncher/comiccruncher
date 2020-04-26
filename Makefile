@@ -40,8 +40,6 @@ COMIC_CMD = ./cmd/comic/comic.go
 # The username and location to the api server (that's also the tasks server for now).
 LB_SERVER = aimee@206.189.188.214
 API_SERVER1 = aimee@68.183.132.127
-# disabled
-API_SERVER2 = aimee@198.199.91.173
 
 # Creates a .netrc file for access to private Github repository for cerebro.
 .PHONY: netrc
@@ -283,8 +281,11 @@ build-comic:
 .PHONY: remote-upload-deployfiles
 remote-upload-deployfiles:
 	scp -r .env ${LB_SERVER}:~/.
-	scp -r ./build/deploy/nginx ${LB_SERVER}:~/.
+	scp -r ./build/deploy/nginx/* ${LB_SERVER}:~/.
+	scp -r .env ${API_SERVER1}:~/.
+	scp -r ./build/deploy/api/* ${API_SERVER1}:~/.
 
 .PHONY: remote-deploy
-remote-deploy:
+remote-deploy: remote-upload-deployfiles
+	ssh ${API_SERVER1} "sh deploy.sh"
 	ssh ${LB_SERVER} "sh deploy.sh"

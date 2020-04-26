@@ -34,16 +34,6 @@ workflows:
               only: /^v.*/
             branches:
               ignore: /.*/
-      - deploy:
-          context: comiccruncher_deploy
-          requires:
-            - build_and_push_tasks
-            - build_and_push_api
-          filters:
-            tags:
-              only: /^v.*/
-            branches:
-              ignore: /.*/
 jobs:
   test_and_build:
     machine: true
@@ -123,16 +113,3 @@ jobs:
           command: |
             docker tag comiccruncher/api:latest 570480763436.dkr.ecr.us-east-1.amazonaws.com/comiccruncher/api:latest
             docker push 570480763436.dkr.ecr.us-east-1.amazonaws.com/comiccruncher/api:latest
-  deploy:
-    machine: true
-    steps:
-      - checkout
-      - add_ssh_keys:
-          fingerprints:
-            - "06:c5:51:61:f5:df:f2:bd:57:37:5d:b0:8c:39:81:be"
-      - run:
-          name: Upload deploy files.
-          command: make remote-upload-deployfiles
-      - run:
-          name: Run deploy scripts.
-          command: make remote-deploy

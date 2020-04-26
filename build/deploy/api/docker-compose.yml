@@ -6,6 +6,8 @@ services:
     image: 570480763436.dkr.ecr.us-east-1.amazonaws.com/comiccruncher/api:latest
     ports:
       - "8001:8001"
+    env_file:
+      - .env
     environment:
       - "CC_CDN_URL=${CC_CDN_URL}"
       - "CC_ENVIRONMENT=${CC_ENVIRONMENT:-production}"
@@ -20,4 +22,3 @@ services:
       - "CC_AUTH_TOKEN=${CC_AUTH_TOKEN}"
       - "CC_JWT_SIGNING_SECRET=${CC_JWT_SIGNING_SECRET:-default}"
       - "CC_JWT_AUTH_SECRET=${CC_JWT_AUTH_SECRET:-default}"
-
