@@ -335,7 +335,7 @@ func TestPGAppearanceRepositoryList(t *testing.T) {
 	list, err := apy.List("emma-frost-2")
 
 	assert.Nil(t, err)
-``	assert.Len(t, list.Aggregates, 42)
+	assert.Len(t, list.Aggregates, 42)
 
 	// Test for blanks.
 	bogus, err := apy.List("bogus")
