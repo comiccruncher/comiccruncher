@@ -18,7 +18,7 @@ workflows:
               only: /.*/
             tags:
               ignore: /^v.*/
-      - deploy_tasks:
+      - build_and_push_tasks:
           requires:
             - test_and_build
           filters:
@@ -26,10 +26,18 @@ workflows:
               only: /^v.*/
             branches:
               ignore: /.*/
-      - deploy_webapps:
-          context: comiccruncher
+      - build_and_push_api:
           requires:
             - test_and_build
+          filters:
+            tags:
+              only: /^v.*/
+            branches:
+              ignore: /.*/
+      - deploy:
+          requires:
+            - build_and_push_tasks
+            - build_and_push_api
           filters:
             tags:
               only: /^v.*/
@@ -50,9 +58,6 @@ jobs:
           name: Build the test container.
           command: make docker-up-test
       - run:
-          name: Generate the .netrc file for getting the private repository.
-          command: GITHUB_ACCESS_TOKEN=${GITHUB_ACCESS_TOKEN} make netrc > /dev/null
-      - run:
           name: Install the dependencies.
           command: make docker-mod-download
       - save_cache:
@@ -65,24 +70,16 @@ jobs:
       - run:
           name: Run the tests.
           command: make docker-test
-      - run:
-          name: Cleanup netrc
-          command: rm .netrc
       - save_cache:
           key: coverage-{{ .Branch }}-{{ .Revision }}
           paths:
             - "./coverage.txt"
       - run:
-          name: Build the build container.
-          command: make docker-up
+          name: Build the build images.
+          command: make docker-build-tasks
       - run:
           name: Build the application binaries
-          command: make docker-build-xcompile
-      - save_cache:
-          key: bin-{{ .Revision }}
-          paths:
-            - "./bin"
-            - "./build/deploy/api/bin"
+          command: make docker-build-webapp
   codecov:
     machine: true
     working_directory: ~/app/comiccruncher
@@ -99,44 +96,24 @@ jobs:
       - run:
           name: Code coverage
           command: bash <(curl -s https://codecov.io/bash) -t ${CODECOV_TOKEN} -f coverage.txt -X fix
-  deploy_tasks:
+  build_and_push_tasks:
     machine: true
     steps:
       - checkout
-      - restore_cache:
-          keys:
-            -  bin-{{ .Revision }}
-      - add_ssh_keys:
-          fingerprints:
-            - "8f:f7:d9:2c:ee:0a:6c:86:c2:d9:55:3b:68:2a:ee:d8"
-      - run:
-          name: Deploy migrations.
-          command: make remote-deploy-migrations
-      - run:
-          name: Deploy cerebro.
-          command: make remote-deploy-cerebro
-      - run:
-          name: Deploy comic.
-          command: make remote-deploy-comic
-  deploy_webapps:
-      machine: true
-      working_directory: ~/app/comiccruncher
-      environment:
-        GOPATH: ~/gocode/
-      steps:
-      - checkout
-      - restore_cache:
-          keys:
-            - bin-{{ .Revision }}
-            - gomod-{{ checksum "go.sum" }}
-      - add_ssh_keys:
-            fingerprints:
-              - "8f:f7:d9:2c:ee:0a:6c:86:c2:d9:55:3b:68:2a:ee:d8"
-              - "06:c5:51:61:f5:df:f2:bd:57:37:5d:b0:8c:39:81:be"
       - aws-ecr/ecr-login
       - run:
-          name: Generate netrc
-          command: GITHUB_ACCESS_TOKEN=${GITHUB_ACCESS_TOKEN} make netrc > /dev/null
+          name: Build the Docker image for app tasks.
+          command: docker build -f ./build/deploy/api/Dockerfile -t comiccruncher/tasks:latest .
+      - run:
+          name: Push the image to the Docker repository.
+          command: |
+            docker tag comiccruncher/tasks:latest 570480763436.dkr.ecr.us-east-1.amazonaws.com/comiccruncher/tasks:latest
+            docker push 570480763436.dkr.ecr.us-east-1.amazonaws.com/comiccruncher/tasks:latest
+  build_and_push_api:
+    machine: true
+    steps:
+      - checkout
+      - aws-ecr/ecr-login
       - run:
           name: Build the Docker image
           command: docker build -f ./build/deploy/api/Dockerfile -t comiccruncher/api:latest .
@@ -145,6 +122,17 @@ jobs:
           command: |
             docker tag comiccruncher/api:latest 570480763436.dkr.ecr.us-east-1.amazonaws.com/comiccruncher/api:latest
             docker push 570480763436.dkr.ecr.us-east-1.amazonaws.com/comiccruncher/api:latest
+  deploy:
+    machine: true
+    steps:
+      - checkout
+      - add_ssh_keys:
+          fingerprints:
+            - "8f:f7:d9:2c:ee:0a:6c:86:c2:d9:55:3b:68:2a:ee:d8"
+            - "06:c5:51:61:f5:df:f2:bd:57:37:5d:b0:8c:39:81:be"
       - run:
-            name: Deploy webapp.
-            command: make remote-deploy-webapps
+          name: Upload deploy files.
+          command: make remote-upload-deployfiles
+      - run:
+          name: Run deploy scripts.
+          command: make remote-deploy

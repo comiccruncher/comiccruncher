@@ -176,11 +176,26 @@ docker-build-webapp-xcompile:
 build-webapp:
 	 go build -o ./build/deploy/api/bin/webapp ${WEB_CMD}
 
-docker-docker-build-webapp:
-	docker build ./build/deploy/api -t comiccruncher/api:latest
+docker-build-webapp:
+	docker build -f ./build/deploy/api/Dockerfile . -t comiccruncher/api:latest
 
 docker-docker-push-webapp:
 	docker push comiccruncher/api:latest
+
+docker-build-tasks:
+	docker build -f ./build/deploy/tasks/Dockerfile . -t comiccruncher/tasks:latest
+
+docker-push-tasks:
+	docker push ${DOCKER_REPO}comiccruncher/tasks:latest
+
+docker-run-migrations:
+	docker run --env-file=.env comiccruncher/tasks:latest migrations
+
+docker-run-cerebro:
+	docker run --env-file=.env comiccruncher/tasks:latest cerebro ${F}
+
+docker-run-comic:
+	docker run --env-file=.env comiccruncher/tasks:latest comic ${F}
 
 # Run the web application.
 .PHONY: web
@@ -232,10 +247,6 @@ docker-import-characters:
 docker-generate-thumbs:
 	${DOCKER_RUN} go run ${COMIC_CMD} generate thumbs ${EXTRA_FLAGS}
 
-.PHONY: queue-characters
-queue-characters:
-	go run -race cmd/queuecharacters.go
-
 # Generate mocks for testing.
 .PHONY: mockgen
 mockgen:
@@ -259,95 +270,21 @@ docker-mockgen:
 build-migrations:
 	go build -o ./bin/migrations -v ${MIGRATIONS_CMD}
 
-# Builds the migrations binary inside the Docker container.
-.PHONY: docker-build-migrations-xcompile
-docker-build-migrations-xcompile:
-	${DOCKER_RUN_XCOMPILE} make build-migrations
-
 # Builds the cerebro binary.
 .PHONY: build-cerebro
 build-cerebro:
 	go build -o ./bin/cerebro -v ${CEREBRO_CMD}
-
-# Builds the cerebro binary inside the Docker container.
-.PHONY: docker-build-cerebro-xcompile
-docker-build-cerebro-xcompile:
-	${DOCKER_RUN_XCOMPILE} make build-cerebro
 
 # Builds the comic commands.
 .PHONY: build-comic
 build-comic:
 	go build -o ./bin/comic -v ${COMIC_CMD}
 
-# Builds the comic commands inside the Docker container.
-docker-build-comic-xcompile:
-	${DOCKER_RUN_XCOMPILE} make build-comic
+.PHONY: remote-upload-deployfiles
+remote-upload-deployfiles:
+	scp -r .env ${LB_SERVER}:~/.
+	scp -r ./build/deploy/nginx ${LB_SERVER}:~/.
 
-# Builds all the app binaries in the Docker contaner.
-.PHONY: docker-build-xcompile
-docker-build-xcompile: docker-build-migrations-xcompile docker-build-cerebro-xcompile docker-build-comic-xcompile
-
-# Uploads the cerebro binary to the remote server. Used for CircleCI.
-.PHONY: remote-upload-cerebro
-remote-upload-cerebro:
-	scp ./${CEREBRO_BIN} ${API_SERVER1}:~/bin
-
-# Uploads the cerebro binary to the remote server. Used for CircleCI.
-.PHONY: remote-deploy-cerebro
-remote-deploy-cerebro: remote-upload-cerebro
-
-# Uploads the comic binary to the remote server.
-.PHONY: remote-deploy-comic
-remote-deploy-comic:
-	scp ./${COMIC_BIN} ${API_SERVER1}:~/bin
-
-# Uploads the migrations binary to the remote server. Used for CircleCI.
-.PHONY: remote-upload-migrations
-remote-upload-migrations:
-	scp -r ./${MIGRATIONS_BIN} ${API_SERVER1}:~/bin
-
-# Runs migrations over the remote server. Used for CircleCI.
-.PHONY: remote-run-migrations
-remote-run-migrations:
-	ssh ${API_SERVER1} "bash -s" < ./build/migrations.sh
-
-# Uploads and runs migrations over the server. Used for CircleCI.
-.PHONY: remote-deploy-migrations
-remote-deploy-migrations: remote-upload-migrations remote-run-migrations
-
-# Uploads nginx config.
-.PHONY: remote-upload-nginx
-remote-upload-nginx:
-	scp -r ./build/deploy/nginx/* ${LB_SERVER}:~/
-
-# Uploads the reload.sh script.
-.PHONY: remote-upload-reload-script
-remote-upload-reload-script:
-	scp -r ./build/deploy/nginx/reload.sh ${LB_SERVER}:~/reload.sh
-
-.PHONY: remote-deploy-nginx-initial
-remote-deploy-nginx-initial: remote-upload-nginx
+.PHONY: remote-deploy
+remote-deploy:
 	ssh ${LB_SERVER} "sh deploy.sh"
-
-# Reloads nginx.
-.PHONY: docker-reload-nginx
-remote-reload-nginx:
-	ssh ${LB_SERVER} "sh reload.sh"
-
-# Uploads script and restarts nginx on server.
-.PHONY: remote-deploy-nginx
-remote-deploy-nginx: remote-upload-reload-script remote-reload-nginx
-
-remote-deploy-api:
-	scp -r ./build/deploy/api/* ${API_SERVER}:~/
-	ssh ${API_SERVER} "sh deploy.sh"
-
-remote-deploy-api1:
-	API_SERVER=${API_SERVER1} make remote-deploy-api
-
-remote-deploy-api2:
-	API_SERVER=${API_SERVER2} make remote-deploy-api
-
-remote-deploy-lb: remote-upload-nginx remote-reload-nginx
-
-remote-deploy-webapps: remote-deploy-api1 remote-deploy-lb

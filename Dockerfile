@@ -1,4 +1,4 @@
-FROM golang:1.11-alpine3.8
+FROM golang:1.12-alpine3.11
 
 RUN apk --update upgrade && \
     apk add curl tzdata ca-certificates git make && \

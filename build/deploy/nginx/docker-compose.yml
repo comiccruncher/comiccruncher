@@ -37,6 +37,14 @@ services:
       options:
         max-size: "25M"
         max-file: "3"
+  api:
+    image: 570480763436.dkr.ecr.us-east-1.amazonaws.com/comiccruncher/api:latest
+    env_file:
+      - .env
+    depends_on:
+      - nginx
+    restart: always
+    container_name: api
 networks:
   nginx:
     driver: bridge
