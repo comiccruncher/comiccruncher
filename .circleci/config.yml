@@ -102,8 +102,8 @@ jobs:
       - checkout
       - aws-ecr/ecr-login
       - run:
-          name: Build the Docker image for app tasks.
-          command: docker build -f ./build/deploy/api/Dockerfile -t comiccruncher/tasks:latest .
+          name: Build the Docker image for tasks.
+          command: docker build -f ./build/deploy/tasks/Dockerfile -t comiccruncher/tasks:latest .
       - run:
           name: Push the image to the Docker repository.
           command: |
